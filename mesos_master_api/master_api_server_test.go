@@ -8,11 +8,17 @@ import (
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"encoding/json"
+	"github.com/layer-x/layerx-commons/lxactionqueue"
+	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
 )
 
 var _ = Describe("MasterApiServer", func() {
+	actionQueue := lxactionqueue.NewActionQueue()
+	masterServer := NewMesosApiServer(actionQueue)
+	driver := driver.NewMesosTpiDriver(actionQueue)
 
-	go RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
+	go masterServer.RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
+	go driver.Run()
 
 	Describe("GET "+GET_MASTER_STATE, func() {
 		It("returns state of the faux master", func() {

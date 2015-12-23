@@ -5,6 +5,8 @@ import (
 "github.com/layer-x/layerx-commons/lxlog"
 "github.com/layer-x/layerx-commons/lxutils"
 	"fmt"
+	"github.com/layer-x/layerx-commons/lxactionqueue"
+	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
 )
 
 func main () {
@@ -32,11 +34,13 @@ func main () {
 	}
 	masterUpid := fmt.Sprintf("master@%s:%v", localip.String(), *port)
 
+	actionQueue := lxactionqueue.NewActionQueue()
+	driver := driver.NewMesosTpiDriver(actionQueue)
+
 	lxlog.Infof(logrus.Fields{
 		"port":          *port,
 		"layer-x-url":   *layerX,
 		"upid":    		masterUpid,
+		"driver":    		driver,
 	}, "Layerx Mesos TPI initialized...")
-
-
 }

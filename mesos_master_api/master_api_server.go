@@ -7,6 +7,7 @@ import (
 "net/http"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/handlers"
 	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxactionqueue"
 )
 
 const (
@@ -23,7 +24,17 @@ const (
 	REVIVE_OFFERS_MESSAGE                 = "/master/mesos.internal.ReviveOffersMessage"
 )
 
-func RunMasterServer(port int, masterUpid string, errc chan error) {
+type mesosApiServer struct {
+	actionQueue lxactionqueue.ActionQueue
+}
+
+func NewMesosApiServer(actionQueue lxactionqueue.ActionQueue) *mesosApiServer {
+	return &mesosApiServer{
+		actionQueue: actionQueue,
+	}
+}
+
+func (server *mesosApiServer) RunMasterServer(port int, masterUpid string, errc chan error) {
 	portStr := fmt.Sprintf(":%v", port)
 	lxlog.Infof(logrus.Fields{
 		"port": port,
@@ -32,29 +43,45 @@ func RunMasterServer(port int, masterUpid string, errc chan error) {
 	m := lxmartini.QuietMartini()
 
 	m.Get(GET_MASTER_STATE, func(res http.ResponseWriter) {
-		data, err := handlers.GetMesosState(masterUpid)
-		if err != nil {
+		datac := make(chan []byte)
+		server.actionQueue.Push(func(){
+			data, err := handlers.GetMesosState(masterUpid)
+			if err != nil {
+				errc <- lxerrors.New("retreiving master state", err)
+				return
+			}
+			datac <- data
+		})
+		select {
+		case data := <- datac:
+			res.Write(data)
+		case err := <- errc:
 			res.WriteHeader(500)
 			lxlog.Errorf(logrus.Fields{
 				"port": port,
 			}, "Retreiving master state: %s", err.Error())
-			errc <- lxerrors.New("retreiving master state", err)
-			return
 		}
-		res.Write(data)
 	})
 
 	m.Get(GET_MASTER_STATE_DEPRECATED, func(res http.ResponseWriter) {
-		data, err := handlers.GetMesosState(masterUpid)
-		if err != nil {
+		datac := make(chan []byte)
+		server.actionQueue.Push(func(){
+			data, err := handlers.GetMesosState(masterUpid)
+			if err != nil {
+				errc <- lxerrors.New("retreiving master state", err)
+				return
+			}
+			datac <- data
+		})
+		select {
+		case data := <- datac:
+			res.Write(data)
+		case err := <- errc:
 			res.WriteHeader(500)
 			lxlog.Errorf(logrus.Fields{
 				"port": port,
 			}, "Retreiving master state: %s", err.Error())
-			errc <- lxerrors.New("retreiving master state", err)
-			return
 		}
-		res.Write(data)
 	})
 
 
