@@ -1,4 +1,12 @@
 package mesos_data
+import (
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"strconv"
+"github.com/layer-x/layerx-commons/lxutils"
+	"net"
+"github.com/gogo/protobuf/proto"
+)
 
 type MesosState struct {
 	ActivatedSlaves int `json:"activated_slaves"`
@@ -131,4 +139,27 @@ type MesosState struct {
 	StartedTasks int `json:"started_tasks"`
 	UnregisteredFrameworks []interface{} `json:"unregistered_frameworks"`
 	Version string `json:"version"`
+}
+
+func (state *MesosState) ToMasterInfo() (*mesosproto.MasterInfo, error) {
+	upid, err := UPIDFromString(state.Leader)
+	if err != nil {
+		return nil, lxerrors.New("parsing upid from state.Leader", err)
+	}
+	port, err := strconv.Atoi(upid.Port)
+	if err != nil {
+		return nil, lxerrors.New("converting state.Port to int", err)
+	}
+	ipInt := lxutils.IpToI(net.ParseIP(upid.Host))
+	return &mesosproto.MasterInfo{
+		Id:   proto.String(state.ID),
+		Ip:   proto.Uint32(ipInt),
+		Port: proto.Uint32(uint32(port)),
+		Pid:  proto.String(state.Leader),
+		Address: &mesosproto.Address{
+			Hostname: proto.String(upid.Host),
+			Ip:       proto.String(upid.Host),
+			Port:     proto.Int(port),
+		},
+	}, nil
 }
