@@ -8,6 +8,10 @@ import (
 "github.com/gogo/protobuf/proto"
 )
 
+const (
+	MESOS_VERSION = "0.25.0"
+)
+
 type MesosState struct {
 	ActivatedSlaves int `json:"activated_slaves"`
 	BuildDate string `json:"build_date"`
