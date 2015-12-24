@@ -10,6 +10,10 @@ import (
 	"fmt"
 )
 
+type FrameworkManager interface {
+	NotifyFrameworkRegistered(string, string, *mesos_data.UPID) error
+}
+
 type frameworkManager struct {
 	masterUpid *mesos_data.UPID
 }
@@ -21,13 +25,9 @@ func NewFrameworkManager(masterUpid *mesos_data.UPID) *frameworkManager{
 }
 
 //notify a framework that it has successfully registered with the tpi
-func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, frameworkId, frameworkUpidString string) error {
+func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, frameworkId string, frameworkUpid *mesos_data.UPID) error {
 	if frameworkName == "" {
 		return lxerrors.New("framework must be named", nil)
-	}
-	frameworkUpid, err := mesos_data.UPIDFromString(frameworkUpidString)
-	if err != nil {
-		return lxerrors.New("converting upid string to upid struct", err)
 	}
 
 	masterState := &mesos_data.MesosState{

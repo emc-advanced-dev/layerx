@@ -22,9 +22,11 @@ var _ = Describe("FrameworkManager", func() {
 			fakeMasterUpid, err := mesos_data.UPIDFromString("fakemesos@127.0.0.1:3031")
 			Expect(err).To(BeNil())
 			frameworkManager := NewFrameworkManager(fakeMasterUpid)
+			frameworkUpid, err := mesos_data.UPIDFromString("fakeframework@127.0.0.1:3001")
+			Expect(err).To(BeNil())
 			err = frameworkManager.NotifyFrameworkRegistered("fakeframework",
 				"fake_framework_id",
-				"fakeframework@127.0.0.1:3001")
+				frameworkUpid)
 			Expect(err).To(BeNil())
 		})
 	})
