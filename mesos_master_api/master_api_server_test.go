@@ -11,23 +11,29 @@ import (
 	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
-"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
+	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
 )
 
 var _ = Describe("MasterApiServer", func() {
 	actionQueue := lxactionqueue.NewActionQueue()
 	fakeMasterUpid, _ := mesos_data.UPIDFromString("master@127.0.0.1:3031")
 	frameworkManager := framework_manager.NewFrameworkManager(fakeMasterUpid)
-	masterServer := NewMesosApiServer(actionQueue, frameworkManager)
+	fakeTpi := &layerx_tpi.LayerXTpi{
+		CoreURL: "127.0.0.1:34443",
+	}
+	masterServer := NewMesosApiServer(fakeTpi, actionQueue, frameworkManager)
 	driver := driver.NewMesosTpiDriver(actionQueue)
 
 	go masterServer.RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
 	go driver.Run()
 	go fakes.RunFakeFramework("fakeframework", 3001)
+	go core_fakes.RunFakeLayerXServer(nil, 34443)
 	lxlog.ActiveDebugMode()
 
-	Describe("GET "+GET_MASTER_STATE, func() {
+	Describe("GET " + GET_MASTER_STATE, func() {
 		It("returns state of the faux master", func() {
 			resp, data, err := lxhttpclient.Get("127.0.0.1:3031", GET_MASTER_STATE, nil)
 			Expect(err).To(BeNil())
@@ -39,7 +45,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(state.Leader).To(Equal("master@127.0.0.1:3031"))
 		})
 	})
-	Describe("GET "+GET_MASTER_STATE_DEPRECATED, func() {
+	Describe("GET " + GET_MASTER_STATE_DEPRECATED, func() {
 		It("returns state of the faux master", func() {
 			resp, data, err := lxhttpclient.Get("127.0.0.1:3031", GET_MASTER_STATE_DEPRECATED, nil)
 			Expect(err).To(BeNil())
@@ -51,7 +57,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(state.Leader).To(Equal("master@127.0.0.1:3031"))
 		})
 	})
-	Describe("POST {subscribe_call} "+MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {subscribe_call} " + MESOS_SCHEDULER_CALL, func() {
 		It("Queues ", func() {
 			fakeSubscribe := fakes.FakeSubscribeCall()
 			headers := map[string]string{

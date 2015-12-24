@@ -10,6 +10,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi"
 )
 
 func main () {
@@ -46,9 +47,12 @@ func main () {
 
 	actionQueue := lxactionqueue.NewActionQueue()
 	driver := driver.NewMesosTpiDriver(actionQueue)
-
 	frameworkManager := framework_manager.NewFrameworkManager(masterUpid)
-	masterServer := mesos_master_api.NewMesosApiServer(actionQueue, frameworkManager)
+	tpi := &layerx_tpi.LayerXTpi{
+		CoreURL: *layerX,
+	}
+
+	masterServer := mesos_master_api.NewMesosApiServer(tpi, actionQueue, frameworkManager)
 	errc := make(chan error)
 	go masterServer.RunMasterServer(*port, masterUpidString, errc)
 	go driver.Run()

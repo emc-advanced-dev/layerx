@@ -13,6 +13,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi"
 )
 
 const (
@@ -32,12 +33,14 @@ const (
 type mesosApiServer struct {
 	actionQueue lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
+	tpi *layerx_tpi.LayerXTpi
 }
 
-func NewMesosApiServer(actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServer {
+func NewMesosApiServer(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServer {
 	return &mesosApiServer{
 		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,
+		tpi: tpi,
 	}
 }
 
@@ -156,7 +159,7 @@ func (server *mesosApiServer) processMesosCall(data []byte, upid *mesos_data.UPI
 	switch callType {
 	case mesosproto.Call_SUBSCRIBE:
 		subscribe := call.Subscribe
-		err = handlers.HandleSubscribeRequest(server.frameworkManager, upid, subscribe)
+		err = handlers.HandleSubscribeRequest(server.tpi, server.frameworkManager, upid, subscribe)
 		if err != nil {
 			return lxerrors.New("processing subscribe request", err)
 		}
