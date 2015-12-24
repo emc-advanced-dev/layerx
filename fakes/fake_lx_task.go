@@ -2,7 +2,13 @@ package fakes
 import (
 "github.com/mesos/mesos-go/mesosproto"
 "github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
 )
+
+func FakeLXTask(taskId , taskName, slaveId, taskCommand string) *lxtypes.Task {
+	mesosTask := FakeMesosTask(taskId , taskName, slaveId, taskCommand)
+	return lxtypes.NewTaskFromMesos(mesosTask)
+}
 
 func FakeMesosTask(taskId , taskName, slaveId, taskCommand string) *mesosproto.TaskInfo {
 	return &mesosproto.TaskInfo{
