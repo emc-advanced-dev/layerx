@@ -10,15 +10,22 @@ import (
 	"encoding/json"
 	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
+	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
+"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
+"github.com/layer-x/layerx-commons/lxlog"
 )
 
 var _ = Describe("MasterApiServer", func() {
 	actionQueue := lxactionqueue.NewActionQueue()
-	masterServer := NewMesosApiServer(actionQueue)
+	fakeMasterUpid, _ := mesos_data.UPIDFromString("master@127.0.0.1:3031")
+	frameworkManager := framework_manager.NewFrameworkManager(fakeMasterUpid)
+	masterServer := NewMesosApiServer(actionQueue, frameworkManager)
 	driver := driver.NewMesosTpiDriver(actionQueue)
 
 	go masterServer.RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
 	go driver.Run()
+	go fakes.RunFakeFramework("fakeframework", 3001)
+	lxlog.ActiveDebugMode()
 
 	Describe("GET "+GET_MASTER_STATE, func() {
 		It("returns state of the faux master", func() {
@@ -46,14 +53,13 @@ var _ = Describe("MasterApiServer", func() {
 	})
 	Describe("POST {subscribe_call} "+MESOS_SCHEDULER_CALL, func() {
 		It("Queues ", func() {
-			resp, data, err := lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, nil, nil)
+			fakeSubscribe := fakes.FakeSubscribeCall()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, headers, fakeSubscribe)
 			Expect(err).To(BeNil())
-			var state mesos_data.MesosState
-			Expect(resp.StatusCode).To(Equal(200))
-			err = json.Unmarshal(data, &state)
-			Expect(err).To(BeNil())
-			Expect(state.Version).To(Equal("0.25.0"))
-			Expect(state.Leader).To(Equal("master@127.0.0.1:3031"))
+			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
 })
