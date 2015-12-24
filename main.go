@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
+	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
 )
 
 func main () {
@@ -32,15 +35,36 @@ func main () {
 			"error": err.Error(),
 		}, "retrieving local ip")
 	}
-	masterUpid := fmt.Sprintf("master@%s:%v", localip.String(), *port)
+	masterUpidString := fmt.Sprintf("master@%s:%v", localip.String(), *port)
+	masterUpid, err := mesos_data.UPIDFromString(masterUpidString)
+	if err != nil {
+		lxlog.Fatalf(logrus.Fields{
+			"error": err.Error(),
+			"masterUpidString": masterUpidString,
+		}, "generating master upid")
+	}
 
 	actionQueue := lxactionqueue.NewActionQueue()
 	driver := driver.NewMesosTpiDriver(actionQueue)
 
+	frameworkManager := framework_manager.NewFrameworkManager(masterUpid)
+	masterServer := mesos_master_api.NewMesosApiServer(actionQueue, frameworkManager)
+	errc := make(chan error)
+	go masterServer.RunMasterServer(*port, masterUpidString, errc)
+	go driver.Run()
+
 	lxlog.Infof(logrus.Fields{
 		"port":          *port,
 		"layer-x-url":   *layerX,
-		"upid":    		masterUpid,
+		"upid":            masterUpidString,
 		"driver":    		driver,
 	}, "Layerx Mesos TPI initialized...")
+
+	err = <- errc
+	if err != nil {
+		lxlog.Fatalf(logrus.Fields{
+			"error": err.Error(),
+		}, "Mesos server failed")
+	}
+
 }
