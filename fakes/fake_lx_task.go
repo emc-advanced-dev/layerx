@@ -1,16 +1,17 @@
 package fakes
+
 import (
-"github.com/mesos/mesos-go/mesosproto"
-"github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
-func FakeLXTask(taskId , taskName, slaveId, taskCommand string) *lxtypes.Task {
-	mesosTask := FakeMesosTask(taskId , taskName, slaveId, taskCommand)
+func FakeLXTask(taskId, taskName, slaveId, taskCommand string) *lxtypes.Task {
+	mesosTask := FakeMesosTask(taskId, taskName, slaveId, taskCommand)
 	return lxtypes.NewTaskFromMesos(mesosTask)
 }
 
-func FakeMesosTask(taskId , taskName, slaveId, taskCommand string) *mesosproto.TaskInfo {
+func FakeMesosTask(taskId, taskName, slaveId, taskCommand string) *mesosproto.TaskInfo {
 	return &mesosproto.TaskInfo{
 		Name: proto.String(taskName),
 		TaskId: &mesosproto.TaskID{
@@ -26,7 +27,6 @@ func FakeMesosTask(taskId , taskName, slaveId, taskCommand string) *mesosproto.T
 		},
 	}
 }
-
 
 func fakeMesosResources() []*mesosproto.Resource {
 	var scalarType = mesosproto.Value_SCALAR

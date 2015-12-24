@@ -1,7 +1,8 @@
 package fakes
+
 import (
-"github.com/mesos/mesos-go/mesosproto"
-"github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 func FakeTaskStatus(taskId string, fakeState mesosproto.TaskState) *mesosproto.TaskStatus {

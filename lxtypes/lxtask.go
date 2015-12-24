@@ -1,13 +1,14 @@
 package lxtypes
+
 import (
-"github.com/mesos/mesos-go/mesosproto"
-"github.com/gogo/protobuf/proto"
 	"encoding/json"
+	"github.com/gogo/protobuf/proto"
+	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/mesosutil"
 )
 
 const (
-	task_provider_key = "layerx_mesos_tpi_task_provider_key"
+	task_provider_key  = "layerx_mesos_tpi_task_provider_key"
 	current_status_key = "layerx_mesos_tpi_current_status_key"
 	kill_requested_key = "layerx_mesos_tpi_kill_requested_key"
 	launched_key       = "layerx_mesos_tpi_launched_key"
@@ -19,7 +20,7 @@ type portRange struct {
 }
 
 type Task struct {
-	TaskProvider  *TaskProvider				`json:"task_provider"`
+	TaskProvider  *TaskProvider            `json:"task_provider"`
 	CurrentStatus *mesosproto.TaskStatus   `json:"current_status"`
 	Launched      bool                     `json:"launched"`
 	KillRequested bool                     `json:"kill_requested"`
@@ -58,11 +59,11 @@ func (t *Task) IsTerminated() bool {
 	}
 	state := t.CurrentStatus.GetState()
 	return (state == mesosproto.TaskState_TASK_KILLED ||
-	//		state == mesosproto.TaskState_TASK_ERROR ||
-	state == mesosproto.TaskState_TASK_FAILED ||
-	state == mesosproto.TaskState_TASK_FINISHED ||
-	state == mesosproto.TaskState_TASK_KILLED ||
-	state == mesosproto.TaskState_TASK_LOST)
+		//		state == mesosproto.TaskState_TASK_ERROR ||
+		state == mesosproto.TaskState_TASK_FAILED ||
+		state == mesosproto.TaskState_TASK_FINISHED ||
+		state == mesosproto.TaskState_TASK_KILLED ||
+		state == mesosproto.TaskState_TASK_LOST)
 }
 
 func (t *Task) ToMesos() *mesosproto.TaskInfo {

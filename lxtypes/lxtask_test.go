@@ -3,14 +3,14 @@ package lxtypes_test
 import (
 	. "github.com/layer-x/layerx-core_v2/lxtypes"
 
+	"github.com/layer-x/layerx-core_v2/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-core_v2/fakes"
 )
 
 var _ = Describe("Lxtask", func() {
-	Describe("NewTaskFromMesos()", func(){
-		It("converts back from a mesos task", func(){
+	Describe("NewTaskFromMesos()", func() {
+		It("converts back from a mesos task", func() {
 			mesosTask := fakes.FakeMesosTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			task := NewTaskFromMesos(mesosTask)
 			Expect(task.Command).To(Equal(mesosTask.Command))
@@ -20,8 +20,8 @@ var _ = Describe("Lxtask", func() {
 			Expect(task.SlaveId).To(Equal(mesosTask.GetSlaveId().GetValue()))
 		})
 	})
-	Describe("ToMesos()", func(){
-		It("converts to a mesos task", func(){
+	Describe("ToMesos()", func() {
+		It("converts to a mesos task", func() {
 			mesosTask := fakes.FakeMesosTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			//need this to add the extra labels
 			task := NewTaskFromMesos(mesosTask)

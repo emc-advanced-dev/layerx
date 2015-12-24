@@ -3,11 +3,11 @@ package layerx_tpi_test
 import (
 	. "github.com/layer-x/layerx-core_v2/layerx_tpi"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("LayerxTpi", func() {
@@ -22,42 +22,42 @@ var _ = Describe("LayerxTpi", func() {
 	lxTpi := LayerXTpi{
 		CoreURL: "127.0.0.1:12345",
 	}
-	Describe("RegisterTaskProvider", func(){
-		It("submits a new task provider to the LX Server", func(){
+	Describe("RegisterTaskProvider", func() {
+		It("submits a new task provider to the LX Server", func() {
 			taskProvider := &lxtypes.TaskProvider{
-				Id: "fake_task_provder_id",
+				Id:     "fake_task_provder_id",
 				Source: "taskprovider@tphost:port",
 			}
 			err := lxTpi.RegisterTaskProvider(taskProvider)
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("DeregisterTaskProvider", func(){
-		It("Requests the server to delete the task provider", func(){
+	Describe("DeregisterTaskProvider", func() {
+		It("Requests the server to delete the task provider", func() {
 			err := lxTpi.DeregisterTaskProvider("fake_task_provder_id")
 			Expect(err).To(BeNil())
 			err = lxTpi.DeregisterTaskProvider("fake_task_provder_id")
 			Expect(err).ToNot(BeNil())
 		})
 	})
-	Describe("GetTaskProviders", func(){
-		It("returns a list of registered task providers", func(){
+	Describe("GetTaskProviders", func() {
+		It("returns a list of registered task providers", func() {
 			taskProvider1 := &lxtypes.TaskProvider{
-				Id: "fake_task_provder_id_1",
+				Id:     "fake_task_provder_id_1",
 				Source: "taskprovider1@tphost:port",
 			}
 			err := lxTpi.RegisterTaskProvider(taskProvider1)
 			Expect(err).To(BeNil())
 
 			taskProvider2 := &lxtypes.TaskProvider{
-				Id: "fake_task_provder_id_2",
+				Id:     "fake_task_provder_id_2",
 				Source: "taskprovider2@tphost:port",
 			}
 			err = lxTpi.RegisterTaskProvider(taskProvider2)
 			Expect(err).To(BeNil())
 
 			taskProvider3 := &lxtypes.TaskProvider{
-				Id: "fake_task_provder_id_3",
+				Id:     "fake_task_provder_id_3",
 				Source: "taskprovider2@tphost:port",
 			}
 			err = lxTpi.RegisterTaskProvider(taskProvider3)
@@ -70,8 +70,8 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(taskProviders).To(ContainElement(taskProvider3))
 		})
 	})
-	Describe("GetStatusUpdates", func(){
-		It("returns a list of status updates", func(){
+	Describe("GetStatusUpdates", func() {
+		It("returns a list of status updates", func() {
 			statuses, err := lxTpi.GetStatusUpdates()
 			Expect(err).To(BeNil())
 			Expect(statuses).To(ContainElement(fakeStatus1))
@@ -79,21 +79,21 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(statuses).To(ContainElement(fakeStatus3))
 		})
 	})
-	Describe("SubmitTask", func(){
-		It("submits a task to the server", func(){
+	Describe("SubmitTask", func() {
+		It("submits a task to the server", func() {
 			fakeLxTask := fakes.FakeLXTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			err := lxTpi.SubmitTask(fakeLxTask)
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("KillTask", func(){
-		It("requests server to flag task with KillRequested", func(){
+	Describe("KillTask", func() {
+		It("requests server to flag task with KillRequested", func() {
 			err := lxTpi.KillTask("fake_task_id")
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("PurgeTask", func(){
-		It("requests server to flag remove the task from its database", func(){
+	Describe("PurgeTask", func() {
+		It("requests server to flag remove the task from its database", func() {
 			fakeLxTask := fakes.FakeLXTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			err := lxTpi.SubmitTask(fakeLxTask)
 			Expect(err).To(BeNil())

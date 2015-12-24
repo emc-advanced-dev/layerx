@@ -1,24 +1,25 @@
 package fakes
+
 import (
-	"github.com/go-martini/martini"
+	"encoding/json"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
+	"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
-"net/http"
-"io/ioutil"
-"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/Sirupsen/logrus"
-	"encoding/json"
+	"io/ioutil"
+	"net/http"
 )
 
 const (
-	RegisterTaskProvider = "/RegisterTaskProvider"
-	DeregisterTaskProvider   = "/DeregisterTaskProvider"
-	GetTaskProviders   = "/GetTaskProviders"
-	GetStatusUpdates   = "/GetStatusUpdates"
-	SubmitTask   = "/SubmitTask"
-	KillTask   = "/KillTask"
-	PurgeTask   = "/PurgeTask"
+	RegisterTaskProvider   = "/RegisterTaskProvider"
+	DeregisterTaskProvider = "/DeregisterTaskProvider"
+	GetTaskProviders       = "/GetTaskProviders"
+	GetStatusUpdates       = "/GetStatusUpdates"
+	SubmitTask             = "/SubmitTask"
+	KillTask               = "/KillTask"
+	PurgeTask              = "/PurgeTask"
 )
 
 func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
@@ -61,7 +62,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		tpid := params["task_provider_id"]
 		if _, ok := taskProviders[tpid]; !ok {
 			lxlog.Errorf(logrus.Fields{
-				"tpid":  tpid,
+				"tpid": tpid,
 			}, "task provider was not registered")
 			res.WriteHeader(400)
 			return
@@ -133,7 +134,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		taskid := params["task_id"]
 		if _, ok := tasks[taskid]; !ok {
 			lxlog.Errorf(logrus.Fields{
-				"tpid":  taskid,
+				"tpid": taskid,
 			}, "task was not submitted")
 			res.WriteHeader(400)
 			return
@@ -146,7 +147,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		taskid := params["task_id"]
 		if _, ok := tasks[taskid]; !ok {
 			lxlog.Errorf(logrus.Fields{
-				"tpid":  taskid,
+				"tpid": taskid,
 			}, "task was not submitted")
 			res.WriteHeader(400)
 			return

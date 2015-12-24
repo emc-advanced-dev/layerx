@@ -1,25 +1,26 @@
 package layerx_tpi
+
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"fmt"
-	"encoding/json"
 )
 
 type LayerXTpi struct {
-	CoreURL		string
+	CoreURL string
 }
 
 const (
-	RegisterTaskProvider = "/RegisterTaskProvider"
-	DeregisterTaskProvider   = "/DeregisterTaskProvider"
-	GetTaskProviders   = "/GetTaskProviders"
-	GetStatusUpdates   = "/GetStatusUpdates"
-	SubmitTask   = "/SubmitTask"
-	KillTask   = "/KillTask"
-	PurgeTask   = "/PurgeTask"
+	RegisterTaskProvider   = "/RegisterTaskProvider"
+	DeregisterTaskProvider = "/DeregisterTaskProvider"
+	GetTaskProviders       = "/GetTaskProviders"
+	GetStatusUpdates       = "/GetStatusUpdates"
+	SubmitTask             = "/SubmitTask"
+	KillTask               = "/KillTask"
+	PurgeTask              = "/PurgeTask"
 )
 
 //call this method when registering
@@ -121,7 +122,6 @@ func (tpi *LayerXTpi) KillTask(taskId string) error {
 //call this method to purge
 // a requested task from layer-x
 func (tpi *LayerXTpi) PurgeTask(taskId string) error {
-
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, PurgeTask+"/"+taskId, nil, nil)
 	if err != nil {
 		return lxerrors.New("Requesting Purge on task "+taskId+" to LayerX core server", err)
@@ -132,4 +132,3 @@ func (tpi *LayerXTpi) PurgeTask(taskId string) error {
 	}
 	return nil
 }
-
