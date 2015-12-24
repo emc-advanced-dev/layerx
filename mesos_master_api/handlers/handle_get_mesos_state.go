@@ -9,14 +9,11 @@ var (
 	empty = []byte{}
 )
 
-const (
-	MESOS_VERSION = "0.25.0"
-)
 
-func GetMesosState(masterUpid string) ([]byte, error) {
+func GetMesosState(masterUpidString string) ([]byte, error) {
 	state := &mesos_data.MesosState{
-		Version: MESOS_VERSION,
-		Leader: masterUpid,
+		Version: mesos_data.MESOS_VERSION,
+		Leader: masterUpidString,
 	}
 	data, err := json.Marshal(state)
 	if err != nil {
