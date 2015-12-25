@@ -12,8 +12,7 @@ import (
 )
 
 
-func HandleSubscribeRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, call *mesosproto.Call_Subscribe) error {
-	frameworkInfo := call.GetFrameworkInfo()
+func HandleRegisterRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, frameworkInfo *mesosproto.FrameworkInfo) error {
 	frameworkName := frameworkInfo.GetName()
 	frameworkId := frameworkInfo.GetId().GetValue()
 	if frameworkId == "" {

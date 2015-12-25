@@ -29,7 +29,7 @@ var _ = Describe("MasterApiServer", func() {
 
 	go masterServer.RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
 	go driver.Run()
-	go fakes.RunFakeFramework("fakeframework", 3001)
+	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	go core_fakes.RunFakeLayerXServer(nil, 34443)
 	lxlog.ActiveDebugMode()
 
@@ -58,7 +58,7 @@ var _ = Describe("MasterApiServer", func() {
 		})
 	})
 	Describe("POST {subscribe_call} " + MESOS_SCHEDULER_CALL, func() {
-		It("Queues ", func() {
+		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeSubscribe := fakes.FakeSubscribeCall()
 			headers := map[string]string{
 				"Libprocess-From": "fakeframework@127.0.0.1:3001",

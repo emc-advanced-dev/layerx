@@ -159,7 +159,7 @@ func (server *mesosApiServer) processMesosCall(data []byte, upid *mesos_data.UPI
 	switch callType {
 	case mesosproto.Call_SUBSCRIBE:
 		subscribe := call.Subscribe
-		err = handlers.HandleSubscribeRequest(server.tpi, server.frameworkManager, upid, subscribe)
+		err = handlers.HandleRegisterRequest(server.tpi, server.frameworkManager, upid, subscribe.GetFrameworkInfo())
 		if err != nil {
 			return lxerrors.New("processing subscribe request", err)
 		}
