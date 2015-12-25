@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("FrameworkManager", func() {
-	go fakes.RunFakeFramework("fakeframework", 3001)
+	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	lxlog.ActiveDebugMode()
 	time.Sleep(3 * time.Second)
 

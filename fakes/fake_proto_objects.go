@@ -34,3 +34,9 @@ func FakeFramework() *mesosproto.FrameworkInfo {
 		},
 	}
 }
+
+func FakeRegisterFrameworkMessage() *mesosproto.RegisterFrameworkMessage {
+	return &mesosproto.RegisterFrameworkMessage{
+		Framework: FakeFramework(),
+	}
+}

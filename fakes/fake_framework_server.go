@@ -12,7 +12,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 )
 
-func RunFakeFramework(frameworkid string, port int) {
+func RunFakeFrameworkServer(frameworkid string, port int) {
 
 	var offersRecieved = 0
 
