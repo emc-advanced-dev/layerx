@@ -30,6 +30,8 @@ const (
 	REVIVE_OFFERS_MESSAGE                 = "/master/mesos.internal.ReviveOffersMessage"
 )
 
+var empty = []byte{}
+
 type mesosApiServer struct {
 	actionQueue lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
@@ -44,7 +46,21 @@ func NewMesosApiServer(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.Acti
 	}
 }
 
-func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string, errc chan error) {
+func (server *mesosApiServer) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
+	datac := make(chan []byte)
+	statusCodec := make(chan int)
+	errc := make(chan error)
+	server.actionQueue.Push(
+	func(){
+		data, statusCode, err := f()
+		datac <- data
+		statusCodec <- statusCode
+		errc <- err
+	})
+	return <-datac, <-statusCodec, <-errc
+}
+
+func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string, driverErrc chan error) {
 	portStr := fmt.Sprintf(":%v", port)
 	lxlog.Infof(logrus.Fields{
 		"port": port,
@@ -53,51 +69,48 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 	m := lxmartini.QuietMartini()
 
 	m.Get(GET_MASTER_STATE, func(res http.ResponseWriter) {
-		datac := make(chan []byte)
-		server.actionQueue.Push(func(){
+		getStateFn := func() ([]byte, int, error) {
 			data, err := handlers.GetMesosState(masterUpidString)
 			if err != nil {
-				errc <- lxerrors.New("retreiving master state", err)
-				return
+				return empty, 500, lxerrors.New("retreiving master state", err)
 			}
-			datac <- data
-		})
-		select {
-		case data := <- datac:
-			res.Write(data)
-		case err := <- errc:
-			res.WriteHeader(500)
-			lxlog.Errorf(logrus.Fields{
-				"port": port,
-			}, "Retreiving master state: %s", err.Error())
+			return data, 200, nil
 		}
+		data, statusCode, err := server.queueOperation(getStateFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"request_sent_by": masterUpidString,
+			}, "Retreiving master state")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
 	})
 
 	m.Get(GET_MASTER_STATE_DEPRECATED, func(res http.ResponseWriter) {
-		datac := make(chan []byte)
-		server.actionQueue.Push(func(){
+		getStateFn := func() ([]byte, int, error) {
 			data, err := handlers.GetMesosState(masterUpidString)
 			if err != nil {
-				errc <- lxerrors.New("retreiving master state", err)
-				return
+				return empty, 500, lxerrors.New("retreiving master state", err)
 			}
-			datac <- data
-		})
-		select {
-		case data := <- datac:
-			res.Write(data)
-		case err := <- errc:
-			res.WriteHeader(500)
-			lxlog.Errorf(logrus.Fields{
-				"port": port,
-			}, "Retreiving master state: %s", err.Error())
+			return data, 200, nil
 		}
+		data, statusCode, err := server.queueOperation(getStateFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"request_sent_by": masterUpidString,
+			}, "Retreiving master state")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
 	})
 
 	m.Post(MESOS_SCHEDULER_CALL, func(res http.ResponseWriter, req *http.Request) {
-		statusCodec := make(chan int)
-		server.actionQueue.Push(func() {
-			body, err := ioutil.ReadAll(req.Body)
+		processMesosCallFn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
 				defer req.Body.Close()
 			}
@@ -105,37 +118,91 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
 				}, "could not read  MESOS_SCHEDULER_CALL request body")
-				statusCodec <- 500
-				errc <- lxerrors.New("could not read  MESOS_SCHEDULER_CALL request body", err)
-				return
+				return empty, 500, lxerrors.New("could not read  MESOS_SCHEDULER_CALL request body", err)
 			}
 			requestingFramework := req.Header.Get("Libprocess-From")
 			if requestingFramework == "" {
 				lxlog.Errorf(logrus.Fields{}, "missing required header: %s", "Libprocess-From")
-				statusCodec <- 400
-				return
+				return	empty, 400, nil
 			}
 			upid, err := mesos_data.UPIDFromString(requestingFramework)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
 				}, "could not parse pid of requesting framework")
-				statusCodec <- 500
-				errc <- lxerrors.New("could not parse pid of requesting framework", err)
-				return
+				return empty, 500, lxerrors.New("could not parse pid of requesting framework", err)
 			}
-			err = server.processMesosCall(body, upid)
+			err = server.processMesosCall(data, upid)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
 				}, "could not read process scheduler call request")
-				statusCodec <- 500
-				errc <- lxerrors.New("could not read process scheduler call request", err)
-				return
+				return empty, 500, lxerrors.New("could not read process scheduler call request", err)
 			}
-			statusCodec <- 202
-		})
-		res.WriteHeader(<-statusCodec)
+			return empty, 202, nil
+		}
+		_, statusCode, err := server.queueOperation(processMesosCallFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing mesos call message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	})
+
+	m.Post(REGISTER_FRAMEWORK_MESSAGE, func(res http.ResponseWriter, req *http.Request) {
+		registerFrameworkFn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not read  REGISTER_FRAMEWORK_MESSAGE request body")
+				return empty, 500, lxerrors.New("could not read  REGISTER_FRAMEWORK_MESSAGE request body", err)
+			}
+			requestingFramework := req.Header.Get("Libprocess-From")
+			if requestingFramework == "" {
+				lxlog.Errorf(logrus.Fields{}, "missing required header: %s", "Libprocess-From")
+				return empty, 400, nil
+			}
+			upid, err := mesos_data.UPIDFromString(requestingFramework)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not parse pid of requesting framework")
+				return empty, 500, lxerrors.New("could not parse pid of requesting framework", err)
+			}
+			var registerRequest mesosproto.RegisterFrameworkMessage
+			err = proto.Unmarshal(data, &registerRequest)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse data to protobuf msg Call", err)
+			}
+			err = handlers.HandleRegisterRequest(server.tpi, server.frameworkManager, upid, registerRequest.GetFramework())
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle register framework request")
+				return empty, 500, lxerrors.New("could not handle register framework request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := server.queueOperation(registerFrameworkFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing register framework message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
 	})
 
 		m.RunOnAddr(portStr)

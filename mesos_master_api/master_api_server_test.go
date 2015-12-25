@@ -68,4 +68,15 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST " + REGISTER_FRAMEWORK_MESSAGE, func() {
+		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
+			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", REGISTER_FRAMEWORK_MESSAGE, headers, fakeRegisterRequest)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 })
