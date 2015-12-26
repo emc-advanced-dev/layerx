@@ -51,6 +51,21 @@ func (tpi *LayerXTpi) DeregisterTaskProvider(tpId string) error {
 	return nil
 }
 
+//call this method to retrieve a
+//specific task provider for the id
+func (tpi *LayerXTpi) GetTaskProvider(tpid string) (*lxtypes.TaskProvider, error) {
+	taskProviders, err := tpi.GetTaskProviders()
+	if err != nil {
+		return nil, lxerrors.New("retrieving list of task providers", err)
+	}
+	for _, taskProvider := range taskProviders {
+		if taskProvider.Id == tpid {
+			return taskProvider, nil
+		}
+	}
+	return nil, lxerrors.New("task provider with id "+tpid+" not found", nil)
+}
+
 //call this method to retrieve a list of registered
 //task providers. e.g. before polling task providers
 //for pending tasks
@@ -69,7 +84,6 @@ func (tpi *LayerXTpi) GetTaskProviders() ([]*lxtypes.TaskProvider, error) {
 		return nil, lxerrors.New("unmarshalling json to []*lxtypes.TaskProvider", err)
 	}
 	return taskProviders, nil
-
 }
 
 //call this method to retrieve a list of

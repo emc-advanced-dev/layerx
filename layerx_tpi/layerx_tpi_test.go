@@ -40,6 +40,23 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(err).ToNot(BeNil())
 		})
 	})
+	Describe("GetTaskProvider(id)", func() {
+		It("returns the task provider for the id, or error if it does not exist", func() {
+			fakeTaskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provder_id_1",
+				Source: "taskprovider1@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+
+			taskProvider, err := lxTpi.GetTaskProvider("fake_task_provder_id_1")
+			Expect(err).To(BeNil())
+			Expect(taskProvider).To(Equal(fakeTaskProvider))
+			taskProvider2, err := lxTpi.GetTaskProvider("fake_task_provder_id_2")
+			Expect(err).NotTo(BeNil())
+			Expect(taskProvider2).To(BeNil())
+		})
+	})
 	Describe("GetTaskProviders", func() {
 		It("returns a list of registered task providers", func() {
 			taskProvider1 := &lxtypes.TaskProvider{
