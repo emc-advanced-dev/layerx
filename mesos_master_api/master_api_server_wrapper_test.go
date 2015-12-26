@@ -168,4 +168,15 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST " + REVIVE_OFFERS_MESSAGE, func() {
+		It("logs the request to debug (noop)", func() {
+			fakeReviveOffersMsg := fakes.FakeReviveOffersMessage("doesnt_matter_fwid")
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", REVIVE_OFFERS_MESSAGE, headers, fakeReviveOffersMsg)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 })

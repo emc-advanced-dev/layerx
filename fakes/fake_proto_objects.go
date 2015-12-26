@@ -172,3 +172,11 @@ func FakeStatusUpdateAcknowledgementMessage(frameworkId string, taskId string, s
 		Uuid: uuid,
 	}
 }
+
+func FakeReviveOffersMessage(frameworkId string) *mesosproto.ReviveOffersMessage {
+	return &mesosproto.ReviveOffersMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+	}
+}

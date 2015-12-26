@@ -318,7 +318,38 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		}
 		res.WriteHeader(statusCode)
 	}
-
+	reviveOffersHandler := func(req *http.Request, res http.ResponseWriter) {
+		logReviveOffersFn := func() ([]byte, int, error) {
+			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
+			if err != nil {
+				return empty, statusCode, lxerrors.New("parsing reviveOffers request", err)
+			}
+			var reviveOffersMessage mesosproto.ReviveOffersMessage
+			err = proto.Unmarshal(data, &reviveOffersMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not unmarshal data to reviveOffersMessage", err)
+			}
+			err = mesos_api_helpers.LogReviveOffersMessage(reviveOffersMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not log status update ack")
+				return empty, 500, lxerrors.New("calling log reviveOffersMessage handler", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(logReviveOffersFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "logging reviveOffersMessage")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
@@ -330,6 +361,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 	m.Post(RECONCILE_TASKS_MESSAGE, reconcileTasksMessageHandler)
 	m.Post(KILL_TASK_MESSAGE, killTaskMessageHandler)
 	m.Post(STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE, statusUpdateAckHandler)
+	m.Post(REVIVE_OFFERS_MESSAGE, reviveOffersHandler)
 	return m
 }
 
