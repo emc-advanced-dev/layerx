@@ -45,22 +45,8 @@ func NewMesosApiServerWrapper(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionque
 	}
 }
 
-func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
-	datac := make(chan []byte)
-	statusCodec := make(chan int)
-	errc := make(chan error)
-	wrapper.actionQueue.Push(
-	func(){
-		data, statusCode, err := f()
-		datac <- data
-		statusCodec <- statusCode
-		errc <- err
-	})
-	return <-datac, <-statusCodec, <-errc
-}
-
 func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, masterUpidString string, driverErrc chan error) *martini.ClassicMartini {
-	m.Get(GET_MASTER_STATE, func(res http.ResponseWriter) {
+	getMasterStateHandler := func(res http.ResponseWriter) {
 		getStateFn := func() ([]byte, int, error) {
 			data, err := mesos_api_helpers.GetMesosState(masterUpidString)
 			if err != nil {
@@ -78,29 +64,8 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			return
 		}
 		res.Write(data)
-	})
-
-	m.Get(GET_MASTER_STATE_DEPRECATED, func(res http.ResponseWriter) {
-		getStateFn := func() ([]byte, int, error) {
-			data, err := mesos_api_helpers.GetMesosState(masterUpidString)
-			if err != nil {
-				return empty, 500, lxerrors.New("retreiving master state", err)
-			}
-			return data, 200, nil
-		}
-		data, statusCode, err := wrapper.queueOperation(getStateFn)
-		if err != nil {
-			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"request_sent_by": masterUpidString,
-			}, "Retreiving master state")
-			driverErrc <- err
-			return
-		}
-		res.Write(data)
-	})
-
-	m.Post(MESOS_SCHEDULER_CALL, func(res http.ResponseWriter, req *http.Request) {
+	}
+	mesosSchedulerCallHandler := func(res http.ResponseWriter, req *http.Request) {
 		processMesosCallFn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
@@ -144,9 +109,8 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			return
 		}
 		res.WriteHeader(statusCode)
-	})
-
-	m.Post(REGISTER_FRAMEWORK_MESSAGE, func(res http.ResponseWriter, req *http.Request) {
+	}
+	registerFrameworkMessageHandler := func(res http.ResponseWriter, req *http.Request) {
 		registerFrameworkFn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
@@ -195,11 +159,29 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			return
 		}
 		res.WriteHeader(statusCode)
-	})
+	}
+
+
+	m.Get(GET_MASTER_STATE, getMasterStateHandler)
+	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
+	m.Post(MESOS_SCHEDULER_CALL, mesosSchedulerCallHandler)
+	m.Post(REGISTER_FRAMEWORK_MESSAGE, registerFrameworkMessageHandler)
 	return m
 }
 
-
+func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
+	datac := make(chan []byte)
+	statusCodec := make(chan int)
+	errc := make(chan error)
+	wrapper.actionQueue.Push(
+		func(){
+			data, statusCode, err := f()
+			datac <- data
+			statusCodec <- statusCode
+			errc <- err
+		})
+	return <-datac, <-statusCodec, <-errc
+}
 
 func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_data.UPID) error {
 	var call mesosproto.Call
