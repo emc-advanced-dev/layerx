@@ -14,6 +14,7 @@ import (
 
 type FrameworkManager interface {
 	NotifyFrameworkRegistered(string, string, *mesos_data.UPID) error
+	SendStatusUpdate(string, *mesos_data.UPID, *mesosproto.TaskStatus) error
 }
 
 type frameworkManager struct {

@@ -221,6 +221,39 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		}
 		res.WriteHeader(statusCode)
 	}
+	reconcileTasksMessageHandler := func(req *http.Request, res http.ResponseWriter) {
+		reconcileTasksFn := func() ([]byte, int, error) {
+			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
+			if err != nil {
+				return empty, statusCode, lxerrors.New("parsing reconcile tasks request", err)
+			}
+			var reconcileTasksMessage mesosproto.ReconcileTasksMessage
+			err = proto.Unmarshal(data, &reconcileTasksMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not unmarshal data to reconcile tasks", err)
+			}
+			err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, reconcileTasksMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle reconcile tasks request")
+				return empty, 500, lxerrors.New("could not handle reconcile tasks request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(reconcileTasksFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing launchTasks message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
@@ -229,6 +262,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 	m.Post(REREGISTER_FRAMEWORK_MESSAGE, reregisterFrameworkMessageHandler)
 	m.Post(UNREGISTER_FRAMEWORK_MESSAGE, unregisterFrameworkMessageHandler)
 	m.Post(LAUNCH_TASKS_MESSAGE, launchTasksMessageHandler)
+	m.Post(RECONCILE_TASKS_MESSAGE, reconcileTasksMessageHandler)
 	return m
 }
 
