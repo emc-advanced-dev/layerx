@@ -145,3 +145,15 @@ func FakeTaskStatus(taskId string, fakeState mesosproto.TaskState) *mesosproto.T
 		Message: proto.String("fake_message"),
 	}
 }
+
+
+func FakeKillTaskMessage(frameworkId string, taskId string) *mesosproto.KillTaskMessage {
+	return &mesosproto.KillTaskMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		TaskId: &mesosproto.TaskID{
+			Value: proto.String(taskId),
+		},
+	}
+}

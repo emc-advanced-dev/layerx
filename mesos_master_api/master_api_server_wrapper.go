@@ -247,13 +247,45 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing launchTasks message")
+			}, "processing reconcileTasks message")
 			driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
 	}
-
+	killTaskMessageHandler := func(req *http.Request, res http.ResponseWriter) {
+		reconcileTasksFn := func() ([]byte, int, error) {
+			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
+			if err != nil {
+				return empty, statusCode, lxerrors.New("parsing reconcile tasks request", err)
+			}
+			var killTaskMessage mesosproto.KillTaskMessage
+			err = proto.Unmarshal(data, &killTaskMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not unmarshal data to killTaskMessage", err)
+			}
+			taskId := killTaskMessage.GetTaskId().GetValue()
+			err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, taskId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle kill task request")
+				return empty, 500, lxerrors.New("could not handle kill task request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(reconcileTasksFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing kill task message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
@@ -263,6 +295,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 	m.Post(UNREGISTER_FRAMEWORK_MESSAGE, unregisterFrameworkMessageHandler)
 	m.Post(LAUNCH_TASKS_MESSAGE, launchTasksMessageHandler)
 	m.Post(RECONCILE_TASKS_MESSAGE, reconcileTasksMessageHandler)
+	m.Post(KILL_TASK_MESSAGE, killTaskMessageHandler)
 	return m
 }
 
