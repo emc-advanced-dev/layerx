@@ -3,7 +3,7 @@ import (
 "github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
 "net/http"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/handlers"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_api_helpers"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxactionqueue"
 "io/ioutil"
@@ -62,7 +62,7 @@ func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, erro
 func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, masterUpidString string, driverErrc chan error) *martini.ClassicMartini {
 	m.Get(GET_MASTER_STATE, func(res http.ResponseWriter) {
 		getStateFn := func() ([]byte, int, error) {
-			data, err := handlers.GetMesosState(masterUpidString)
+			data, err := mesos_api_helpers.GetMesosState(masterUpidString)
 			if err != nil {
 				return empty, 500, lxerrors.New("retreiving master state", err)
 			}
@@ -82,7 +82,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 
 	m.Get(GET_MASTER_STATE_DEPRECATED, func(res http.ResponseWriter) {
 		getStateFn := func() ([]byte, int, error) {
-			data, err := handlers.GetMesosState(masterUpidString)
+			data, err := mesos_api_helpers.GetMesosState(masterUpidString)
 			if err != nil {
 				return empty, 500, lxerrors.New("retreiving master state", err)
 			}
@@ -175,7 +175,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse data to protobuf msg Call", err)
 			}
-			err = handlers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
+			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -217,7 +217,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	switch callType {
 	case mesosproto.Call_SUBSCRIBE:
 		subscribe := call.Subscribe
-		err = handlers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
+		err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
 		if err != nil {
 			return lxerrors.New("processing subscribe request", err)
 		}

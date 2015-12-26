@@ -1,4 +1,4 @@
-package handlers
+package mesos_api_helpers
 import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxerrors"

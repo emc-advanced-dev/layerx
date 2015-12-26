@@ -1,4 +1,5 @@
-package handlers
+package mesos_api_helpers
+
 import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
