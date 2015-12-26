@@ -99,7 +99,15 @@ var _ = Describe("LayerxTpi", func() {
 	Describe("SubmitTask", func() {
 		It("submits a task to the server", func() {
 			fakeLxTask := fakes.FakeLXTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
-			err := lxTpi.SubmitTask(fakeLxTask)
+			err := lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
+			Expect(err).NotTo(BeNil())
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err = lxTpi.RegisterTaskProvider(taskProvider)
+			Expect(err).To(BeNil())
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
 			Expect(err).To(BeNil())
 		})
 	})
@@ -111,8 +119,14 @@ var _ = Describe("LayerxTpi", func() {
 	})
 	Describe("PurgeTask", func() {
 		It("requests server to flag remove the task from its database", func() {
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(taskProvider)
+			Expect(err).To(BeNil())
 			fakeLxTask := fakes.FakeLXTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
-			err := lxTpi.SubmitTask(fakeLxTask)
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
 			Expect(err).To(BeNil())
 			err = lxTpi.PurgeTask("fake_task_id")
 			Expect(err).To(BeNil())

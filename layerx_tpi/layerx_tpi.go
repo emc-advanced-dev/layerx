@@ -107,8 +107,8 @@ func (tpi *LayerXTpi) GetStatusUpdates() ([]*mesosproto.TaskStatus, error) {
 
 //call this method to submit
 // a requested task to layer-x
-func (tpi *LayerXTpi) SubmitTask(task *lxtypes.Task) error {
-	resp, _, err := lxhttpclient.Post(tpi.CoreURL, SubmitTask, nil, task)
+func (tpi *LayerXTpi) SubmitTask(tpid string, task *lxtypes.Task) error {
+	resp, _, err := lxhttpclient.Post(tpi.CoreURL, SubmitTask+"/"+tpid, nil, task)
 	if err != nil {
 		return lxerrors.New("POSTing Task to LayerX core server", err)
 	}

@@ -103,7 +103,15 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.Write(data)
 	})
 
-	m.Post(SubmitTask, func(res http.ResponseWriter, req *http.Request) {
+	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		tpid := params["task_provider_id"]
+		tp, ok := taskProviders[tpid]
+		if !ok {
+			lxlog.Errorf(logrus.Fields{
+				"tp_id":  tpid,
+			}, "task provider not found for tpid")
+			res.WriteHeader(500)
+		}
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
 			defer req.Body.Close()
@@ -126,6 +134,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
+		task.TaskProvider = tp
 		tasks[task.TaskId] = &task
 		res.WriteHeader(202)
 	})
