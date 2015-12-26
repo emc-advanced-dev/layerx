@@ -15,6 +15,8 @@ import (
 	"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi"
 	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"fmt"
 )
 
 var _ = Describe("MasterApiServer", func() {
@@ -24,10 +26,11 @@ var _ = Describe("MasterApiServer", func() {
 	fakeTpi := &layerx_tpi.LayerXTpi{
 		CoreURL: "127.0.0.1:34443",
 	}
-	masterServer := NewMesosApiServer(fakeTpi, actionQueue, frameworkManager)
+	masterServer := NewMesosApiServerWrapper(fakeTpi, actionQueue, frameworkManager)
 	driver := driver.NewMesosTpiDriver(actionQueue)
 
-	go masterServer.RunMasterServer(3031, "master@127.0.0.1:3031", make(chan error))
+	m := masterServer.WrapWithMesos(lxmartini.QuietMartini(), "master@127.0.0.1:3031", make(chan error))
+	go m.RunOnAddr(fmt.Sprintf(":3031"))
 	go driver.Run()
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	go core_fakes.RunFakeLayerXServer(nil, 34443)

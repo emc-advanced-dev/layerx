@@ -11,6 +11,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/layer-x/layerx-commons/lxmartini"
 )
 
 func main () {
@@ -52,9 +53,11 @@ func main () {
 		CoreURL: *layerX,
 	}
 
-	masterServer := mesos_master_api.NewMesosApiServer(tpi, actionQueue, frameworkManager)
+	masterServerWrapper := mesos_master_api.NewMesosApiServerWrapper(tpi, actionQueue, frameworkManager)
 	errc := make(chan error)
-	go masterServer.RunMasterServer(*port, masterUpidString, errc)
+	tpiServer := lxmartini.QuietMartini()
+	masterServerWrapper.WrapWithMesos(tpiServer, masterUpidString, errc)
+	go tpiServer.RunOnAddr(fmt.Sprintf(":%v",*port))
 	go driver.Run()
 
 	lxlog.Infof(logrus.Fields{

@@ -1,9 +1,7 @@
 package mesos_master_api
 import (
-"fmt"
 "github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxmartini"
 "net/http"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/handlers"
 	"github.com/layer-x/layerx-commons/lxerrors"
@@ -14,6 +12,7 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/go-martini/martini"
 )
 
 const (
@@ -32,25 +31,25 @@ const (
 
 var empty = []byte{}
 
-type mesosApiServer struct {
+type mesosApiServerWrapper struct {
 	actionQueue lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
 	tpi *layerx_tpi.LayerXTpi
 }
 
-func NewMesosApiServer(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServer {
-	return &mesosApiServer{
+func NewMesosApiServerWrapper(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
+	return &mesosApiServerWrapper{
 		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,
 		tpi: tpi,
 	}
 }
 
-func (server *mesosApiServer) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
+func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
 	datac := make(chan []byte)
 	statusCodec := make(chan int)
 	errc := make(chan error)
-	server.actionQueue.Push(
+	wrapper.actionQueue.Push(
 	func(){
 		data, statusCode, err := f()
 		datac <- data
@@ -60,14 +59,7 @@ func (server *mesosApiServer) queueOperation(f func() ([]byte, int, error)) ([]b
 	return <-datac, <-statusCodec, <-errc
 }
 
-func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string, driverErrc chan error) {
-	portStr := fmt.Sprintf(":%v", port)
-	lxlog.Infof(logrus.Fields{
-		"port": port,
-	}, "Master Server initialized")
-
-	m := lxmartini.QuietMartini()
-
+func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, masterUpidString string, driverErrc chan error) *martini.ClassicMartini {
 	m.Get(GET_MASTER_STATE, func(res http.ResponseWriter) {
 		getStateFn := func() ([]byte, int, error) {
 			data, err := handlers.GetMesosState(masterUpidString)
@@ -76,7 +68,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 			}
 			return data, 200, nil
 		}
-		data, statusCode, err := server.queueOperation(getStateFn)
+		data, statusCode, err := wrapper.queueOperation(getStateFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -96,7 +88,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 			}
 			return data, 200, nil
 		}
-		data, statusCode, err := server.queueOperation(getStateFn)
+		data, statusCode, err := wrapper.queueOperation(getStateFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -132,7 +124,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 				}, "could not parse pid of requesting framework")
 				return empty, 500, lxerrors.New("could not parse pid of requesting framework", err)
 			}
-			err = server.processMesosCall(data, upid)
+			err = wrapper.processMesosCall(data, upid)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -141,7 +133,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 			}
 			return empty, 202, nil
 		}
-		_, statusCode, err := server.queueOperation(processMesosCallFn)
+		_, statusCode, err := wrapper.queueOperation(processMesosCallFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -183,7 +175,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse data to protobuf msg Call", err)
 			}
-			err = handlers.HandleRegisterRequest(server.tpi, server.frameworkManager, upid, registerRequest.GetFramework())
+			err = handlers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -192,7 +184,7 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 			}
 			return empty, 202, nil
 		}
-		_, statusCode, err := server.queueOperation(registerFrameworkFn)
+		_, statusCode, err := wrapper.queueOperation(registerFrameworkFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -204,13 +196,12 @@ func (server *mesosApiServer) RunMasterServer(port int, masterUpidString string,
 		}
 		res.WriteHeader(statusCode)
 	})
-
-		m.RunOnAddr(portStr)
+	return m
 }
 
 
 
-func (server *mesosApiServer) processMesosCall(data []byte, upid *mesos_data.UPID) error {
+func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_data.UPID) error {
 	var call mesosproto.Call
 	err := proto.Unmarshal(data, &call)
 	if err != nil {
@@ -226,7 +217,7 @@ func (server *mesosApiServer) processMesosCall(data []byte, upid *mesos_data.UPI
 	switch callType {
 	case mesosproto.Call_SUBSCRIBE:
 		subscribe := call.Subscribe
-		err = handlers.HandleRegisterRequest(server.tpi, server.frameworkManager, upid, subscribe.GetFrameworkInfo())
+		err = handlers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
 		if err != nil {
 			return lxerrors.New("processing subscribe request", err)
 		}
