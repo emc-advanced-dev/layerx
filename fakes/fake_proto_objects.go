@@ -54,8 +54,6 @@ func FakeUnregisterFrameworkMessage() *mesosproto.UnregisterFrameworkMessage {
 	}
 }
 
-
-
 func FakeLaunchTasksMessage(frameworkId string) *mesosproto.LaunchTasksMessage {
 	fakeTask1 := FakeTask("fake_task_1")
 	fakeTask2 := FakeTask("fake_task_2")
@@ -135,5 +133,15 @@ func FakeResources() []*mesosproto.Resource {
 				Value: proto.Float64(0.1234),
 			},
 		},
+	}
+}
+
+func FakeTaskStatus(taskId string, fakeState mesosproto.TaskState) *mesosproto.TaskStatus {
+	return &mesosproto.TaskStatus{
+		TaskId: &mesosproto.TaskID{
+			Value: proto.String(taskId),
+		},
+		State:   &fakeState,
+		Message: proto.String("fake_message"),
 	}
 }

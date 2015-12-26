@@ -8,6 +8,8 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/mesos/mesos-go/mesosproto"
 	"fmt"
+	"time"
+"github.com/pborman/uuid"
 )
 
 type FrameworkManager interface {
@@ -48,6 +50,41 @@ func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, framew
 	resp, _, err := manager.sendMessage(frameworkUpid, frameworkRegisteredMsg, "/mesos.internal.FrameworkRegisteredMessage")
 	if err != nil {
 		return lxerrors.New("sending registered message to framework", err)
+	}
+	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
+		statusCode := fmt.Sprintf("%v", resp.StatusCode)
+		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
+	}
+	return nil
+}
+
+//send status update to framework
+func (manager *frameworkManager) SendStatusUpdate(frameworkId string, frameworkUpid *mesos_data.UPID, status *mesosproto.TaskStatus) error {
+	var executorId *mesosproto.ExecutorID
+	if status.GetExecutorId() != nil {
+		executorId = status.GetExecutorId()
+	}
+	var slaveId *mesosproto.SlaveID
+	if status.GetSlaveId() != nil {
+		slaveId = status.GetSlaveId()
+	}
+	statusUpdateUuid := uuid.New()
+	statusUpdateMessage := &mesosproto.StatusUpdateMessage{
+		Update: &mesosproto.StatusUpdate{
+			FrameworkId: &mesosproto.FrameworkID{
+				Value: proto.String(frameworkId),
+			},
+			ExecutorId: executorId,
+			SlaveId: slaveId,
+			Status:      status,
+			Timestamp:   proto.Float64(float64(time.Now().Unix())),
+			LatestState: status.State,
+			Uuid:        []byte(statusUpdateUuid),
+		},
+	}
+	resp, _, err := manager.sendMessage(frameworkUpid, statusUpdateMessage, "/mesos.internal.StatusUpdateMessage")
+	if err != nil {
+		return lxerrors.New("sending status update to framework", err)
 	}
 	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		statusCode := fmt.Sprintf("%v", resp.StatusCode)

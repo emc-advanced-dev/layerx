@@ -9,6 +9,7 @@ import (
 "github.com/layer-x/layerx-commons/lxlog"
 "github.com/layer-x/layerx-mesos-tpi_v2/fakes"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 var _ = Describe("FrameworkManager", func() {
@@ -27,6 +28,21 @@ var _ = Describe("FrameworkManager", func() {
 			err = frameworkManager.NotifyFrameworkRegistered("fakeframework",
 				"fake_framework_id",
 				frameworkUpid)
+			Expect(err).To(BeNil())
+		})
+	})
+	Describe("Send Status Update", func() {
+		It("sends a status update to the framework", func() {
+			fakeMasterUpid, err := mesos_data.UPIDFromString("fakemesos@127.0.0.1:3031")
+			Expect(err).To(BeNil())
+			frameworkManager := NewFrameworkManager(fakeMasterUpid)
+			frameworkUpid, err := mesos_data.UPIDFromString("fakeframework@127.0.0.1:3001")
+			Expect(err).To(BeNil())
+			fakeStatusUpdate := fakes.FakeTaskStatus("fake_task_1", mesosproto.TaskState_TASK_RUNNING)
+			err = frameworkManager.SendStatusUpdate(
+				"fake_framework_id",
+				frameworkUpid,
+				fakeStatusUpdate)
 			Expect(err).To(BeNil())
 		})
 	})
