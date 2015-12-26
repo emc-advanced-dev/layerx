@@ -149,7 +149,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing register framework message")
+			}, "processing reregister framework message")
 			driverErrc <- err
 			return
 		}
