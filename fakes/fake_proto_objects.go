@@ -40,3 +40,10 @@ func FakeRegisterFrameworkMessage() *mesosproto.RegisterFrameworkMessage {
 		Framework: FakeFramework(),
 	}
 }
+
+func FakeReregisterFrameworkMessage() *mesosproto.ReregisterFrameworkMessage {
+	return &mesosproto.ReregisterFrameworkMessage{
+		Framework: FakeFramework(),
+		Failover:  proto.Bool(true),
+	}
+}

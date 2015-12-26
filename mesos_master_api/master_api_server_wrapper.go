@@ -160,12 +160,63 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		}
 		res.WriteHeader(statusCode)
 	}
+	reregisterFrameworkMessageHandler := func(res http.ResponseWriter, req *http.Request) {
+		reregisterFrameworkFn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not read  REGISTER_FRAMEWORK_MESSAGE request body")
+				return empty, 500, lxerrors.New("could not read  REGISTER_FRAMEWORK_MESSAGE request body", err)
+			}
+			requestingFramework := req.Header.Get("Libprocess-From")
+			if requestingFramework == "" {
+				lxlog.Errorf(logrus.Fields{}, "missing required header: %s", "Libprocess-From")
+				return empty, 400, nil
+			}
+			upid, err := mesos_data.UPIDFromString(requestingFramework)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not parse pid of requesting framework")
+				return empty, 500, lxerrors.New("could not parse pid of requesting framework", err)
+			}
+			var reregisterRequest mesosproto.ReregisterFrameworkMessage
+			err = proto.Unmarshal(data, &reregisterRequest)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse data to protobuf msg Call", err)
+			}
+			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, reregisterRequest.GetFramework())
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle register framework request")
+				return empty, 500, lxerrors.New("could not handle register framework request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(reregisterFrameworkFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing register framework message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
 	m.Post(MESOS_SCHEDULER_CALL, mesosSchedulerCallHandler)
 	m.Post(REGISTER_FRAMEWORK_MESSAGE, registerFrameworkMessageHandler)
+	m.Post(REREGISTER_FRAMEWORK_MESSAGE, reregisterFrameworkMessageHandler)
 	return m
 }
 
