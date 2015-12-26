@@ -25,7 +25,7 @@ var _ = Describe("LayerxTpi", func() {
 	Describe("RegisterTaskProvider", func() {
 		It("submits a new task provider to the LX Server", func() {
 			taskProvider := &lxtypes.TaskProvider{
-				Id:     "fake_task_provder_id",
+				Id:     "fake_task_provider_id",
 				Source: "taskprovider@tphost:port",
 			}
 			err := lxTpi.RegisterTaskProvider(taskProvider)
@@ -34,25 +34,25 @@ var _ = Describe("LayerxTpi", func() {
 	})
 	Describe("DeregisterTaskProvider", func() {
 		It("Requests the server to delete the task provider", func() {
-			err := lxTpi.DeregisterTaskProvider("fake_task_provder_id")
+			err := lxTpi.DeregisterTaskProvider("fake_task_provider_id")
 			Expect(err).To(BeNil())
-			err = lxTpi.DeregisterTaskProvider("fake_task_provder_id")
+			err = lxTpi.DeregisterTaskProvider("fake_task_provider_id")
 			Expect(err).ToNot(BeNil())
 		})
 	})
 	Describe("GetTaskProvider(id)", func() {
 		It("returns the task provider for the id, or error if it does not exist", func() {
 			fakeTaskProvider := &lxtypes.TaskProvider{
-				Id:     "fake_task_provder_id_1",
+				Id:     "fake_task_provider_id_1",
 				Source: "taskprovider1@tphost:port",
 			}
 			err := lxTpi.RegisterTaskProvider(fakeTaskProvider)
 			Expect(err).To(BeNil())
 
-			taskProvider, err := lxTpi.GetTaskProvider("fake_task_provder_id_1")
+			taskProvider, err := lxTpi.GetTaskProvider("fake_task_provider_id_1")
 			Expect(err).To(BeNil())
 			Expect(taskProvider).To(Equal(fakeTaskProvider))
-			taskProvider2, err := lxTpi.GetTaskProvider("fake_task_provder_id_2")
+			taskProvider2, err := lxTpi.GetTaskProvider("fake_task_provider_id_2")
 			Expect(err).NotTo(BeNil())
 			Expect(taskProvider2).To(BeNil())
 		})
@@ -60,21 +60,21 @@ var _ = Describe("LayerxTpi", func() {
 	Describe("GetTaskProviders", func() {
 		It("returns a list of registered task providers", func() {
 			taskProvider1 := &lxtypes.TaskProvider{
-				Id:     "fake_task_provder_id_1",
+				Id:     "fake_task_provider_id_1",
 				Source: "taskprovider1@tphost:port",
 			}
 			err := lxTpi.RegisterTaskProvider(taskProvider1)
 			Expect(err).To(BeNil())
 
 			taskProvider2 := &lxtypes.TaskProvider{
-				Id:     "fake_task_provder_id_2",
+				Id:     "fake_task_provider_id_2",
 				Source: "taskprovider2@tphost:port",
 			}
 			err = lxTpi.RegisterTaskProvider(taskProvider2)
 			Expect(err).To(BeNil())
 
 			taskProvider3 := &lxtypes.TaskProvider{
-				Id:     "fake_task_provder_id_3",
+				Id:     "fake_task_provider_id_3",
 				Source: "taskprovider2@tphost:port",
 			}
 			err = lxTpi.RegisterTaskProvider(taskProvider3)
@@ -87,13 +87,31 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(taskProviders).To(ContainElement(taskProvider3))
 		})
 	})
-	Describe("GetStatusUpdates", func() {
-		It("returns a list of status updates", func() {
-			statuses, err := lxTpi.GetStatusUpdates()
+	Describe("GetStatusUpdates(TPID)", func() {
+		It("returns a list of status updates for the task provider", func() {
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(taskProvider)
+			Expect(err).To(BeNil())
+			fakeLxTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
+			Expect(err).To(BeNil())
+			fakeLxTask = fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
+			Expect(err).To(BeNil())
+			fakeLxTask = fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
+			Expect(err).To(BeNil())
+			Expect(err).To(BeNil())
+			statuses, err := lxTpi.GetStatusUpdates("fake_task_provider_id")
 			Expect(err).To(BeNil())
 			Expect(statuses).To(ContainElement(fakeStatus1))
 			Expect(statuses).To(ContainElement(fakeStatus2))
 			Expect(statuses).To(ContainElement(fakeStatus3))
+			err = lxTpi.DeregisterTaskProvider("fake_task_provider_id")
+			Expect(err).To(BeNil())
 		})
 	})
 	Describe("SubmitTask", func() {

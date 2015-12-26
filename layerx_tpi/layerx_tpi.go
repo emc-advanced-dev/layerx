@@ -88,9 +88,10 @@ func (tpi *LayerXTpi) GetTaskProviders() ([]*lxtypes.TaskProvider, error) {
 
 //call this method to retrieve a list of
 // the most recent status updates for tasks
-func (tpi *LayerXTpi) GetStatusUpdates() ([]*mesosproto.TaskStatus, error) {
+//from the specified task provider
+func (tpi *LayerXTpi) GetStatusUpdates(tpid string) ([]*mesosproto.TaskStatus, error) {
 	statusUpdates := []*mesosproto.TaskStatus{}
-	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetStatusUpdates, nil)
+	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetStatusUpdates+"/"+tpid, nil)
 	if err != nil {
 		return nil, lxerrors.New("Requesting status update list from LayerX core server", err)
 	}
