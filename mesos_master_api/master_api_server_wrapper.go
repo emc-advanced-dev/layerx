@@ -155,6 +155,38 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		}
 		res.WriteHeader(statusCode)
 	}
+	unregisterFrameworkMessageHandler := func(req *http.Request, res http.ResponseWriter) {
+		unregisterFrameworkFn := func() ([]byte, int, error) {
+			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
+			if err != nil {
+				return empty, statusCode, lxerrors.New("parsing unregisterFramework request", err)
+			}
+			var unregisterRequest mesosproto.UnregisterFrameworkMessage
+			err = proto.Unmarshal(data, &unregisterRequest)
+			if err != nil {
+				return empty, 500, lxerrors.New("could unmarshal data to unregister request", err)
+			}
+			err = mesos_api_helpers.HandleRemoveFramework(wrapper.tpi, unregisterRequest.GetFrameworkId().GetValue())
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle register framework request")
+				return empty, 500, lxerrors.New("could not handle unregister framework request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(unregisterFrameworkFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing unregister framework message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
@@ -162,6 +194,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 	m.Post(MESOS_SCHEDULER_CALL, mesosSchedulerCallHandler)
 	m.Post(REGISTER_FRAMEWORK_MESSAGE, registerFrameworkMessageHandler)
 	m.Post(REREGISTER_FRAMEWORK_MESSAGE, reregisterFrameworkMessageHandler)
+	m.Post(UNREGISTER_FRAMEWORK_MESSAGE, unregisterFrameworkMessageHandler)
 	return m
 }
 

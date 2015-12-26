@@ -93,4 +93,15 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST " + UNREGISTER_FRAMEWORK_MESSAGE, func() {
+		It("signals layer-x to delete the framework", func() {
+			fakeUnregisterRequest := fakes.FakeUnregisterFrameworkMessage()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", UNREGISTER_FRAMEWORK_MESSAGE, headers, fakeUnregisterRequest)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 })

@@ -47,3 +47,9 @@ func FakeReregisterFrameworkMessage() *mesosproto.ReregisterFrameworkMessage {
 		Failover:  proto.Bool(true),
 	}
 }
+
+func FakeUnregisterFrameworkMessage() *mesosproto.UnregisterFrameworkMessage {
+	return &mesosproto.UnregisterFrameworkMessage{
+		FrameworkId: FakeFramework().GetId(),
+	}
+}
