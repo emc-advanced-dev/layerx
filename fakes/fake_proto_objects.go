@@ -53,3 +53,87 @@ func FakeUnregisterFrameworkMessage() *mesosproto.UnregisterFrameworkMessage {
 		FrameworkId: FakeFramework().GetId(),
 	}
 }
+
+
+
+func FakeLaunchTasksMessage(frameworkId string) *mesosproto.LaunchTasksMessage {
+	fakeTask1 := FakeTask("fake_task_1")
+	fakeTask2 := FakeTask("fake_task_2")
+	fakeTask3 := FakeTask("fake_task_3")
+	fakeTasks := []*mesosproto.TaskInfo{
+		fakeTask1,
+		fakeTask2,
+		fakeTask3,
+	}
+	fakeOfferIds := []*mesosproto.OfferID{
+		&mesosproto.OfferID{
+			Value: proto.String("fake_offer_id"),
+		},
+	}
+	return &mesosproto.LaunchTasksMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Tasks:    fakeTasks,
+		Filters:  &mesosproto.Filters{},
+		OfferIds: fakeOfferIds,
+	}
+}
+
+func FakeTask(taskId string) *mesosproto.TaskInfo {
+	return &mesosproto.TaskInfo{
+		Name: proto.String("fake_task_name"),
+		TaskId: &mesosproto.TaskID{
+			Value: proto.String(taskId),
+		},
+		SlaveId: &mesosproto.SlaveID{
+			Value: proto.String("fake_slave_id"),
+		},
+		Resources: FakeResources(),
+		Command: &mesosproto.CommandInfo{
+			Value:     proto.String("echo"),
+			Arguments: []string{"fake_echo_message"},
+			Shell:     proto.Bool(true),
+		},
+	}
+}
+
+func FakeResources() []*mesosproto.Resource {
+	var scalarType = mesosproto.Value_SCALAR
+	var rangesType = mesosproto.Value_RANGES
+	return []*mesosproto.Resource{
+		&mesosproto.Resource{
+			Name: proto.String("mem"),
+			Type: &scalarType,
+			Scalar: &mesosproto.Value_Scalar{
+				Value: proto.Float64(1234),
+			},
+		},
+		&mesosproto.Resource{
+			Name: proto.String("disk"),
+			Type: &scalarType,
+			Scalar: &mesosproto.Value_Scalar{
+				Value: proto.Float64(1234),
+			},
+		},
+		&mesosproto.Resource{
+			Name: proto.String("ports"),
+			Type: &rangesType,
+			Ranges: &mesosproto.Value_Ranges{
+				Range: []*mesosproto.Value_Range{
+					&mesosproto.Value_Range{
+						Begin: proto.Uint64(1234),
+						End:   proto.Uint64(12345),
+					},
+				},
+			},
+		},
+		&mesosproto.Resource{
+			Name: proto.String("cpus"),
+			Type: &scalarType,
+			Scalar: &mesosproto.Value_Scalar{
+				Value: proto.Float64(0.1234),
+			},
+		},
+	}
+}

@@ -187,7 +187,40 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		}
 		res.WriteHeader(statusCode)
 	}
-
+	launchTasksMessageHandler := func(req *http.Request, res http.ResponseWriter) {
+		reregisterFrameworkFn := func() ([]byte, int, error) {
+			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
+			if err != nil {
+				return empty, statusCode, lxerrors.New("parsing launchTasks request", err)
+			}
+			var launchTasksMessage mesosproto.LaunchTasksMessage
+			err = proto.Unmarshal(data, &launchTasksMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not unmarshal data to launchTasks", err)
+			}
+			frameworkId := launchTasksMessage.GetFrameworkId().GetValue()
+			mesosTasks := launchTasksMessage.GetTasks()
+			err = mesos_api_helpers.HandleLaunchTasksRequest(wrapper.tpi, frameworkId, mesosTasks)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle launch tasks request")
+				return empty, 500, lxerrors.New("could not handle launchTasks request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(reregisterFrameworkFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing launchTasks message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
@@ -195,6 +228,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 	m.Post(REGISTER_FRAMEWORK_MESSAGE, registerFrameworkMessageHandler)
 	m.Post(REREGISTER_FRAMEWORK_MESSAGE, reregisterFrameworkMessageHandler)
 	m.Post(UNREGISTER_FRAMEWORK_MESSAGE, unregisterFrameworkMessageHandler)
+	m.Post(LAUNCH_TASKS_MESSAGE, launchTasksMessageHandler)
 	return m
 }
 

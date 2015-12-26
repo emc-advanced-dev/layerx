@@ -104,4 +104,20 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST " + LAUNCH_TASKS_MESSAGE, func() {
+		It("submits tasks to layerx core", func() {
+			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", REGISTER_FRAMEWORK_MESSAGE, headers, fakeRegisterRequest)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+			fakeFrameworkId := fakeRegisterRequest.GetFramework().GetId().GetValue()
+			fakeLaunchTasks := fakes.FakeLaunchTasksMessage(fakeFrameworkId)
+			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", LAUNCH_TASKS_MESSAGE, headers, fakeLaunchTasks)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 })
