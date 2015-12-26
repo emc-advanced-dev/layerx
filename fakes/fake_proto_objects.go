@@ -157,3 +157,18 @@ func FakeKillTaskMessage(frameworkId string, taskId string) *mesosproto.KillTask
 		},
 	}
 }
+
+func FakeStatusUpdateAcknowledgementMessage(frameworkId string, taskId string, slaveId string, uuid []byte) *mesosproto.StatusUpdateAcknowledgementMessage {
+	return &mesosproto.StatusUpdateAcknowledgementMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		TaskId: &mesosproto.TaskID{
+			Value: proto.String(taskId),
+		},
+		SlaveId: &mesosproto.SlaveID{
+			Value: proto.String(slaveId),
+		},
+		Uuid: uuid,
+	}
+}

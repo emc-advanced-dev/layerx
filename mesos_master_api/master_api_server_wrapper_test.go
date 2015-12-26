@@ -157,4 +157,15 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST " + STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE, func() {
+		It("logs the request to debug (noop)", func() {
+			fakeStatusUpdateAck := fakes.FakeStatusUpdateAcknowledgementMessage("doesnt_matter_fwid", "doesntmattertaskid", "any_slave", []byte("some_bytes"))
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE, headers, fakeStatusUpdateAck)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 })
