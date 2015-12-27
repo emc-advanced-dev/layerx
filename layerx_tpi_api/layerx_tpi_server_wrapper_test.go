@@ -18,6 +18,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 var _ = Describe("LayerxTpiServerWrapper", func() {
@@ -59,6 +60,21 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 				},
 			}
 			resp, _, err = lxhttpclient.Post("127.0.0.1:3032", COLLECT_TASKS, nil, fakeCollectTasksMsg)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
+
+	Describe("POST {UpdateTaskStatusMessage} " + UPDATE_TASK_STATUS, func() {
+		It("sends status update to the framework", func() {
+			fakeUpdateTaskStatusMessage := &layerx_tpi.UpdateTaskStatusMessage{
+				TaskProvider: &lxtypes.TaskProvider{
+					Id: "fake_task_provider_id",
+					Source: "fakeframework@127.0.0.1:3002",
+				},
+				TaskStatus: fakes.FakeTaskStatus("fake_task_1", mesosproto.TaskState_TASK_RUNNING),
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3032", UPDATE_TASK_STATUS, nil, fakeUpdateTaskStatusMessage)
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
 		})

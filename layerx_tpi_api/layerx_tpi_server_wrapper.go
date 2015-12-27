@@ -70,8 +70,44 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 		}
 		res.WriteHeader(statusCode)
 	}
+	updateTaskStatusHandler := func(req *http.Request, res http.ResponseWriter) {
+		updateTaskStatusFn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing update task status request", err)
+			}
+			var updateTaskStatusMessage layerx_tpi.UpdateTaskStatusMessage
+			err = json.Unmarshal(data, &updateTaskStatusMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to update task status message", err)
+			}
+			err = tpi_api_helpers.UpdateTaskStatus(wrapper.tpi, wrapper.frameworkManager, updateTaskStatusMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle collect tasks request")
+				return empty, 500, lxerrors.New("could not handle update task status request", err)
+			}
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(updateTaskStatusFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing update task status message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Post(COLLECT_TASKS, collectTasksHandler)
+	m.Post(UPDATE_TASK_STATUS, updateTaskStatusHandler)
 	return m
 }
 
