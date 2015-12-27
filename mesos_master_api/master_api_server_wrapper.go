@@ -100,7 +100,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			var registerRequest mesosproto.RegisterFrameworkMessage
 			err = proto.Unmarshal(data, &registerRequest)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse data to protobuf msg Call", err)
+				return empty, 500, lxerrors.New("could not parse data to registerFrameworkMessage", err)
 			}
 			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
 			if err != nil {
