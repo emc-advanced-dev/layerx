@@ -10,11 +10,14 @@ import (
 	"fmt"
 	"time"
 "github.com/pborman/uuid"
+"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 )
 
 type FrameworkManager interface {
-	NotifyFrameworkRegistered(string, string, *mesos_data.UPID) error
-	SendStatusUpdate(string, *mesos_data.UPID, *mesosproto.TaskStatus) error
+	NotifyFrameworkRegistered(frameworkName, frameworkId string, frameworkUpid *mesos_data.UPID) error
+	SendStatusUpdate(frameworkId string, frameworkUpid *mesos_data.UPID, status *mesosproto.TaskStatus) error
+	SendTaskCollectionOffer(frameworkId, phonyOfferId, phonySlaveId, phonySlavePid string, frameworkUpid *mesos_data.UPID) error
 }
 
 type frameworkManager struct {
@@ -86,6 +89,27 @@ func (manager *frameworkManager) SendStatusUpdate(frameworkId string, frameworkU
 	resp, _, err := manager.sendMessage(frameworkUpid, statusUpdateMessage, "/mesos.internal.StatusUpdateMessage")
 	if err != nil {
 		return lxerrors.New("sending status update to framework", err)
+	}
+	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
+		statusCode := fmt.Sprintf("%v", resp.StatusCode)
+		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
+	}
+	return nil
+}
+
+func (manager *frameworkManager) SendTaskCollectionOffer(frameworkId, phonyOfferId, phonySlaveId, phonySlavePid string, frameworkUpid *mesos_data.UPID) error {
+	lxlog.Debugf(logrus.Fields{
+		"frameworkid": frameworkId,
+	}, "sending task collection (phony) offer to framework")
+
+	taskCollectionOffer := newPhonyOffer(frameworkId, phonyOfferId, phonySlaveId)
+	offerMessage := &mesosproto.ResourceOffersMessage{
+		Offers: []*mesosproto.Offer{taskCollectionOffer},
+		Pids:   []string{phonySlavePid},
+	}
+	resp, _, err := manager.sendMessage(frameworkUpid, offerMessage, "/mesos.internal.ResourceOffersMessage")
+	if err != nil {
+		return lxerrors.New("sending task collection offer to framework", err)
 	}
 	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		statusCode := fmt.Sprintf("%v", resp.StatusCode)

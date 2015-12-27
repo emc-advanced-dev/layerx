@@ -46,4 +46,20 @@ var _ = Describe("FrameworkManager", func() {
 			Expect(err).To(BeNil())
 		})
 	})
+	Describe("Collect Tasks from Framework", func() {
+		It("sends a fake resource offer to the framework", func() {
+			fakeMasterUpid, err := mesos_data.UPIDFromString("fakemesos@127.0.0.1:3031")
+			Expect(err).To(BeNil())
+			frameworkManager := NewFrameworkManager(fakeMasterUpid)
+			frameworkUpid, err := mesos_data.UPIDFromString("fakeframework@127.0.0.1:3001")
+			Expect(err).To(BeNil())
+			err = frameworkManager.SendTaskCollectionOffer(
+				"fake_framework_id",
+				"fake_offer_id",
+				"fake_slave_id",
+				"fake_slave_pid",
+				frameworkUpid)
+			Expect(err).To(BeNil())
+		})
+	})
 })
