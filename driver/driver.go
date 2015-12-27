@@ -20,7 +20,7 @@ func NewMesosTpiDriver(actionQueue lxactionqueue.ActionQueue) *tpiDriver {
 func (d *tpiDriver) Run() {
 	for {
 		d.lock.Lock()
-		d.actionQueue.ExecuteNext()
+		go d.actionQueue.ExecuteNext()
 		d.lock.Unlock()
 	}
 }
