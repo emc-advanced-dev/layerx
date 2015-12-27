@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
 )
 
 func RunFakeFrameworkServer(frameworkid string, port int) {
@@ -76,7 +77,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		}
 		for _, offer := range resourceOffers.Offers {
 			offersRecieved++
-			sendFakeTaskOnOffer(offersRecieved, offer, upid)
+			sendFakeTaskOnOffer(offersRecieved, offer, upid, port)
 		}
 
 		fmt.Printf("finished")
@@ -107,7 +108,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 	m.RunOnAddr(fmt.Sprintf(":%v", port))
 }
 
-func sendFakeTaskOnOffer(taskNo int, offer *mesosproto.Offer, masterUpid *mesos_data.UPID) {
+func sendFakeTaskOnOffer(taskNo int, offer *mesosproto.Offer, masterUpid *mesos_data.UPID, port int) {
 	taskInfo := &mesosproto.TaskInfo{
 		Name: proto.String(fmt.Sprintf("fake-task-%v", taskNo)),
 		TaskId: &mesosproto.TaskID{
@@ -119,4 +120,33 @@ func sendFakeTaskOnOffer(taskNo int, offer *mesosproto.Offer, masterUpid *mesos_
 		Resources: offer.Resources,
 	}
 	fmt.Printf("\n\ntask i will send: %v\n", taskInfo.GetTaskId().GetValue())
+
+	fakeTasks := []*mesosproto.TaskInfo{
+		taskInfo,
+	}
+	fakeOfferIds := []*mesosproto.OfferID{
+		&mesosproto.OfferID{
+			Value: proto.String("fake_offer_id"),
+		},
+	}
+	launch := &mesosproto.LaunchTasksMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String("fake_framework_id"),
+		},
+		Tasks:    fakeTasks,
+		Filters:  &mesosproto.Filters{},
+		OfferIds: fakeOfferIds,
+	}
+
+	headers := map[string]string{
+		"Libprocess-From": fmt.Sprintf("fakeframework@127.0.0.1:%v", port),
+	}
+	fmt.Printf("\nPOSTING TO LAUNCH TASKS on addr %s\n", masterUpid.Host+":"+masterUpid.Port)
+	_, _, err := lxhttpclient.Post(masterUpid.Host+":"+masterUpid.Port,
+		"/master/mesos.internal.LaunchTasksMessage",
+		headers,
+		launch)
+	if err != nil {
+		fmt.Printf("\nBIG ERROR POSTING LAUNCH TASKS!! WHAT'S THE DEAL!?\n%v\n", err)
+	}
 }
