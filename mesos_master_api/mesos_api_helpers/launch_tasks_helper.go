@@ -1,6 +1,6 @@
 package mesos_api_helpers
 import (
-	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-commons/lxerrors"

@@ -10,7 +10,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-mesos-tpi_v2/layerx_tpi_api"
 )

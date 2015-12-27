@@ -9,7 +9,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/pborman/uuid"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 )
 
 

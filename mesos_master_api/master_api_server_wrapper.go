@@ -10,7 +10,7 @@ import (
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/go-martini/martini"
 )
 

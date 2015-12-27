@@ -1,6 +1,6 @@
 package layerx_tpi_api
 import (
-"github.com/layer-x/layerx-core_v2/layerx_tpi"
+"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 "github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/go-martini/martini"
