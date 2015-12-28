@@ -15,8 +15,8 @@ type MesosScheduler interface {
 }
 
 type rpiMesosScheduler struct {
-	driver *scheduler.SchedulerDriver
-	driverc chan *scheduler.SchedulerDriver
+	driver scheduler.SchedulerDriver
+	driverc chan scheduler.SchedulerDriver
 	lxRpi *layerx_rpi_client.LayerXRpi
 	actionQueue lxactionqueue.ActionQueue
 }
@@ -24,17 +24,17 @@ type rpiMesosScheduler struct {
 func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi, actionQueue lxactionqueue.ActionQueue) *rpiMesosScheduler {
 	return &rpiMesosScheduler{
 		driver: nil,
-		driverc: make(chan *scheduler.SchedulerDriver),
+		driverc: make(chan scheduler.SchedulerDriver),
 		lxRpi: lxRpi,
 		actionQueue: actionQueue,
 	}
 }
 
-func (s *rpiMesosScheduler) GetDriver() *scheduler.SchedulerDriver {
+func (s *rpiMesosScheduler) GetDriver() scheduler.SchedulerDriver {
 	if s.driver == nil {
 		s.driver = <- s.driverc
 	}
-	return *s.driver
+	return s.driver
 }
 
 func (s *rpiMesosScheduler) Registered(driver scheduler.SchedulerDriver, frameworkId *mesosproto.FrameworkID, masterInfo *mesosproto.MasterInfo) {
@@ -42,12 +42,12 @@ func (s *rpiMesosScheduler) Registered(driver scheduler.SchedulerDriver, framewo
 		"framework_id": frameworkId.GetValue(),
 		"master_id":    masterInfo.GetId(),
 	}, "Scheduler Registered to Master %v\n", masterInfo)
-	s.driverc <- &driver
+	s.driverc <- driver
 }
 
 func (s *rpiMesosScheduler) Reregistered(driver scheduler.SchedulerDriver, masterInfo *mesosproto.MasterInfo) {
 	lxlog.Infof(logrus.Fields{}, "Scheduler Re-Registered with Master %v\n", masterInfo)
-	s.driverc <- &driver
+	s.driverc <- driver
 }
 
 func (s *rpiMesosScheduler) Disconnected(scheduler.SchedulerDriver) {
