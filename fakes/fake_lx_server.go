@@ -25,6 +25,7 @@ const (
 	//rpi
 	SubmitResource             = "/SubmitResource"
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
+	GetNodes         = "/GetNodes"
 )
 
 func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
@@ -263,6 +264,23 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		taskId := status.GetTaskId().GetValue()
 		statusUpdates[taskId] = &status
 		res.WriteHeader(202)
+	})
+
+	m.Get(GetNodes, func(res http.ResponseWriter){
+		nodeArr := []lxtypes.Node{}
+		for _, node := range nodes {
+			nodeArr = append(nodeArr, node)
+		}
+		data, err := json.Marshal(nodeArr)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"data":  string(data),
+			}, "could marshal nodes to json")
+			res.WriteHeader(500)
+			return
+		}
+		res.Write(data)
 	})
 
 	m.RunOnAddr(fmt.Sprintf(":%v", port))
