@@ -65,6 +65,16 @@ var _ = Describe("Lxnode", func() {
 			})
 		})
 	})
+	Describe("GetResources", func() {
+		It("returns all resources for that node", func() {
+			fakeOffer := fakes.FakeOffer("fake_offer_id", "fake_slave_id")
+			fakeResource := NewResourceFromMesos(fakeOffer)
+			fakeNode := NewNode(fakeResource.NodeId)
+			err := fakeNode.AddResource(fakeResource)
+			Expect(err).To(BeNil())
+			Expect(fakeNode.GetResources()).To(ContainElement(fakeResource))
+		})
+	})
 	Describe("FlushResources", func() {
 		It("removes the all resources from the node", func() {
 			fakeOffer := fakes.FakeOffer("fake_offer_id", "fake_slave_id")
