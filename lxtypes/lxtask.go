@@ -14,11 +14,6 @@ const (
 	launched_key       = "layerx_mesos_tpi_launched_key"
 )
 
-type portRange struct {
-	Begin uint64 `json:"begin"`
-	End   uint64 `json:"end"`
-}
-
 type Task struct {
 	TaskProvider  *TaskProvider            `json:"task_provider"`
 	CurrentStatus *mesosproto.TaskStatus   `json:"current_status"`
@@ -30,7 +25,7 @@ type Task struct {
 	Cpus          float64                  `json:cpus`
 	Mem           float64                  `json:mem`
 	Disk          float64                  `json:disk`
-	Ports         []portRange              `json:ports`
+	Ports         []PortRange              `json:ports`
 	Executor      *mesosproto.ExecutorInfo `json:"executor,omitempty"`
 	Command       *mesosproto.CommandInfo  `json:"command,omitempty"`
 	// Task provided with a container will launch the container as part
@@ -185,11 +180,11 @@ func (t *Task) ToMesos() *mesosproto.TaskInfo {
 }
 
 func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
-	ports := []portRange{}
+	ports := []PortRange{}
 	for _, resource := range taskInfo.GetResources() {
 		if resource.GetName() == "ports" {
 			for _, mesosRange := range resource.GetRanges().GetRange() {
-				port := portRange{
+				port := PortRange{
 					Begin: mesosRange.GetBegin(),
 					End:   mesosRange.GetEnd(),
 				}
