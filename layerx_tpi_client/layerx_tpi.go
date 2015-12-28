@@ -14,6 +14,7 @@ type LayerXTpi struct {
 }
 
 const (
+	RegisterTpi = "/RegisterTpi"
 	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
@@ -22,6 +23,21 @@ const (
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
 )
+
+//call this method to register the TPI
+//with layerx
+func (tpi *LayerXTpi) RegisterTpi(tpiUrl string) error {
+	reg := TpiRegistrationMessage{TpiUrl: tpiUrl}
+	resp, _, err := lxhttpclient.Post(tpi.CoreURL, RegisterTpi, nil, reg)
+	if err != nil {
+		return lxerrors.New("POSTing registration request to LayerX core server", err)
+	}
+	if resp.StatusCode != 202 {
+		msg := fmt.Sprintf("POSTing registration request to LayerX core server; status code was %v, expected 202", resp.StatusCode)
+		return lxerrors.New(msg, err)
+	}
+	return nil
+}
 
 //call this method when registering
 // a new task provider to the tpi

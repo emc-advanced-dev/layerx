@@ -11,10 +11,13 @@ import (
 	"io/ioutil"
 	"net/http"
 "github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 )
 
 const (
 	//tpi
+	RegisterTpi             = "/RegisterTpi"
 	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
@@ -22,7 +25,8 @@ const (
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
-	//rpi
+//rpi
+	RegisterRpi             = "/RegisterRpi"
 	SubmitResource             = "/SubmitResource"
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
 	GetNodes         = "/GetNodes"
@@ -41,6 +45,32 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	m := martini.Classic()
 
 	//TPI
+	m.Post(RegisterTpi, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var registrationMessage layerx_tpi.TpiRegistrationMessage
+		err = json.Unmarshal(body, &registrationMessage)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse json into resource")
+			res.WriteHeader(500)
+			return
+		}
+		res.WriteHeader(202)
+	})
+
 	m.Post(RegisterTaskProvider, func(res http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
@@ -186,6 +216,32 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	})
 
 	//RPI
+	m.Post(RegisterRpi, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var registrationMessage layerx_rpi_client.RpiRegistrationMessage
+		err = json.Unmarshal(body, &registrationMessage)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse json into resource")
+			res.WriteHeader(500)
+			return
+		}
+		res.WriteHeader(202)
+	})
+
 	m.Post(SubmitResource, func(res http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {

@@ -20,6 +20,13 @@ var _ = Describe("LayerxRpi", func() {
 		CoreURL: "127.0.0.1:12346",
 	}
 
+	Describe("RegisterRpi", func() {
+		It("registers the Rpi URL to the LX Server", func() {
+			err := lxRpi.RegisterRpi("fake.rpi.ip:1234")
+			Expect(err).To(BeNil())
+		})
+	})
+
 	Describe("SubmitResource", func() {
 		It("submits a resource to the LX Server", func() {
 			fakeOffer := fakes.FakeOffer("fake_offer_id", "fake_slave_id")

@@ -14,10 +14,26 @@ type LayerXRpi struct {
 }
 
 const (
+	RegisterRpi             = "/RegisterRpi"
 	SubmitResource             = "/SubmitResource"
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
 	GetNodes         = "/GetNodes"
 )
+
+//call this method to register the RPI
+//with layerx
+func (rpi *LayerXRpi) RegisterRpi(rpiUrl string) error {
+	reg := RpiRegistrationMessage{RpiUrl: rpiUrl}
+	resp, _, err := lxhttpclient.Post(rpi.CoreURL, RegisterRpi, nil, reg)
+	if err != nil {
+		return lxerrors.New("POSTing registration request to LayerX core server", err)
+	}
+	if resp.StatusCode != 202 {
+		msg := fmt.Sprintf("POSTing registration request to LayerX core server; status code was %v, expected 202", resp.StatusCode)
+		return lxerrors.New(msg, err)
+	}
+	return nil
+}
 
 //call this method when submitting
 // a new resource from the rpi

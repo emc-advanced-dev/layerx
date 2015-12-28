@@ -22,6 +22,12 @@ var _ = Describe("LayerxTpi", func() {
 	lxTpi := LayerXTpi{
 		CoreURL: "127.0.0.1:12345",
 	}
+	Describe("RegisterTpi", func() {
+		It("registers the Tpi URL to the LX Server", func() {
+			err := lxTpi.RegisterTpi("fake.tpi.ip:1234")
+			Expect(err).To(BeNil())
+		})
+	})
 	Describe("RegisterTaskProvider", func() {
 		It("submits a new task provider to the LX Server", func() {
 			taskProvider := &lxtypes.TaskProvider{

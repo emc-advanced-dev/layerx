@@ -4,6 +4,10 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
+type TpiRegistrationMessage struct {
+	TpiUrl string `json:"tpi_url"`
+}
+
 type CollectTasksMessage struct {
 	TaskProivders []*lxtypes.TaskProvider `json:"task_providers"`
 }
