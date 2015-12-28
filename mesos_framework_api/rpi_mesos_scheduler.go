@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-mesos-rpi_v2/mesos_framework_api/framework_api_handlers"
+	"github.com/layer-x/layerx-commons/lxactionqueue"
 )
 
 type MesosScheduler interface {
@@ -17,13 +18,15 @@ type rpiMesosScheduler struct {
 	driver *scheduler.SchedulerDriver
 	driverc chan *scheduler.SchedulerDriver
 	lxRpi *layerx_rpi_client.LayerXRpi
+	actionQueue lxactionqueue.ActionQueue
 }
 
-func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi) *rpiMesosScheduler {
+func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi, actionQueue lxactionqueue.ActionQueue) *rpiMesosScheduler {
 	return &rpiMesosScheduler{
 		driver: nil,
 		driverc: make(chan *scheduler.SchedulerDriver),
 		lxRpi: lxRpi,
+		actionQueue: actionQueue,
 	}
 }
 
@@ -53,22 +56,26 @@ func (s *rpiMesosScheduler) Disconnected(scheduler.SchedulerDriver) {
 
 func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, offers []*mesosproto.Offer) {
 	lxlog.Infof(logrus.Fields{}, "Collecting %v offers from Mesos Master...\n", len(offers))
-	err := framework_api_handlers.HandleResourceOffers(s.lxRpi, offers)
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err,
-		}, "handling resource offers from mesos master")
-	}
+	s.actionQueue.Push(func(){
+		err := framework_api_handlers.HandleResourceOffers(s.lxRpi, offers)
+		if err != nil {
+			lxlog.Fatalf(logrus.Fields{
+				"error": err,
+			}, "handling resource offers from mesos master")
+		}
+	})
 }
 
 func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, status *mesosproto.TaskStatus) {
 	lxlog.Infof(logrus.Fields{}, "Status update: task "+status.GetTaskId().GetValue()+" is in state "+status.State.Enum().String()+" with message %s", status.GetMessage())
-	err := framework_api_handlers.HandleStatusUpdate(s.lxRpi, status)
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err,
-		}, "handling task status update from mesos master")
-	}
+	s.actionQueue.Push(func(){
+		err := framework_api_handlers.HandleStatusUpdate(s.lxRpi, status)
+		if err != nil {
+			lxlog.Fatalf(logrus.Fields{
+				"error": err,
+			}, "handling task status update from mesos master")
+		}
+	})
 }
 
 func (s *rpiMesosScheduler) OfferRescinded(driver scheduler.SchedulerDriver, id *mesosproto.OfferID) {
