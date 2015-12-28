@@ -74,7 +74,7 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			rpiServerWrapper := NewRpiApiServerWrapper(fakeRpi, mesosSchedulerDriver, actionQueue)
 			driver := driver.NewMesosRpiDriver(actionQueue)
 
-			m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), "master@127.0.0.1:3033", make(chan error))
+			m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), make(chan error))
 			go core_fakes.RunFakeLayerXServer(nil, 34446)
 			go m.RunOnAddr(fmt.Sprintf(":3033"))
 			go driver.Run()

@@ -36,7 +36,7 @@ func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriv
 	}
 }
 
-func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, masterUpidString string, driverErrc chan error) *martini.ClassicMartini {
+func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, driverErrc chan error) *martini.ClassicMartini {
 	collectResourcesHandler := func(req *http.Request, res http.ResponseWriter) {
 		collectResourcesFn := func() ([]byte, int, error) {
 			err := rpi_api_helpers.CollectResources(wrapper.mesosSchedulerDriver)
@@ -53,7 +53,6 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, maste
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
-				"request_sent_by": masterUpidString,
 			}, "processing collect resources message")
 			driverErrc <- err
 			return
@@ -88,7 +87,6 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, maste
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
-				"request_sent_by": masterUpidString,
 			}, "processing launch tasks message")
 			driverErrc <- err
 			return
@@ -112,7 +110,6 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, maste
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
-				"request_sent_by": masterUpidString,
 			}, "processing kill task message")
 			driverErrc <- err
 			return
