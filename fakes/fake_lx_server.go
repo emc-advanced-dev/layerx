@@ -10,9 +10,11 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"io/ioutil"
 	"net/http"
+"github.com/gogo/protobuf/proto"
 )
 
 const (
+	//tpi
 	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
@@ -20,18 +22,24 @@ const (
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
+	//rpi
+	SubmitResource             = "/SubmitResource"
+	SubmitStatusUpdate         = "/SubmitStatusUpdate"
 )
 
 func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	taskProviders := make(map[string]*lxtypes.TaskProvider)
 	statusUpdates := make(map[string]*mesosproto.TaskStatus)
 	tasks := make(map[string]*lxtypes.Task)
+	nodes := make(map[string]lxtypes.Node)
 
 	for _, status := range fakeStatuses {
 		statusUpdates[status.GetTaskId().GetValue()] = status
 	}
 
 	m := martini.Classic()
+
+	//TPI
 	m.Post(RegisterTaskProvider, func(res http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
@@ -173,6 +181,87 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			return
 		}
 		delete(tasks, taskid)
+		res.WriteHeader(202)
+	})
+
+	//RPI
+	m.Post(SubmitResource, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var resource lxtypes.Resource
+		err = json.Unmarshal(body, &resource)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse json into resource")
+			res.WriteHeader(500)
+			return
+		}
+		nodeId := resource.NodeId
+		if knownNode, ok := nodes[nodeId]; ok {
+			err = knownNode.AddResource(&resource)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+					"node":  knownNode,
+					"resource":  resource,
+				}, "could not add resource to node")
+				res.WriteHeader(500)
+				return
+			}
+			nodes[nodeId] = knownNode
+		} else {
+			newNode := lxtypes.NewNode(nodeId)
+			err = newNode.AddResource(&resource)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+					"node":  newNode,
+					"resource":  resource,
+				}, "could not add resource to node")
+				res.WriteHeader(500)
+			}
+			nodes[nodeId] = newNode
+		}
+		res.WriteHeader(202)
+	})
+
+	m.Post(SubmitStatusUpdate, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var status mesosproto.TaskStatus
+		err = proto.Unmarshal(body, &status)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse proto into resource")
+			res.WriteHeader(500)
+			return
+		}
+		taskId := status.GetTaskId().GetValue()
+		statusUpdates[taskId] = &status
 		res.WriteHeader(202)
 	})
 
