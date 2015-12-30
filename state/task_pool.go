@@ -52,7 +52,20 @@ func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
 	return &task, nil
 }
 func (taskPool *TaskPool) ModifyTask(taskId string, modifiedTask *lxtypes.Task) error {
-	return lxerrors.New("not implemented", nil)
+	_, err := taskPool.GetTask(taskId)
+	if err != nil {
+		return lxerrors.New("task "+taskId+" not found", err)
+	}
+	taskData, err := json.Marshal(modifiedTask)
+	if err != nil {
+		return lxerrors.New("could not marshal modified task to json", err)
+	}
+	err = lxdatabase.Set(taskPool.GetKey()+"/"+taskId, string(taskData))
+	if err != nil {
+		return lxerrors.New("setting key/value pair for modified task", err)
+	}
+	return nil
+
 }
 
 func (taskPool *TaskPool) GetTasks() (map[string]*lxtypes.Task, error) {

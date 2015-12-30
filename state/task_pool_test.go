@@ -66,6 +66,45 @@ var _ = Describe("TaskPool", func() {
 			})
 		})
 	})
+	Describe("ModifyTask", func(){
+		Context("the exists", func(){
+			It("modifies the task", func(){
+				state := NewState()
+				state.InitializeState("http://127.0.0.1:4001")
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				pendingTasks := state.PendingTaskPool
+				fakeTask := fakes.FakeTask("fake_task_id_1")
+				err = pendingTasks.AddTask(fakeTask)
+				Expect(err).To(BeNil())
+				fakeTask.Mem = 666
+				fakeTask.Cpus = 666
+				fakeTask.Disk = 666
+				err = pendingTasks.ModifyTask(fakeTask.TaskId, fakeTask)
+				Expect(err).To(BeNil())
+				expectedTaskJsonBytes, err := json.Marshal(fakeTask)
+				Expect(err).To(BeNil())
+				expectedTaskJson := string(expectedTaskJsonBytes)
+				actualTaskJson, err := lxdatabase.Get(state.PendingTaskPool.GetKey() + "/"+fakeTask.TaskId)
+				Expect(err).To(BeNil())
+				Expect(actualTaskJson).To(Equal(expectedTaskJson))
+			})
+		})
+		Context("the task doest exist", func(){
+			It("returns an error", func(){
+				state := NewState()
+				state.InitializeState("http://127.0.0.1:4001")
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				pendingTasks := state.PendingTaskPool
+				fakeTask := fakes.FakeTask("fake_task_id_1")
+				err = pendingTasks.ModifyTask(fakeTask.TaskId, fakeTask)
+				Expect(err).NotTo(BeNil())
+			})
+		})
+	})
 	Describe("GetTasks()", func(){
 		It("returns all known tasks in the pool", func(){
 			state := NewState()
