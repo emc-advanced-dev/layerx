@@ -71,3 +71,15 @@ func (taskPool *TaskPool) GetTasks() (map[string]*lxtypes.Task, error) {
 	}
 	return tasks, nil
 }
+
+func (taskPool *TaskPool) DeleteTask(taskId string) error {
+	_, err := taskPool.GetTask(taskId)
+	if err != nil {
+		return lxerrors.New("task "+taskId+" not found", err)
+	}
+	err = lxdatabase.Rm(taskPool.GetKey()+"/"+taskId)
+	if err != nil {
+		return lxerrors.New("removing task "+taskId+" from database", err)
+	}
+	return nil
+}
