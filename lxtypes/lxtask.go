@@ -9,14 +9,12 @@ import (
 
 const (
 	task_provider_key  = "layerx_mesos_tpi_task_provider_key"
-	current_status_key = "layerx_mesos_tpi_current_status_key"
 	kill_requested_key = "layerx_mesos_tpi_kill_requested_key"
 	launched_key       = "layerx_mesos_tpi_launched_key"
 )
 
 type Task struct {
 	TaskProvider  *TaskProvider            `json:"task_provider"`
-	CurrentStatus *mesosproto.TaskStatus   `json:"current_status"`
 	Launched      bool                     `json:"launched"`
 	KillRequested bool                     `json:"kill_requested"`
 	Name          string                   `json:"name,omitempty"`
@@ -48,19 +46,6 @@ type Task struct {
 	Discovery *mesosproto.DiscoveryInfo `json:"discovery,omitempty"`
 }
 
-func (t *Task) IsTerminated() bool {
-	if t.CurrentStatus == nil {
-		return false
-	}
-	state := t.CurrentStatus.GetState()
-	return (state == mesosproto.TaskState_TASK_KILLED ||
-		//		state == mesosproto.TaskState_TASK_ERROR ||
-		state == mesosproto.TaskState_TASK_FAILED ||
-		state == mesosproto.TaskState_TASK_FINISHED ||
-		state == mesosproto.TaskState_TASK_KILLED ||
-		state == mesosproto.TaskState_TASK_LOST)
-}
-
 func (t *Task) ToMesos() *mesosproto.TaskInfo {
 	var scalarType = mesosproto.Value_SCALAR
 	var rangesType = mesosproto.Value_RANGES
@@ -82,15 +67,6 @@ func (t *Task) ToMesos() *mesosproto.TaskInfo {
 			Value: proto.String(val),
 		}
 		label_arr = append(label_arr, label)
-	}
-	currentStatusJson, err := json.Marshal(t.CurrentStatus)
-	//store current_status as a label
-	if err != nil {
-		tasks_label := &mesosproto.Label{
-			Key:   proto.String(current_status_key),
-			Value: proto.String(string(currentStatusJson)),
-		}
-		label_arr = append(label_arr, tasks_label)
 	}
 	taskProviderJson, err := json.Marshal(t.TaskProvider)
 	//store current_status as a label
@@ -192,16 +168,13 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 			}
 		}
 	}
-	var currentStatus mesosproto.TaskStatus
 	var taskProvider TaskProvider
 	var killRequested bool
 	var launched bool
 	labels := make(map[string]string)
 	for _, label := range taskInfo.GetLabels().GetLabels() {
-		//if label is tasks_key, populate current status instead
-		if label.GetKey() == current_status_key {
-			json.Unmarshal([]byte(label.GetValue()), &currentStatus)
-		} else if label.GetKey() == task_provider_key {
+		//if label is task_provider_key, populate task provider instead
+		if label.GetKey() == task_provider_key {
 			json.Unmarshal([]byte(label.GetValue()), &taskProvider)
 		} else if label.GetKey() == kill_requested_key {
 			if label.GetValue() == "true" {
@@ -217,7 +190,6 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 	}
 
 	task := &Task{
-		CurrentStatus: nil,
 		KillRequested: killRequested,
 		Launched:      launched,
 		Name:          taskInfo.GetName(),
@@ -233,11 +205,6 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 		HealthCheck:   taskInfo.HealthCheck,
 	}
 
-	//make sure we don't initialize a task with
-	//a taskstatus that is empty
-	if currentStatus.GetTaskId() != nil {
-		task.CurrentStatus = &currentStatus
-	}
 	if taskProvider.Id != "" {
 		task.TaskProvider = &taskProvider
 	}

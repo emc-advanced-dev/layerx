@@ -74,42 +74,11 @@ func (rpi *LayerXRpi) GetNodes() ([]*lxtypes.Node, error) {
 		msg := fmt.Sprintf("GETing nodes from LayerX core server; status code was %v, expected 200", resp.StatusCode)
 		return nil, lxerrors.New(msg, err)
 	}
-	var jNodes []jsonNode
-	err = json.Unmarshal(data, &jNodes)
+	var nodes []*lxtypes.Node
+	err = json.Unmarshal(data, &nodes)
 	if err != nil {
 		msg := fmt.Sprintf("unmarshalling data %s into node array", string(data))
 		return nil, lxerrors.New(msg, err)
 	}
-	var nodes []*lxtypes.Node
-	for _, jNode := range jNodes {
-		node, err := jNode.toRealNode()
-		if err != nil {
-			return nil, lxerrors.New("could not convert json node to real node", err)
-		}
-		nodes = append(nodes, node)
-	}
 	return nodes, nil
-}
-
-type jsonNode struct {
-	Id string    `json:"id"`
-	Resources    map[string]*lxtypes.Resource `json:"resources"`
-	RunningTasks map[string]*lxtypes.Task `json:"tasks"`
-}
-
-func (jn *jsonNode) toRealNode() (*lxtypes.Node, error) {
-	node := lxtypes.NewNode(jn.Id)
-	for _, resource := range jn.Resources {
-		err := node.AddResource(resource)
-		if err != nil {
-			return nil, lxerrors.New("unable to add resource to converted node", err)
-		}
-	}
-	for _, task := range jn.RunningTasks {
-		err := node.AddTask(task)
-		if err != nil {
-			return nil, lxerrors.New("unable to add task to converted node", err)
-		}
-	}
-	return node, nil
 }
