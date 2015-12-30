@@ -65,7 +65,7 @@ func (rpi *LayerXRpi) SubmitStatusUpdate(status *mesosproto.TaskStatus) error {
 
 //call this method to see submitted nodes
 //and their resources
-func (rpi *LayerXRpi) GetNodes() ([]lxtypes.Node, error) {
+func (rpi *LayerXRpi) GetNodes() ([]*lxtypes.Node, error) {
 	resp, data, err := lxhttpclient.Get(rpi.CoreURL, GetNodes, nil)
 	if err != nil {
 		return nil, lxerrors.New("GETing nodes from LayerX core server", err)
@@ -80,7 +80,7 @@ func (rpi *LayerXRpi) GetNodes() ([]lxtypes.Node, error) {
 		msg := fmt.Sprintf("unmarshalling data %s into node array", string(data))
 		return nil, lxerrors.New(msg, err)
 	}
-	var nodes []lxtypes.Node
+	var nodes []*lxtypes.Node
 	for _, jNode := range jNodes {
 		node, err := jNode.toRealNode()
 		if err != nil {
@@ -97,7 +97,7 @@ type jsonNode struct {
 	RunningTasks map[string]*lxtypes.Task `json:"tasks"`
 }
 
-func (jn *jsonNode) toRealNode() (lxtypes.Node, error) {
+func (jn *jsonNode) toRealNode() (*lxtypes.Node, error) {
 	node := lxtypes.NewNode(jn.Id)
 	for _, resource := range jn.Resources {
 		err := node.AddResource(resource)

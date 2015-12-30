@@ -36,7 +36,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	taskProviders := make(map[string]*lxtypes.TaskProvider)
 	statusUpdates := make(map[string]*mesosproto.TaskStatus)
 	tasks := make(map[string]*lxtypes.Task)
-	nodes := make(map[string]lxtypes.Node)
+	nodes := make(map[string]*lxtypes.Node)
 
 	for _, status := range fakeStatuses {
 		statusUpdates[status.GetTaskId().GetValue()] = status
@@ -323,7 +323,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	})
 
 	m.Get(GetNodes, func(res http.ResponseWriter){
-		nodeArr := []lxtypes.Node{}
+		nodeArr := []*lxtypes.Node{}
 		for _, node := range nodes {
 			nodeArr = append(nodeArr, node)
 		}

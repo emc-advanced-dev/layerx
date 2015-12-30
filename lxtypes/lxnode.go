@@ -1,39 +1,21 @@
 package lxtypes
 import "github.com/layer-x/layerx-commons/lxerrors"
 
-type Node interface {
-	AddResource(resource *Resource) error
-	GetResource(resourceId string) *Resource
-	GetResources() []*Resource
-	FlushResources()
-	AddTask(task *Task) error
-	GetTask(taskId string) *Task
-	ModifyTask(task *Task) error
-	RemoveTask(taskId string) error
-	GetTotalCpus() float64
-	GetTotalMem() float64
-	GetTotalPorts() []PortRange
-	GetFreeCpus() float64
-	GetFreeMem() float64
-	GetFreeDisk() float64
-	GetFreePorts() []PortRange
-}
-
-type node struct {
+type Node struct {
 	Id string        `json:"id"`
 	Resources map[string]*Resource `json:"resources"`
 	RunningTasks map[string]*Task `json:"tasks"`
 }
 
-func NewNode(nodeId string) *node {
-	return &node{
+func NewNode(nodeId string) *Node {
+	return &Node{
 		Id: nodeId,
 		Resources: make(map[string]*Resource),
 		RunningTasks: make(map[string]*Task),
 	}
 }
 
-func (n *node) AddResource(resource *Resource) error {
+func (n *Node) AddResource(resource *Resource) error {
 	if _, ok := n.Resources[resource.Id]; ok {
 		return lxerrors.New("resource " + resource.Id + " already found on node " + n.Id, nil)
 	}
@@ -44,11 +26,11 @@ func (n *node) AddResource(resource *Resource) error {
 	return nil
 }
 
-func (n *node) GetResource(resourceId string) *Resource {
+func (n *Node) GetResource(resourceId string) *Resource {
 	return n.Resources[resourceId]
 }
 
-func (n *node) GetResources() []*Resource {
+func (n *Node) GetResources() []*Resource {
 	resources := []*Resource{}
 	for _, resource := range n.Resources {
 		resources = append(resources, resource)
@@ -56,11 +38,11 @@ func (n *node) GetResources() []*Resource {
 	return resources
 }
 
-func (n *node) FlushResources() {
+func (n *Node) FlushResources() {
 	n.Resources = make(map[string]*Resource)
 }
 
-func (n *node) AddTask(task *Task) error {
+func (n *Node) AddTask(task *Task) error {
 	if _, ok := n.RunningTasks[task.TaskId]; ok {
 		return lxerrors.New("task " + task.TaskId + " already found on node " + n.Id, nil)
 	}
@@ -68,11 +50,11 @@ func (n *node) AddTask(task *Task) error {
 	return nil
 }
 
-func (n *node) GetTask(taskId string) *Task {
+func (n *Node) GetTask(taskId string) *Task {
 	return n.RunningTasks[taskId]
 }
 
-func (n *node) ModifyTask(task *Task) error {
+func (n *Node) ModifyTask(task *Task) error {
 	if _, ok := n.RunningTasks[task.TaskId]; !ok {
 		return lxerrors.New("task " + task.TaskId + " not found on node " + n.Id, nil)
 	}
@@ -80,7 +62,7 @@ func (n *node) ModifyTask(task *Task) error {
 	return nil
 }
 
-func (n *node) RemoveTask(taskId string) error {
+func (n *Node) RemoveTask(taskId string) error {
 	if _, ok := n.RunningTasks[taskId]; !ok {
 		return lxerrors.New("task " + taskId + " not found on node " + n.Id, nil)
 	}
@@ -88,7 +70,7 @@ func (n *node) RemoveTask(taskId string) error {
 	return nil
 }
 
-func (n *node) GetTotalCpus() float64 {
+func (n *Node) GetTotalCpus() float64 {
 	cpus := n.GetFreeCpus()
 	for _, task := range n.RunningTasks {
 		cpus += task.Cpus
@@ -96,7 +78,7 @@ func (n *node) GetTotalCpus() float64 {
 	return cpus
 }
 
-func (n *node) GetTotalMem() float64 {
+func (n *Node) GetTotalMem() float64 {
 	mem := n.GetFreeMem()
 	for _, task := range n.RunningTasks {
 		mem += task.Mem
@@ -104,7 +86,7 @@ func (n *node) GetTotalMem() float64 {
 	return mem
 }
 
-func (n *node) GetTotalDisk() float64 {
+func (n *Node) GetTotalDisk() float64 {
 	disk := n.GetFreeDisk()
 	for _, task := range n.RunningTasks {
 		disk += task.Disk
@@ -112,7 +94,7 @@ func (n *node) GetTotalDisk() float64 {
 	return disk
 }
 
-func (n *node) GetTotalPorts() []PortRange {
+func (n *Node) GetTotalPorts() []PortRange {
 	totalPorts := n.GetFreePorts()
 	for _, task := range n.RunningTasks {
 		for _, port := range task.Ports {
@@ -126,14 +108,14 @@ func (n *node) GetTotalPorts() []PortRange {
 	return totalPorts
 }
 
-func (n *node) GetFreeCpus() float64 {
+func (n *Node) GetFreeCpus() float64 {
 	var cpus float64
 	for _, resource := range n.Resources {
 		cpus += resource.Cpus
 	}
 	return cpus}
 
-func (n *node) GetFreeMem() float64 {
+func (n *Node) GetFreeMem() float64 {
 	var mem float64
 	for _, resource := range n.Resources {
 		mem += resource.Mem
@@ -141,7 +123,7 @@ func (n *node) GetFreeMem() float64 {
 	return mem
 }
 
-func (n *node) GetFreeDisk() float64 {
+func (n *Node) GetFreeDisk() float64 {
 	var disk float64
 	for _, resource := range n.Resources {
 		disk += resource.Disk
@@ -149,7 +131,7 @@ func (n *node) GetFreeDisk() float64 {
 	return disk
 }
 
-func (n *node) GetFreePorts() []PortRange {
+func (n *Node) GetFreePorts() []PortRange {
 	freePorts := []PortRange{}
 	for _, resource := range n.Resources {
 		for _, port := range resource.Ports {
