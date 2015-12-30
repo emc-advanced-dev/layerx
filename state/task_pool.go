@@ -15,9 +15,9 @@ func (taskPool *TaskPool) GetKey() string {
 }
 
 func (taskPool *TaskPool) Initialize() error {
-	err := lxdatabase.Mkdir(taskPool.rootKey)
+	err := lxdatabase.Mkdir(taskPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+taskPool.rootKey +" directory", err)
+		return lxerrors.New("initializing "+taskPool.GetKey() +" directory", err)
 	}
 	return nil
 }
@@ -32,7 +32,7 @@ func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
 	if err != nil {
 		return lxerrors.New("could not marshal task to json", err)
 	}
-	err = lxdatabase.Set(taskPool.rootKey+"/"+taskId, string(taskData))
+	err = lxdatabase.Set(taskPool.GetKey()+"/"+taskId, string(taskData))
 	if err != nil {
 		return lxerrors.New("setting key/value pair for task", err)
 	}
@@ -40,7 +40,7 @@ func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
 }
 
 func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
-	taskJson, err := lxdatabase.Get(taskPool.rootKey+"/"+taskId)
+	taskJson, err := lxdatabase.Get(taskPool.GetKey()+"/"+taskId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving task "+taskId+" from database", err)
 	}
@@ -56,5 +56,18 @@ func (taskPool *TaskPool) ModifyTask(taskId string, modifiedTask *lxtypes.Task) 
 }
 
 func (taskPool *TaskPool) GetTasks() (map[string]*lxtypes.Task, error) {
-	return nil, lxerrors.New("not implemented", nil)
+	tasks := make(map[string]*lxtypes.Task)
+	knownTasks, err := lxdatabase.GetKeys(taskPool.GetKey())
+	if err != nil {
+		return nil, lxerrors.New("retrieving list of known tasks", err)
+	}
+	for _, taskJson := range knownTasks {
+		var task lxtypes.Task
+		err = json.Unmarshal([]byte(taskJson), &task)
+		if err != nil {
+			return nil, lxerrors.New("unmarshalling json into Task struct", err)
+		}
+		tasks[task.TaskId] = &task
+	}
+	return tasks, nil
 }
