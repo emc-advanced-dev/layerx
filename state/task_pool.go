@@ -51,6 +51,7 @@ func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
 	}
 	return &task, nil
 }
+
 func (taskPool *TaskPool) ModifyTask(taskId string, modifiedTask *lxtypes.Task) error {
 	_, err := taskPool.GetTask(taskId)
 	if err != nil {
