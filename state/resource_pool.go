@@ -7,17 +7,19 @@ import (
 )
 
 type ResourcePool struct {
+	nodeId string
 	rootKey string
 }
 
-func TempResourcePoolFunction(rootKey string) *ResourcePool {
+func TempResourcePoolFunction(rootKey, nodeId string) *ResourcePool {
 	return &ResourcePool{
 		rootKey: rootKey,
+		nodeId: nodeId,
 	}
 }
 
 func (resourcePool *ResourcePool) GetKey() string {
-	return resourcePool.rootKey
+	return resourcePool.rootKey+"_"+resourcePool.nodeId
 }
 
 func (resourcePool *ResourcePool) Initialize() error {
@@ -29,6 +31,9 @@ func (resourcePool *ResourcePool) Initialize() error {
 }
 
 func (resourcePool *ResourcePool) AddResource(resource *lxtypes.Resource) error {
+	if resourcePool.nodeId != resource.NodeId {
+		return lxerrors.New("resource given was for node "+resource.NodeId+" but this node is "+resourcePool.nodeId, nil)
+	}
 	resourceId := resource.Id
 	_, err := resourcePool.GetResource(resourceId)
 	if err == nil {
