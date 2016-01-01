@@ -1,4 +1,4 @@
-package state_test
+package lxstate_test
 
 import (
 	. "github.com/onsi/ginkgo"

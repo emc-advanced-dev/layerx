@@ -1,7 +1,7 @@
-package state_test
+package lxstate_test
 
 import (
-	. "github.com/layer-x/layerx-core_v2/state"
+	. "github.com/layer-x/layerx-core_v2/lxstate"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

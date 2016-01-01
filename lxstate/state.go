@@ -1,4 +1,4 @@
-package state
+package lxstate
 import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
