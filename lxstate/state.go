@@ -68,7 +68,7 @@ func (state *State) SetTpi(tpiUrl string) error {
 func (state *State) GetTpi() (string, error) {
 	tpiUrl, err := lxdatabase.Get(tpi_url_key)
 	if err != nil {
-		return "", lxerrors.New("could not set tpi url", err)
+		return "", lxerrors.New("could not get tpi url", err)
 	}
 	return tpiUrl, nil
 }
@@ -84,7 +84,7 @@ func (state *State) SetRpi(rpiUrl string) error {
 func (state *State) GetRpi() (string, error) {
 	rpiUrl, err := lxdatabase.Get(rpi_url_key)
 	if err != nil {
-		return "", lxerrors.New("could not set rpi url", err)
+		return "", lxerrors.New("could not get rpi url", err)
 	}
 	return rpiUrl, nil
 }
