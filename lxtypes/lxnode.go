@@ -54,6 +54,14 @@ func (n *Node) GetTask(taskId string) *Task {
 	return n.RunningTasks[taskId]
 }
 
+func (n *Node) GetTasks() []*Task {
+	tasks := []*Task{}
+	for _, task := range n.RunningTasks {
+		tasks = append(tasks, task)
+	}
+	return tasks
+}
+
 func (n *Node) ModifyTask(task *Task) error {
 	if _, ok := n.RunningTasks[task.TaskId]; !ok {
 		return lxerrors.New("task " + task.TaskId + " not found on node " + n.Id, nil)

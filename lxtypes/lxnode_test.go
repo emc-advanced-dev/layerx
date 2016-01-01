@@ -193,4 +193,26 @@ var _ = Describe("Lxnode", func() {
 		})
 	})
 
+	Describe("GetTask", func() {
+		It("returns all tasks for that taskid", func() {
+			fakeNode := NewNode("fake_node_id")
+			fakeMesosTask1 := fakes.FakeMesosTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeMesosTask2 := fakes.FakeMesosTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeMesosTask3 := fakes.FakeMesosTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask1 := NewTaskFromMesos(fakeMesosTask1)
+			fakeTask2 := NewTaskFromMesos(fakeMesosTask2)
+			fakeTask3 := NewTaskFromMesos(fakeMesosTask3)
+			err := fakeNode.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			err = fakeNode.AddTask(fakeTask2)
+			Expect(err).To(BeNil())
+			err = fakeNode.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			tasks := fakeNode.GetTasks()
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).To(ContainElement(fakeTask3))
+		})
+	})
+
 })
