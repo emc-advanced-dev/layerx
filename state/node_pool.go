@@ -21,7 +21,6 @@ func (nodePool *NodePool) Initialize() error {
 	return nil
 }
 
-
 func (nodePool *NodePool) AddNode(node *lxtypes.Node) error {
 	nodeId := node.Id
 	_, err := nodePool.GetNode(nodeId)
@@ -45,6 +44,18 @@ func (nodePool *NodePool) GetNode(nodeId string) (*lxtypes.Node, error) {
 		return nil, lxerrors.New("loading node "+nodeId+" from stored information in database", err)
 	}
 	return node, nil
+}
+
+func (nodePool *NodePool) DeleteNode(nodeId string) error {
+	_, err := lxdatabase.GetSubdirectories(nodePool.GetKey()+"/"+nodeId)
+	if err != nil {
+		return lxerrors.New("retrieving node "+nodeId+" from database", err)
+	}
+	err = lxdatabase.Rmdir(nodePool.GetKey()+"/"+nodeId, true)
+	if err != nil {
+		return lxerrors.New("recursivey removing directory "+nodePool.GetKey()+"/"+nodeId+" from database", err)
+	}
+	return nil
 }
 
 func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
