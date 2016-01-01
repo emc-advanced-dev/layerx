@@ -17,6 +17,7 @@ type State struct {
 	PendingTaskPool *TaskPool
 	StagingTaskPool *TaskPool
 	NodePool	*NodePool
+	TaskProviderPool *TaskProviderPool
 }
 
 func NewState() *State {
@@ -29,6 +30,9 @@ func NewState() *State {
 		},
 		NodePool: &NodePool{
 			rootKey: nodes,
+		},
+		TaskProviderPool: &TaskProviderPool{
+			rootKey: task_providers,
 		},
 	}
 }
@@ -46,7 +50,8 @@ func (state *State) InitializeState(etcdUrl string) error {
 	state.PendingTaskPool.Initialize()
 	state.StagingTaskPool.Initialize()
 	state.NodePool.Initialize()
-	err = initializeDirectoriesIfNotFound(rootContents, task_providers, statuses)
+	state.TaskProviderPool.Initialize()
+	err = initializeDirectoriesIfNotFound(rootContents, statuses)
 	if err != nil {
 		return lxerrors.New("initializing state directories", err)
 	}
