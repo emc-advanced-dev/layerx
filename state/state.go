@@ -18,6 +18,7 @@ type State struct {
 	StagingTaskPool *TaskPool
 	NodePool	*NodePool
 	TaskProviderPool *TaskProviderPool
+	StatusPool *StatusPool
 }
 
 func NewState() *State {
@@ -34,6 +35,9 @@ func NewState() *State {
 		TaskProviderPool: &TaskProviderPool{
 			rootKey: task_providers,
 		},
+		StatusPool: &StatusPool{
+			rootKey: statuses,
+		},
 	}
 }
 
@@ -43,38 +47,10 @@ func (state *State) InitializeState(etcdUrl string) error {
 		return lxerrors.New("initializing etcd client failed", err)
 	}
 	lxdatabase.Mkdir(state_root)
-	rootContents, err := lxdatabase.GetSubdirectories(state_root)
-	if err != nil {
-		return lxerrors.New("retrieving contents of state root dir", err)
-	}
 	state.PendingTaskPool.Initialize()
 	state.StagingTaskPool.Initialize()
 	state.NodePool.Initialize()
 	state.TaskProviderPool.Initialize()
-	err = initializeDirectoriesIfNotFound(rootContents, statuses)
-	if err != nil {
-		return lxerrors.New("initializing state directories", err)
-	}
+	state.StatusPool.Initialize()
 	return nil
-}
-
-func initializeDirectoriesIfNotFound(rootContents []string, directoryNames ...string) error {
-	for _, directoryName := range directoryNames {
-		if !contains(rootContents, directoryName) {
-			err := lxdatabase.Mkdir(directoryName)
-			if err != nil {
-				return lxerrors.New("initializing "+directoryName+" directory", err)
-			}
-		}
-	}
-	return nil
-}
-
-func contains(strArray []string, desired string) bool {
-	for _, str := range strArray {
-		if str == desired {
-			return true
-		}
-	}
-	return false
 }
