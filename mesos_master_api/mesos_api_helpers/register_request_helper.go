@@ -16,6 +16,7 @@ import (
 func HandleRegisterRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, frameworkInfo *mesosproto.FrameworkInfo) error {
 	frameworkName := frameworkInfo.GetName()
 	frameworkId := frameworkInfo.GetId().GetValue()
+	failoverTimeout := frameworkInfo.GetFailoverTimeout()
 	if frameworkId == "" {
 		frameworkId = frameworkName+uuid.New()
 	}
@@ -23,6 +24,7 @@ func HandleRegisterRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework
 	taskProvider := &lxtypes.TaskProvider{
 		Id: frameworkId,
 		Source: frameworkUpid.String(),
+		FailoverTimeout: failoverTimeout,
 	}
 	err := tpi.RegisterTaskProvider(taskProvider)
 	if err != nil {
