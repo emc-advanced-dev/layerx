@@ -58,13 +58,23 @@ func (nodePool *NodePool) DeleteNode(nodeId string) error {
 	return nil
 }
 
+func (nodePool *NodePool) GetNodeResourcePool(nodeId string) (*ResourcePool, error) {
+	if _, err := nodePool.GetNode(nodeId); err != nil {
+		return nil, lxerrors.New("could not find node", err)
+	}
+	return &ResourcePool{
+		nodeId: nodeId,
+		rootKey: nodePool.GetKey() + "/" + nodeId + "/resources",
+	}, nil
+}
+
 func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
 	nodeId := node.Id
 	err := lxdatabase.Mkdir(nodePool.GetKey()+"/"+nodeId)
 	if err != nil {
 		return lxerrors.New("initializing "+nodePool.GetKey()+"/"+nodeId +" directory", err)
 	}
-	nodeResourcePool := ResourcePool{
+	nodeResourcePool := &ResourcePool{
 		nodeId: nodeId,
 		rootKey: nodePool.GetKey() + "/" + nodeId + "/resources",
 	}
@@ -75,7 +85,7 @@ func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
 			return lxerrors.New("adding resource "+resource.Id+" to node "+nodeId+" resource pool", err)
 		}
 	}
-	nodeTaskPool := TaskPool{
+	nodeTaskPool := &TaskPool{
 		rootKey: nodePool.GetKey() + "/" + nodeId + "/running_tasks",
 	}
 	nodeTaskPool.Initialize()
