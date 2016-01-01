@@ -68,6 +68,15 @@ func (nodePool *NodePool) GetNodeResourcePool(nodeId string) (*ResourcePool, err
 	}, nil
 }
 
+func (nodePool *NodePool) GetNodeTaskPool(nodeId string) (*TaskPool, error) {
+	if _, err := nodePool.GetNode(nodeId); err != nil {
+		return nil, lxerrors.New("could not find node", err)
+	}
+	return &TaskPool{
+		rootKey: nodePool.GetKey() + "/" + nodeId + "/running_tasks",
+	}, nil
+}
+
 func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
 	nodeId := node.Id
 	err := lxdatabase.Mkdir(nodePool.GetKey()+"/"+nodeId)
