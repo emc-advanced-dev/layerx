@@ -40,8 +40,11 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			actionQueue := lxactionqueue.NewActionQueue()
 			fakeFramework := &mesosproto.FrameworkInfo{
 				User: proto.String(""),
+				Id: &mesosproto.FrameworkID{
+					Value: proto.String("fake_lx_mesos_rpi_framework"),
+				},
+				FailoverTimeout: proto.Float64(15),
 				Name: proto.String("FAKE Layer-X Mesos RPI Framework"),
-				FailoverTimeout: proto.Float64(0),
 			}
 			fakeRpiScheduler := mesos_framework_api.NewRpiMesosScheduler(fakeRpi, actionQueue)
 			config := scheduler.DriverConfig{

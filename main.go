@@ -89,6 +89,10 @@ func main() {
 func prepareFrameworkInfo(layerxUrl string) *mesosproto.FrameworkInfo {
 	return &mesosproto.FrameworkInfo{
 		User: proto.String(""),
+		Id: &mesosproto.FrameworkID{
+			Value: proto.String("lx_mesos_rpi_framework"),
+		},
+		FailoverTimeout: proto.Float64(15),
 		Name: proto.String("Layer-X Mesos RPI Framework"),
 		WebuiUrl:        proto.String(layerxUrl),
 	}
