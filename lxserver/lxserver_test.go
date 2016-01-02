@@ -65,11 +65,23 @@ var _ = Describe("Lxserver", func() {
 	Describe("RegisterRpi", func() {
 		It("adds the Rpi URL to the LX state", func() {
 			PurgeState()
-			err := lxRpiClient.RegisterRpi("fake.rpi.ip:1234")
+			err := lxRpiClient.RegisterRpi("127.0.0.1:6699")
 			Expect(err).To(BeNil())
 			rpiUrl, err := state.GetRpi()
 			Expect(err).To(BeNil())
-			Expect(rpiUrl).To(Equal("fake.rpi.ip:1234"))
+			Expect(rpiUrl).To(Equal("127.0.0.1:6699"))
+		})
+	})
+
+	Describe("RegisterTaskProvider", func() {
+		It("adds the task provider to the LX state", func() {
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			taskProvider, err := state.TaskProviderPool.GetTaskProvider("fake_framework")
+			Expect(err).To(BeNil())
+			Expect(taskProvider).To(Equal(fakeTaskProvider))
 		})
 	})
 })

@@ -14,6 +14,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxserver/lx_core_helpers"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+"github.com/layer-x/layerx-core_v2/lxtypes"
 )
 
 const (
@@ -120,35 +121,46 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	registerTaskProviderHandler := func(res http.ResponseWriter, req *http.Request) {
+		registerTaskProviderFn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing register TaskProvider request", err)
+			}
+			var taskProvider lxtypes.TaskProvider
+			err = json.Unmarshal(data, &taskProvider)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to register TaskProvider message", err)
+			}
+			err = lx_core_helpers.RegisterTaskProvider(wrapper.state, &taskProvider)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle register TaskProvider request")
+				return empty, 500, lxerrors.New("could not handle register TaskProvider request", err)
+			}
+			lxlog.Infof(logrus.Fields{"task_provider": taskProvider}, "Added new TaskProvider to LayerX")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(registerTaskProviderFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing register TaskProvider message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
+	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
 
-	m.Post(RegisterTaskProvider, func(res http.ResponseWriter, req *http.Request) {
-//		body, err := ioutil.ReadAll(req.Body)
-//		if req.Body != nil {
-//			defer req.Body.Close()
-//		}
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could not read  request body")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		var tp lxtypes.TaskProvider
-//		err = json.Unmarshal(body, &tp)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could parse json into tp")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		taskProviders[tp.Id] = &tp
-//		res.WriteHeader(202)
-	})
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 //		tpid := params["task_provider_id"]
 //		if _, ok := taskProviders[tpid]; !ok {
