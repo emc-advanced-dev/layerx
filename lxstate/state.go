@@ -2,6 +2,7 @@ package lxstate
 import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
 )
 
 const (
@@ -87,4 +88,41 @@ func (state *State) GetRpi() (string, error) {
 		return "", lxerrors.New("could not get rpi url", err)
 	}
 	return rpiUrl, nil
+}
+
+func (state *State) GetAllTasks() (map[string]*lxtypes.Task, error) {
+	allTasks := make(map[string]*lxtypes.Task)
+	pendingTasks, err := state.PendingTaskPool.GetTasks()
+	if err != nil {
+		return nil, lxerrors.New("could not get tasks from pending task pool", err)
+	}
+	for _, task := range pendingTasks {
+		allTasks[task.TaskId] = task
+	}
+	stagingTasks, err := state.StagingTaskPool.GetTasks()
+	if err != nil {
+		return nil, lxerrors.New("could not get tasks from staging task pool", err)
+	}
+	for _, task := range stagingTasks {
+		allTasks[task.TaskId] = task
+	}
+	nodes, err := state.NodePool.GetNodes()
+	if err != nil {
+		return nil, lxerrors.New("getting list of nodes from node pool", err)
+	}
+	for _, node := range nodes {
+		nodeId := node.Id
+		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
+		if err != nil {
+			return nil, lxerrors.New("getting task pool for node "+nodeId, err)
+		}
+		nodeTasks, err := nodeTaskPool.GetTasks()
+		if err != nil {
+			return nil, lxerrors.New("getting list of tasks from node "+nodeId+"task pool", err)
+		}
+		for _, task := range nodeTasks {
+			allTasks[task.TaskId] = task
+		}
+	}
+	return allTasks, nil
 }
