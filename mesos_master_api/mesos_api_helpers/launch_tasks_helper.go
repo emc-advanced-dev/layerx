@@ -8,7 +8,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-func HandleLaunchTasksRequest(tpi *layerx_tpi.LayerXTpi, frameworkId string, mesosTasks []*mesosproto.TaskInfo) error {
+func HandleLaunchTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkId string, mesosTasks []*mesosproto.TaskInfo) error {
 	for _, mesosTask := range mesosTasks {
 		lxTask := lxtypes.NewTaskFromMesos(mesosTask)
 		err := tpi.SubmitTask(frameworkId, lxTask)

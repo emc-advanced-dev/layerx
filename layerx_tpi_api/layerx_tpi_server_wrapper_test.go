@@ -25,7 +25,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 	actionQueue := lxactionqueue.NewActionQueue()
 	fakeMasterUpid, _ := mesos_data.UPIDFromString("master@127.0.0.1:3032")
 	frameworkManager := framework_manager.NewFrameworkManager(fakeMasterUpid)
-	fakeTpi := &layerx_tpi.LayerXTpi{
+	fakeTpi := &layerx_tpi_client.LayerXTpi{
 		CoreURL: "127.0.0.1:34445",
 	}
 	tpiServerWrapper := NewTpiApiServerWrapper(fakeTpi, actionQueue, frameworkManager)
@@ -51,7 +51,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
 
-			fakeCollectTasksMsg := &layerx_tpi.CollectTasksMessage{
+			fakeCollectTasksMsg := &layerx_tpi_client.CollectTasksMessage{
 				TaskProivders: []*lxtypes.TaskProvider{
 					&lxtypes.TaskProvider{
 						Id: "fake_task_provider_id",
@@ -67,7 +67,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 
 	Describe("POST {UpdateTaskStatusMessage} " + UPDATE_TASK_STATUS, func() {
 		It("sends status update to the framework", func() {
-			fakeUpdateTaskStatusMessage := &layerx_tpi.UpdateTaskStatusMessage{
+			fakeUpdateTaskStatusMessage := &layerx_tpi_client.UpdateTaskStatusMessage{
 				TaskProvider: &lxtypes.TaskProvider{
 					Id: "fake_task_provider_id",
 					Source: "fakeframework@127.0.0.1:3002",

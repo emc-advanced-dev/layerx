@@ -23,7 +23,7 @@ var _ = Describe("MasterApiServer", func() {
 	actionQueue := lxactionqueue.NewActionQueue()
 	fakeMasterUpid, _ := mesos_data.UPIDFromString("master@127.0.0.1:3031")
 	frameworkManager := framework_manager.NewFrameworkManager(fakeMasterUpid)
-	fakeTpi := &layerx_tpi.LayerXTpi{
+	fakeTpi := &layerx_tpi_client.LayerXTpi{
 		CoreURL: "127.0.0.1:34443",
 	}
 	masterServer := NewMesosApiServerWrapper(fakeTpi, actionQueue, frameworkManager)

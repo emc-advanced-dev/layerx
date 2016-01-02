@@ -23,10 +23,10 @@ var empty = []byte{}
 type tpiApiServerWrapper struct {
 	actionQueue      lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
-	tpi              *layerx_tpi.LayerXTpi
+	tpi              *layerx_tpi_client.LayerXTpi
 }
 
-func NewTpiApiServerWrapper(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *tpiApiServerWrapper {
+func NewTpiApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *tpiApiServerWrapper {
 	return &tpiApiServerWrapper{
 		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,
@@ -36,7 +36,7 @@ func NewTpiApiServerWrapper(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue
 
 func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, masterUpidString string, driverErrc chan error) *martini.ClassicMartini {
 	collectTasksHandler := func(req *http.Request, res http.ResponseWriter) {
-		registerFrameworkFn := func() ([]byte, int, error) {
+		collectTasksFn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
 				defer req.Body.Close()
@@ -44,7 +44,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			if err != nil {
 				return empty, 400, lxerrors.New("parsing collect tasks request", err)
 			}
-			var collectTasksMessage layerx_tpi.CollectTasksMessage
+			var collectTasksMessage layerx_tpi_client.CollectTasksMessage
 			err = json.Unmarshal(data, &collectTasksMessage)
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse json to collect tasks message", err)
@@ -58,7 +58,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			}
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(registerFrameworkFn)
+		_, statusCode, err := wrapper.queueOperation(collectTasksFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -79,7 +79,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			if err != nil {
 				return empty, 400, lxerrors.New("parsing update task status request", err)
 			}
-			var updateTaskStatusMessage layerx_tpi.UpdateTaskStatusMessage
+			var updateTaskStatusMessage layerx_tpi_client.UpdateTaskStatusMessage
 			err = json.Unmarshal(data, &updateTaskStatusMessage)
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse json to update task status message", err)

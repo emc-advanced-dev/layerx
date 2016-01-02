@@ -50,7 +50,7 @@ func main () {
 	actionQueue := lxactionqueue.NewActionQueue()
 	driver := driver.NewMesosTpiDriver(actionQueue)
 	frameworkManager := framework_manager.NewFrameworkManager(masterUpid)
-	tpi := &layerx_tpi.LayerXTpi{
+	tpi := &layerx_tpi_client.LayerXTpi{
 		CoreURL: *layerX,
 	}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-func HandleRemoveFramework(tpi *layerx_tpi.LayerXTpi, frameworkId string) error {
+func HandleRemoveFramework(tpi *layerx_tpi_client.LayerXTpi, frameworkId string) error {
 	err := tpi.DeregisterTaskProvider(frameworkId)
 	if err != nil {
 		err = lxerrors.New("registering framework as new task provider with layer x", err)

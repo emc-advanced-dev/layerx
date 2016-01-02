@@ -6,7 +6,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
-func HandleKillTaskRequest(tpi *layerx_tpi.LayerXTpi, taskId string) error {
+func HandleKillTaskRequest(tpi *layerx_tpi_client.LayerXTpi, taskId string) error {
 	err := tpi.KillTask(taskId)
 	if err != nil {
 		lxlog.Errorf(logrus.Fields{

@@ -33,10 +33,10 @@ var empty = []byte{}
 type mesosApiServerWrapper struct {
 	actionQueue      lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
-	tpi              *layerx_tpi.LayerXTpi
+	tpi              *layerx_tpi_client.LayerXTpi
 }
 
-func NewMesosApiServerWrapper(tpi *layerx_tpi.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
+func NewMesosApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
 	return &mesosApiServerWrapper{
 		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,

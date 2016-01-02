@@ -13,7 +13,7 @@ import (
 )
 
 
-func HandleRegisterRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, frameworkInfo *mesosproto.FrameworkInfo) error {
+func HandleRegisterRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, frameworkInfo *mesosproto.FrameworkInfo) error {
 	frameworkName := frameworkInfo.GetName()
 	frameworkId := frameworkInfo.GetId().GetValue()
 	failoverTimeout := frameworkInfo.GetFailoverTimeout()

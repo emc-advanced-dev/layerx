@@ -6,7 +6,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
-func UpdateTaskStatus(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, updateTaskStatusMessage layerx_tpi.UpdateTaskStatusMessage) error {
+func UpdateTaskStatus(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, updateTaskStatusMessage layerx_tpi_client.UpdateTaskStatusMessage) error {
 	taskProvider := updateTaskStatusMessage.TaskProvider
 	frameworkId := taskProvider.Id
 	status := updateTaskStatusMessage.TaskStatus

@@ -6,7 +6,7 @@ import (
 "github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 )
 
-func CollectTasks(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, collectTasksMessage layerx_tpi.CollectTasksMessage) error {
+func CollectTasks(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, collectTasksMessage layerx_tpi_client.CollectTasksMessage) error {
 	for _, taskProvider := range collectTasksMessage.TaskProivders {
 		frameworkId := taskProvider.Id
 		upid, err := mesos_data.UPIDFromString(taskProvider.Source)

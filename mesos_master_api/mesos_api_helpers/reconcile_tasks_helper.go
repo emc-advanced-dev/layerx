@@ -9,7 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-func HandleReconcileTasksRequest(tpi *layerx_tpi.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, reconcileTasksMessage mesosproto.ReconcileTasksMessage) error {
+func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, reconcileTasksMessage mesosproto.ReconcileTasksMessage) error {
 	frameworkId := reconcileTasksMessage.GetFrameworkId().GetValue()
 	statusUpdates := []*mesosproto.TaskStatus{}
 	currentStatuses, err := tpi.GetStatusUpdates(frameworkId)
