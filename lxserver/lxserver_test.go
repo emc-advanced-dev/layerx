@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 
@@ -121,6 +122,43 @@ var _ = Describe("Lxserver", func() {
 			Expect(taskProviderArr).To(ContainElement(fakeTaskProvider1))
 			Expect(taskProviderArr).To(ContainElement(fakeTaskProvider2))
 			Expect(taskProviderArr).To(ContainElement(fakeTaskProvider3))
+		})
+	})
+
+	Describe("GetStatusUpdates", func() {
+		It("gets the list of status updates for the given task provider", func() {
+			PurgeState()
+			err := state.InitializeState("http://127.0.0.1:4001")
+			Expect(err).To(BeNil())
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task3", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			fakeTask2.TaskProvider = fakeTaskProvider
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = state.StagingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask2)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			fakeStatusUpdate1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
+			fakeStatusUpdate2 := fakes.FakeTaskStatus("fake_task_id_2", mesosproto.TaskState_TASK_KILLED)
+			fakeStatusUpdate3 := fakes.FakeTaskStatus("fake_task_id_3", mesosproto.TaskState_TASK_ERROR)
+			err = state.StatusPool.AddStatus(fakeStatusUpdate1)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate2)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate3)
+			Expect(err).To(BeNil())
+			statuses, err := lxTpiClient.GetStatusUpdates("fake_framework")
+			Expect(err).To(BeNil())
+			Expect(statuses).To(ContainElement(fakeStatusUpdate1))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate2))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
 		})
 	})
 })

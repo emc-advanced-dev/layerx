@@ -183,7 +183,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	getTaskProvidersHandler := func(res http.ResponseWriter, req *http.Request) {
-		registerTaskProviderFn := func() ([]byte, int, error) {
+		getTaskProvidersFn := func() ([]byte, int, error) {
 			taskProviders, err := lx_core_helpers.GetTaskProviders(wrapper.state)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
@@ -199,7 +199,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Debugf(logrus.Fields{"task_providers": taskProviders}, "Added new TaskProvider to LayerX")
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(registerTaskProviderFn)
+		data, statusCode, err := wrapper.queueOperation(getTaskProvidersFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -211,39 +211,41 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.Write(data)
 	}
 
+	getStatusUpdatesHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		registerTaskProviderFn := func() ([]byte, int, error) {
+			tpId := params["task_provider_id"]
+			statuses, err := lx_core_helpers.GetStatusUpdates(wrapper.state, tpId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get Status Updates request")
+				return empty, 500, lxerrors.New("could not handle Get Status Updates request", err)
+			}
+			data, err := json.Marshal(statuses)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{}, "could not marshal Status Updates to json")
+				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
+			}
+			return data, 200, nil
+		}
+		data, statusCode, err := wrapper.queueOperation(registerTaskProviderFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Status Updates message")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
 	m.Get(GetTaskProviders, getTaskProvidersHandler)
-	
-	m.Get(GetStatusUpdates+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-//		tpid := params["task_provider_id"]
-//		statuses := []*mesosproto.TaskStatus{}
-//		for _, status := range statusUpdates {
-//			taskId := status.GetTaskId().GetValue()
-//			task, ok := tasks[taskId]
-//			if !ok {
-//				lxlog.Errorf(logrus.Fields{
-//					"task_id":  taskId,
-//				}, "could not find task for the id in the status")
-//				res.WriteHeader(500)
-//			}
-//			if task.TaskProvider.Id == tpid {
-//				statuses = append(statuses, status)
-//			}
-//		}
-//		data, err := json.Marshal(statuses)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(data),
-//			}, "could parse statuses into json")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		res.Write(data)
-	})
+	m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
 
 	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 //		tpid := params["task_provider_id"]
