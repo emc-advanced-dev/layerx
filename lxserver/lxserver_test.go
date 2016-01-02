@@ -14,6 +14,7 @@ import (
 "github.com/layer-x/layerx-commons/lxlog"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-core_v2/fakes"
 )
 
 
@@ -44,8 +45,20 @@ var _ = Describe("Lxserver", func() {
 
 			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), make(chan error))
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
+			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
 			go driver.Run()
 			lxlog.ActiveDebugMode()
+		})
+	})
+
+	Describe("RegisterTpi", func() {
+		It("adds the Tpi URL to the LX state", func() {
+			PurgeState()
+			err := lxTpiClient.RegisterTpi("127.0.0.1:6688")
+			Expect(err).To(BeNil())
+			tpiUrl, err := state.GetTpi()
+			Expect(err).To(BeNil())
+			Expect(tpiUrl).To(Equal("127.0.0.1:6688"))
 		})
 	})
 
@@ -57,17 +70,6 @@ var _ = Describe("Lxserver", func() {
 			rpiUrl, err := state.GetRpi()
 			Expect(err).To(BeNil())
 			Expect(rpiUrl).To(Equal("fake.rpi.ip:1234"))
-		})
-	})
-
-	Describe("RegisterTpi", func() {
-		It("adds the Tpi URL to the LX state", func() {
-			PurgeState()
-			err := lxTpiClient.RegisterTpi("fake.tpi.ip:1235")
-			Expect(err).To(BeNil())
-			tpiUrl, err := state.GetTpi()
-			Expect(err).To(BeNil())
-			Expect(tpiUrl).To(Equal("fake.tpi.ip:1235"))
 		})
 	})
 })
