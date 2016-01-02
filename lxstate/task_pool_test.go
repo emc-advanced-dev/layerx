@@ -5,9 +5,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-mesos-rpi_v2/fakes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
+"github.com/layer-x/layerx-core_v2/fakes"
 )
 
 var _ = Describe("TaskPool", func() {
@@ -19,7 +19,7 @@ var _ = Describe("TaskPool", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			pendingTasks := state.PendingTaskPool
-			fakeTask := fakes.FakeTask("fake_task_id_1")
+			fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			task, err := pendingTasks.GetTask(fakeTask.TaskId)
 			Expect(err).NotTo(BeNil())
 			Expect(task).To(BeNil())
@@ -39,7 +39,7 @@ var _ = Describe("TaskPool", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
-				fakeTask := fakes.FakeTask("fake_task_id_1")
+				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				expectedTaskJsonBytes, err := json.Marshal(fakeTask)
@@ -58,7 +58,7 @@ var _ = Describe("TaskPool", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
-				fakeTask := fakes.FakeTask("fake_task_id_1")
+				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				err = pendingTasks.AddTask(fakeTask)
@@ -75,7 +75,7 @@ var _ = Describe("TaskPool", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
-				fakeTask := fakes.FakeTask("fake_task_id_1")
+				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				fakeTask.Mem = 666
@@ -99,7 +99,7 @@ var _ = Describe("TaskPool", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
-				fakeTask := fakes.FakeTask("fake_task_id_1")
+				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				err = pendingTasks.ModifyTask(fakeTask.TaskId, fakeTask)
 				Expect(err).NotTo(BeNil())
 			})
@@ -113,9 +113,9 @@ var _ = Describe("TaskPool", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			pendingTasks := state.PendingTaskPool
-			fakeTask1 := fakes.FakeTask("fake_task_id_1")
-			fakeTask2 := fakes.FakeTask("fake_task_id_2")
-			fakeTask3 := fakes.FakeTask("fake_task_id_3")
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 			err = pendingTasks.AddTask(fakeTask1)
 			Expect(err).To(BeNil())
 			err = pendingTasks.AddTask(fakeTask2)
@@ -138,9 +138,9 @@ var _ = Describe("TaskPool", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
-				fakeTask1 := fakes.FakeTask("fake_task_id_1")
-				fakeTask2 := fakes.FakeTask("fake_task_id_2")
-				fakeTask3 := fakes.FakeTask("fake_task_id_3")
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				err = pendingTasks.AddTask(fakeTask1)
 				Expect(err).To(BeNil())
 				err = pendingTasks.AddTask(fakeTask2)
