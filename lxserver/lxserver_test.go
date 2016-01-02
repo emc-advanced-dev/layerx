@@ -23,7 +23,7 @@ func PurgeState() {
 
 var _ = Describe("Lxserver", func() {
 	var lxRpiClient *layerx_rpi_client.LayerXRpi
-	var lxTpiClient *layerx_tpi.LayerXTpi
+	var lxTpiClient *layerx_tpi_client.LayerXTpi
 	var state *lxstate.State
 
 	Describe("setup", func(){
@@ -31,7 +31,7 @@ var _ = Describe("Lxserver", func() {
 			lxRpiClient = &layerx_rpi_client.LayerXRpi{
 				CoreURL: "127.0.0.1:6677",
 			}
-			lxTpiClient = &layerx_tpi.LayerXTpi{
+			lxTpiClient = &layerx_tpi_client.LayerXTpi{
 				CoreURL: "127.0.0.1:6677",
 			}
 

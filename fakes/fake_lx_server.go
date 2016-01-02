@@ -58,7 +58,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		var registrationMessage layerx_tpi.TpiRegistrationMessage
+		var registrationMessage layerx_tpi_client.TpiRegistrationMessage
 		err = json.Unmarshal(body, &registrationMessage)
 		if err != nil {
 			lxlog.Errorf(logrus.Fields{

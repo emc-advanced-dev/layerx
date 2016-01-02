@@ -1,4 +1,4 @@
-package layerx_tpi_test
+package layerx_tpi_client_test
 
 import (
 	. "github.com/layer-x/layerx-core_v2/layerx_tpi_client"

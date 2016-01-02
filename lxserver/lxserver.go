@@ -57,7 +57,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			if err != nil {
 				return empty, 400, lxerrors.New("parsing register tpi request", err)
 			}
-			var tpiRegistrationMessage layerx_tpi.TpiRegistrationMessage
+			var tpiRegistrationMessage layerx_tpi_client.TpiRegistrationMessage
 			err = json.Unmarshal(data, &tpiRegistrationMessage)
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse json to register tpi message", err)

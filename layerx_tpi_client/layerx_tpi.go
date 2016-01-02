@@ -1,4 +1,4 @@
-package layerx_tpi
+package layerx_tpi_client
 
 import (
 	"encoding/json"
