@@ -157,9 +157,35 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	deregisterTaskProviderHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		deregisterTaskProviderFn := func() ([]byte, int, error) {
+			tpId := params["task_provider_id"]
+			err := lx_core_helpers.DeregisterTaskProvider(wrapper.state, tpId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle deregister TaskProvider request")
+				return empty, 500, lxerrors.New("could not handle deregister TaskProvider request", err)
+			}
+			lxlog.Infof(logrus.Fields{"task_provider_id": tpId}, "removed task provider from LayerX")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(deregisterTaskProviderFn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing deregister TaskProvider message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
+	m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
 
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 //		tpid := params["task_provider_id"]

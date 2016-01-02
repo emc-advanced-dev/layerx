@@ -84,4 +84,18 @@ var _ = Describe("Lxserver", func() {
 			Expect(taskProvider).To(Equal(fakeTaskProvider))
 		})
 	})
+
+	Describe("DeregisterTaskProvider", func() {
+		It("removes the task provider from the LX state", func() {
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			err = lxTpiClient.DeregisterTaskProvider(fakeTaskProvider.Id)
+			Expect(err).To(BeNil())
+			taskProvider, err := state.TaskProviderPool.GetTaskProvider("fake_framework")
+			Expect(err).NotTo(BeNil())
+			Expect(taskProvider).To(BeNil())
+		})
+	})
 })
