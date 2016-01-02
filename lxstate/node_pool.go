@@ -3,6 +3,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 "github.com/layer-x/layerx-core_v2/lxtypes"
+	"strings"
 )
 
 type NodePool struct {
@@ -44,6 +45,23 @@ func (nodePool *NodePool) GetNode(nodeId string) (*lxtypes.Node, error) {
 		return nil, lxerrors.New("loading node "+nodeId+" from stored information in database", err)
 	}
 	return node, nil
+}
+
+func (nodePool *NodePool) GetNodes() (map[string]*lxtypes.Node, error) {
+	nodeKeys, err := lxdatabase.GetSubdirectories(nodePool.GetKey())
+	if err != nil {
+		return nil, lxerrors.New("retrieving node map from database", err)
+	}
+	nodes := make(map[string]*lxtypes.Node)
+	for _, nodeKey := range nodeKeys {
+		nodeId := strings.TrimPrefix(nodeKey, nodePool.GetKey()+"/")
+		node, err := nodePool.loadNode(nodeId)
+		if err != nil {
+			return nil, lxerrors.New("loading node "+nodeId+" from stored information in database", err)
+		}
+		nodes[nodeId] = node
+	}
+	return nodes, nil
 }
 
 func (nodePool *NodePool) DeleteNode(nodeId string) error {

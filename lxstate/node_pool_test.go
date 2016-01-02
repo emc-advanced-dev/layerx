@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-core_v2/fakes"
-"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
 )
 
 var _ = Describe("NodePool", func() {
@@ -67,6 +67,30 @@ var _ = Describe("NodePool", func() {
 				Expect(node).To(Equal(fakeNode))
 			})
 		})
+		Describe("GetNodes()", func() {
+			It("returns all known nodes", func() {
+				state := NewState()
+				state.InitializeState("http://127.0.0.1:4001")
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				nodePool := state.NodePool
+				fakeNode1 := fakes.FakeNode("fake_resource_id_1", "fake_node_id_1")
+				fakeNode2 := fakes.FakeNode("fake_resource_id_2", "fake_node_id_2")
+				fakeNode3 := fakes.FakeNode("fake_resource_id_3", "fake_node_id_3")
+				err = nodePool.AddNode(fakeNode1)
+				Expect(err).To(BeNil())
+				err = nodePool.AddNode(fakeNode2)
+				Expect(err).To(BeNil())
+				err = nodePool.AddNode(fakeNode3)
+				Expect(err).To(BeNil())
+				nodes, err := nodePool.GetNodes()
+				Expect(err).To(BeNil())
+				Expect(nodes).To(ContainElement(fakeNode1))
+				Expect(nodes).To(ContainElement(fakeNode2))
+				Expect(nodes).To(ContainElement(fakeNode3))
+			})
+		})
 		Describe("DeleteNode(nodeId)", func() {
 			Context("the node exists", func() {
 				It("returns the node with all of its tasks", func() {
@@ -102,8 +126,8 @@ var _ = Describe("NodePool", func() {
 				})
 			})//TODO: DELETENODE TEST, GETRESOURCEPOOL GETTASKPOOL
 		})
-		Describe("GetNodeResourcePool", func(){
-			It("returns the resource pool for the specified nodeid", func(){
+		Describe("GetNodeResourcePool", func() {
+			It("returns the resource pool for the specified nodeid", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -124,8 +148,8 @@ var _ = Describe("NodePool", func() {
 				Expect(node.GetResources()).To(ContainElement(fakeResource))
 			})
 		})
-		Describe("GetNodeTaskPool", func(){
-			It("returns the task pool for the specified nodeid", func(){
+		Describe("GetNodeTaskPool", func() {
+			It("returns the task pool for the specified nodeid", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
