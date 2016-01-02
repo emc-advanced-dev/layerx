@@ -3,6 +3,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 const (
@@ -125,4 +126,45 @@ func (state *State) GetAllTasks() (map[string]*lxtypes.Task, error) {
 		}
 	}
 	return allTasks, nil
+}
+
+func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*mesosproto.TaskStatus, error) {
+	taskProviders, err := state.TaskProviderPool.GetTaskProviders()
+	if err != nil {
+		return nil, lxerrors.New("could not get task provider list", err)
+	}
+	tpIds := []string{}
+	for tpId := range taskProviders {
+		tpIds = append(tpIds, tpId)
+	}
+	allTasks, err := state.GetAllTasks()
+	if err != nil {
+		return nil, lxerrors.New("getting all tasks from state", err)
+	}
+	targetTaskIds := []string{}
+	for _, task := range allTasks {
+		if containsString(tpIds, task.TaskProvider.Id) {
+			targetTaskIds = append(targetTaskIds, task.TaskId)
+		}
+	}
+	allStatuses, err := state.StatusPool.GetStatuses()
+	if err != nil {
+		return nil, lxerrors.New("getting all statuses from state", err)
+	}
+	statuses := make(map[string]*mesosproto.TaskStatus)
+	for _, status := range allStatuses {
+		if containsString(targetTaskIds, status.GetTaskId().GetValue()) {
+			statuses[status.GetTaskId().GetValue()] = status
+		}
+	}
+	return statuses, nil
+}
+
+func containsString(strArray []string, target string) bool {
+	for _, str := range strArray {
+		if str == target {
+			return true
+		}
+	}
+	return false
 }

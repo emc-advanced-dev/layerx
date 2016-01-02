@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 "github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 func PurgeState() {
@@ -92,6 +93,44 @@ var _ = Describe("State", func() {
 			Expect(allTasks[fakeNodeTask1.TaskId]).To(Equal(fakeNodeTask1))
 			Expect(allTasks[fakeNodeTask2.TaskId]).To(Equal(fakeNodeTask2))
 			Expect(allTasks[fakeNodeTask3.TaskId]).To(Equal(fakeNodeTask3))
+		})
+	})
+	Describe("GetStatusUpdatesForTaskProvider(tpid)", func(){
+		It("returns all known status updates for the task provider", func(){
+			state := NewState()
+			state.InitializeState("http://127.0.0.1:4001")
+			PurgeState()
+			err := state.InitializeState("http://127.0.0.1:4001")
+			Expect(err).To(BeNil())
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task3", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			fakeTask2.TaskProvider = fakeTaskProvider
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = state.StagingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask2)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			fakeStatusUpdate1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
+			fakeStatusUpdate2 := fakes.FakeTaskStatus("fake_task_id_2", mesosproto.TaskState_TASK_KILLED)
+			fakeStatusUpdate3 := fakes.FakeTaskStatus("fake_task_id_3", mesosproto.TaskState_TASK_ERROR)
+			err = state.StatusPool.AddStatus(fakeStatusUpdate1)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate2)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate3)
+			Expect(err).To(BeNil())
+			statuses, err := state.GetStatusUpdatesForTaskProvider("fake_framework")
+			Expect(err).To(BeNil())
+			Expect(statuses).To(ContainElement(fakeStatusUpdate1))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate2))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
 		})
 	})
 })
