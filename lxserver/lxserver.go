@@ -15,6 +15,8 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 "github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -363,6 +365,42 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	submitStatusUpdateHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing submit status request", err)
+			}
+			var status mesosproto.TaskStatus
+			err = proto.Unmarshal(data, &status)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
+			}
+			err = lx_core_helpers.SubmitStatusUpdate(wrapper.state, &status)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Submit status request")
+				return empty, 500, lxerrors.New("could not handle submit status request", err)
+			}
+			lxlog.Infof(logrus.Fields{"status": status}, "accepted status update from rpi")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing submit status request")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
@@ -373,34 +411,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	m.Post(KillTask+"/:task_id", killTaskHandler)
 	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
 	m.Post(SubmitResource, submitResourceHandler)
-
-	m.Post(SubmitStatusUpdate, func(res http.ResponseWriter, req *http.Request) {
-//		body, err := ioutil.ReadAll(req.Body)
-//		if req.Body != nil {
-//			defer req.Body.Close()
-//		}
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could not read  request body")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		var status mesosproto.TaskStatus
-//		err = proto.Unmarshal(body, &status)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could parse proto into resource")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		taskId := status.GetTaskId().GetValue()
-//		statusUpdates[taskId] = &status
-//		res.WriteHeader(202)
-	})
+	m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 
 	m.Get(GetNodes, func(res http.ResponseWriter){
 //		nodeArr := []*lxtypes.Node{}

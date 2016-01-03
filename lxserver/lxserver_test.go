@@ -11,12 +11,12 @@ import (
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-core_v2/driver"
 	"github.com/layer-x/layerx-core_v2/lxstate"
-"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/layer-x/layerx-commons/lxlog"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
-"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
 )
 
 
@@ -29,8 +29,8 @@ var _ = Describe("Lxserver", func() {
 	var lxTpiClient *layerx_tpi_client.LayerXTpi
 	var state *lxstate.State
 
-	Describe("setup", func(){
-		It("sets up for the tests", func(){
+	Describe("setup", func() {
+		It("sets up for the tests", func() {
 			lxRpiClient = &layerx_rpi_client.LayerXRpi{
 				CoreURL: "127.0.0.1:6677",
 			}
@@ -209,8 +209,8 @@ var _ = Describe("Lxserver", func() {
 	})
 
 	Describe("SubmitResource", func() {
-		Context("no node exists for the nodeId", func(){
-			It("creates a new node, addds the resource to the node", func(){
+		Context("no node exists for the nodeId", func() {
+			It("creates a new node, addds the resource to the node", func() {
 				PurgeState()
 				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 				err := lxRpiClient.SubmitResource(fakeResource1)
@@ -223,8 +223,8 @@ var _ = Describe("Lxserver", func() {
 				Expect(node.GetFreeDisk()).To(Equal(fakeResource1.Disk))
 			})
 		})
-		Context("a node already exists for the nodeId", func(){
-			It("adds the resource to the node", func(){
+		Context("a node already exists for the nodeId", func() {
+			It("adds the resource to the node", func() {
 				err := state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
 				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
@@ -241,6 +241,18 @@ var _ = Describe("Lxserver", func() {
 				Expect(node.GetFreeMem()).To(Equal(fakeResource1.Mem + fakeResource2.Mem))
 				Expect(node.GetFreeDisk()).To(Equal(fakeResource1.Disk + fakeResource2.Disk))
 			})
+		})
+	})
+
+	Describe("SubmitStatusUpdate", func() {
+		It("adds the status to the lx state", func() {
+			PurgeState()
+			fakeStatus1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_KILLED)
+			err := lxRpiClient.SubmitStatusUpdate(fakeStatus1)
+			Expect(err).To(BeNil())
+			status, err := state.StatusPool.GetStatus(fakeStatus1.GetTaskId().GetValue())
+			Expect(err).To(BeNil())
+			Expect(status).To(Equal(fakeStatus1))
 		})
 	})
 })
