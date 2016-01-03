@@ -52,7 +52,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 
 			fakeCollectTasksMsg := &layerx_tpi_client.CollectTasksMessage{
-				TaskProivders: []*lxtypes.TaskProvider{
+				TaskProviders: []*lxtypes.TaskProvider{
 					&lxtypes.TaskProvider{
 						Id: "fake_task_provider_id",
 						Source: "fakeframework@127.0.0.1:3002",

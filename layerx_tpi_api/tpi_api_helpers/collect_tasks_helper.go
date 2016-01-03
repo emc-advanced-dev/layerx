@@ -7,7 +7,7 @@ import (
 )
 
 func CollectTasks(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, collectTasksMessage layerx_tpi_client.CollectTasksMessage) error {
-	for _, taskProvider := range collectTasksMessage.TaskProivders {
+	for _, taskProvider := range collectTasksMessage.TaskProviders {
 		frameworkId := taskProvider.Id
 		upid, err := mesos_data.UPIDFromString(taskProvider.Source)
 		if err != nil {
