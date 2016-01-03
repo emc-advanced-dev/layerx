@@ -160,6 +160,48 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 	return statuses, nil
 }
 
+func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) {
+	pendingTasks, err := state.PendingTaskPool.GetTasks()
+	if err != nil {
+		return nil, lxerrors.New("could not get tasks from pending task pool", err)
+	}
+	for _, task := range pendingTasks {
+		if task.TaskId == taskId {
+			return state.PendingTaskPool, nil
+		}
+	}
+	stagingTasks, err := state.StagingTaskPool.GetTasks()
+	if err != nil {
+		return nil, lxerrors.New("could not get tasks from staging task pool", err)
+	}
+	for _, task := range stagingTasks {
+		if task.TaskId == taskId {
+			return state.StagingTaskPool, nil
+		}
+	}
+	nodes, err := state.NodePool.GetNodes()
+	if err != nil {
+		return nil, lxerrors.New("getting list of nodes from node pool", err)
+	}
+	for _, node := range nodes {
+		nodeId := node.Id
+		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
+		if err != nil {
+			return nil, lxerrors.New("getting task pool for node "+nodeId, err)
+		}
+		nodeTasks, err := nodeTaskPool.GetTasks()
+		if err != nil {
+			return nil, lxerrors.New("getting list of tasks from node "+nodeId+"task pool", err)
+		}
+		for _, task := range nodeTasks {
+			if task.TaskId == taskId {
+				return nodeTaskPool, nil
+			}
+		}
+	}
+	return nil, lxerrors.New("task pool not found that contains task "+taskId, nil)
+}
+
 func containsString(strArray []string, target string) bool {
 	for _, str := range strArray {
 		if str == target {
