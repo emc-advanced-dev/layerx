@@ -104,7 +104,7 @@ func fakeCollectTasks(layerXUrl string, collectTasksMessage layerx_tpi_client.Co
 	tpiClient := layerx_tpi_client.LayerXTpi{
 		CoreURL: layerXUrl,
 	}
-	for _, taskProvider := range collectTasksMessage.TaskProivders {
+	for _, taskProvider := range collectTasksMessage.TaskProviders {
 		fakeTaskName := "fake_task_for_"+taskProvider.Id
 		fakeTaskId := fakeTaskName+"_id"
 		fakeSlaveId := "fake_slave_id"

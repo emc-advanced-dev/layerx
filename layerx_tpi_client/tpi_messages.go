@@ -9,7 +9,7 @@ type TpiRegistrationMessage struct {
 }
 
 type CollectTasksMessage struct {
-	TaskProivders []*lxtypes.TaskProvider `json:"task_providers"`
+	TaskProviders []*lxtypes.TaskProvider `json:"task_providers"`
 }
 
 type UpdateTaskStatusMessage struct {
