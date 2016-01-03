@@ -401,6 +401,35 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	getNodesHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			nodes, err := lx_core_helpers.GetNodes(wrapper.state)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get Nodes request")
+				return empty, 500, lxerrors.New("could not handle Get Nodes request", err)
+			}
+			data, err := json.Marshal(nodes)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{}, "could not marshal nodes to json")
+				return empty, 500, lxerrors.New("marshalling nodes to json", err)
+			}
+			lxlog.Debugf(logrus.Fields{"nodes": nodes}, "Added new TaskProvider to LayerX")
+			return data, 200, nil
+		}
+		data, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Nodes message")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
@@ -412,23 +441,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
 	m.Post(SubmitResource, submitResourceHandler)
 	m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
-
-	m.Get(GetNodes, func(res http.ResponseWriter){
-//		nodeArr := []*lxtypes.Node{}
-//		for _, node := range nodes {
-//			nodeArr = append(nodeArr, node)
-//		}
-//		data, err := json.Marshal(nodeArr)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"data":  string(data),
-//			}, "could marshal nodes to json")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		res.Write(data)
-	})
+	m.Get(GetNodes, getNodesHandler)
 
 	return m
 }
