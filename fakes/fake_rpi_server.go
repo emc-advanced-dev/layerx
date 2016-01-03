@@ -105,7 +105,7 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 
 	m.Post(COLLECT_RESOURCES, collectResourcesHandler)
 	m.Post(LAUNCH_TASKS, launchTaskHandler)
-	m.Post(KILL_TASK, killTaskHandler)
+	m.Post(KILL_TASK+"/:task_id", killTaskHandler)
 
 	m.RunOnAddr(fmt.Sprintf(":%v", port))
 }
