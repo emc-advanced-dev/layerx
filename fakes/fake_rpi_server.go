@@ -19,8 +19,6 @@ const (
 	KILL_TASK = "/kill_task"
 )
 
-var empty = []byte{}
-
 func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 
 	m := martini.Classic()
