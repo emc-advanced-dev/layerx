@@ -16,6 +16,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
+"github.com/layer-x/layerx-core_v2/lxtypes"
 )
 
 
@@ -204,6 +205,42 @@ var _ = Describe("Lxserver", func() {
 			task1, err := state.PendingTaskPool.GetTask("fake_task_id_1")
 			Expect(err).NotTo(BeNil())
 			Expect(task1).To(BeNil())
+		})
+	})
+
+	Describe("SubmitResource", func() {
+		Context("no node exists for the nodeId", func(){
+			It("creates a new node, addds the resource to the node", func(){
+				PurgeState()
+				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+				err := lxRpiClient.SubmitResource(fakeResource1)
+				Expect(err).To(BeNil())
+				node, err := state.NodePool.GetNode(fakeResource1.NodeId)
+				Expect(err).To(BeNil())
+				Expect(node.Resources).To(ContainElement(fakeResource1))
+				Expect(node.GetFreeCpus()).To(Equal(fakeResource1.Cpus))
+				Expect(node.GetFreeMem()).To(Equal(fakeResource1.Mem))
+				Expect(node.GetFreeDisk()).To(Equal(fakeResource1.Disk))
+			})
+		})
+		Context("a node already exists for the nodeId", func(){
+			It("adds the resource to the node", func(){
+				err := state.InitializeState("http://127.0.0.1:4001")
+				PurgeState()
+				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+				err = lxRpiClient.SubmitResource(fakeResource1)
+				Expect(err).To(BeNil())
+				fakeResource2 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_2", "fake_slave_id_1"))
+				err = lxRpiClient.SubmitResource(fakeResource2)
+				Expect(err).To(BeNil())
+				node, err := state.NodePool.GetNode(fakeResource1.NodeId)
+				Expect(err).To(BeNil())
+				Expect(node.Resources).To(ContainElement(fakeResource1))
+				Expect(node.Resources).To(ContainElement(fakeResource2))
+				Expect(node.GetFreeCpus()).To(Equal(fakeResource1.Cpus + fakeResource2.Cpus))
+				Expect(node.GetFreeMem()).To(Equal(fakeResource1.Mem + fakeResource2.Mem))
+				Expect(node.GetFreeDisk()).To(Equal(fakeResource1.Disk + fakeResource2.Disk))
+			})
 		})
 	})
 })

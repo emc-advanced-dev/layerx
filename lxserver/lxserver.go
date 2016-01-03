@@ -327,6 +327,42 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	submitResourceHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing submit resource request", err)
+			}
+			var resource lxtypes.Resource
+			err = json.Unmarshal(data, &resource)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to resource", err)
+			}
+			err = lx_core_helpers.SubmitResource(wrapper.state, &resource)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Submit Resource request")
+				return empty, 500, lxerrors.New("could not handle SubmitResource request", err)
+			}
+			lxlog.Infof(logrus.Fields{"resource": resource}, "accepted resource from rpi")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Submit Resource request")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
@@ -336,58 +372,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
 	m.Post(KillTask+"/:task_id", killTaskHandler)
 	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
-
-	m.Post(SubmitResource, func(res http.ResponseWriter, req *http.Request) {
-//		body, err := ioutil.ReadAll(req.Body)
-//		if req.Body != nil {
-//			defer req.Body.Close()
-//		}
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could not read  request body")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		var resource lxtypes.Resource
-//		err = json.Unmarshal(body, &resource)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could parse json into resource")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		nodeId := resource.NodeId
-//		if knownNode, ok := nodes[nodeId]; ok {
-//			err = knownNode.AddResource(&resource)
-//			if err != nil {
-//				lxlog.Errorf(logrus.Fields{
-//					"error": err,
-//					"node":  knownNode,
-//					"resource":  resource,
-//				}, "could not add resource to node")
-//				res.WriteHeader(500)
-//				return
-//			}
-//			nodes[nodeId] = knownNode
-//		} else {
-//			newNode := lxtypes.NewNode(nodeId)
-//			err = newNode.AddResource(&resource)
-//			if err != nil {
-//				lxlog.Errorf(logrus.Fields{
-//					"error": err,
-//					"node":  newNode,
-//					"resource":  resource,
-//				}, "could not add resource to node")
-//				res.WriteHeader(500)
-//			}
-//			nodes[nodeId] = newNode
-//		}
-//		res.WriteHeader(202)
-	})
+	m.Post(SubmitResource, submitResourceHandler)
 
 	m.Post(SubmitStatusUpdate, func(res http.ResponseWriter, req *http.Request) {
 //		body, err := ioutil.ReadAll(req.Body)
