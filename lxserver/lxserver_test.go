@@ -161,4 +161,20 @@ var _ = Describe("Lxserver", func() {
 			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
 		})
 	})
+
+	Describe("SubmitTask", func() {
+		It("adds the task to the pending task pool, sets the task provider info for the task", func() {
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			err = lxTpiClient.SubmitTask("fake_framework", fakeTask1)
+			Expect(err).To(BeNil())
+			task1, err := state.PendingTaskPool.GetTask("fake_task_id_1")
+			Expect(err).To(BeNil())
+			fakeTask1.TaskProvider = fakeTaskProvider
+			Expect(task1).To(Equal(fakeTask1))
+		})
+	})
 })

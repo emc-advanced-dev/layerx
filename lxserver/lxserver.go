@@ -50,7 +50,7 @@ func NewLayerXCoreServerWrapper(state *lxstate.State, actionQueue lxactionqueue.
 
 func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, driverErrc chan error) *martini.ClassicMartini {
 	registerTpiHandler := func(res http.ResponseWriter, req *http.Request) {
-		registerTpiFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
 				defer req.Body.Close()
@@ -73,7 +73,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Infof(logrus.Fields{"tpi_url": tpiRegistrationMessage.TpiUrl}, "Registered TPI to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(registerTpiFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -86,7 +86,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	registerRpiHandler := func(res http.ResponseWriter, req *http.Request) {
-		registerRpiFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
 				defer req.Body.Close()
@@ -109,7 +109,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Infof(logrus.Fields{"rpi_url": rpiRegistrationMessage.RpiUrl}, "Registered TPI to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(registerRpiFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -122,7 +122,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	registerTaskProviderHandler := func(res http.ResponseWriter, req *http.Request) {
-		registerTaskProviderFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
 			if req.Body != nil {
 				defer req.Body.Close()
@@ -145,7 +145,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Infof(logrus.Fields{"task_provider": taskProvider}, "Added new TaskProvider to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(registerTaskProviderFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -158,7 +158,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	deregisterTaskProviderHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		deregisterTaskProviderFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			tpId := params["task_provider_id"]
 			err := lx_core_helpers.DeregisterTaskProvider(wrapper.state, tpId)
 			if err != nil {
@@ -170,7 +170,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Infof(logrus.Fields{"task_provider_id": tpId}, "removed task provider from LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(deregisterTaskProviderFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -183,7 +183,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	getTaskProvidersHandler := func(res http.ResponseWriter, req *http.Request) {
-		getTaskProvidersFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			taskProviders, err := lx_core_helpers.GetTaskProviders(wrapper.state)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
@@ -199,7 +199,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			lxlog.Debugf(logrus.Fields{"task_providers": taskProviders}, "Added new TaskProvider to LayerX")
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(getTaskProvidersFn)
+		data, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -212,7 +212,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	}
 
 	getStatusUpdatesHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		registerTaskProviderFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			tpId := params["task_provider_id"]
 			statuses, err := lx_core_helpers.GetStatusUpdates(wrapper.state, tpId)
 			if err != nil {
@@ -228,7 +228,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			}
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(registerTaskProviderFn)
+		data, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -240,48 +240,50 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.Write(data)
 	}
 
+	submitTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		fn := func() ([]byte, int, error) {
+			tpId := params["task_provider_id"]
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing SubmitTask request", err)
+			}
+			var task lxtypes.Task
+			err = json.Unmarshal(data, &task)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to task", err)
+			}
+			err = lx_core_helpers.SubmitTask(wrapper.state, tpId, &task)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get SubmitTask request")
+				return empty, 500, lxerrors.New("could not handle SubmitTask request", err)
+			}
+			lxlog.Infof(logrus.Fields{"task_provider_id": tpId, "task": task}, "accepted task from task provider")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Status Updates message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
 	m.Get(GetTaskProviders, getTaskProvidersHandler)
 	m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
-
-	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-//		tpid := params["task_provider_id"]
-//		tp, ok := taskProviders[tpid]
-//		if !ok {
-//			lxlog.Errorf(logrus.Fields{
-//				"tp_id":  tpid,
-//			}, "task provider not found for tpid")
-//			res.WriteHeader(500)
-//		}
-//		body, err := ioutil.ReadAll(req.Body)
-//		if req.Body != nil {
-//			defer req.Body.Close()
-//		}
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could not read  request body")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		var task lxtypes.Task
-//		err = json.Unmarshal(body, &task)
-//		if err != nil {
-//			lxlog.Errorf(logrus.Fields{
-//				"error": err,
-//				"body":  string(body),
-//			}, "could parse json into task")
-//			res.WriteHeader(500)
-//			return
-//		}
-//		task.TaskProvider = tp
-//		tasks[task.TaskId] = &task
-//		res.WriteHeader(202)
-	})
+	m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
 
 	m.Post(KillTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 //		taskid := params["task_id"]
