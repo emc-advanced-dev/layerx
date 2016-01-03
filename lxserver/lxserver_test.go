@@ -177,4 +177,19 @@ var _ = Describe("Lxserver", func() {
 			Expect(task1).To(Equal(fakeTask1))
 		})
 	})
+
+	Describe("KillTask", func() {
+		It("sets the flag KillRequested to true on the task", func() {
+			PurgeState()
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			err := state.PendingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			err = lxTpiClient.KillTask(fakeTask1.TaskId)
+			Expect(err).To(BeNil())
+			fakeTask1.KillRequested = true
+			task1, err := state.PendingTaskPool.GetTask("fake_task_id_1")
+			Expect(err).To(BeNil())
+			Expect(task1).To(Equal(fakeTask1))
+		})
+	})
 })
