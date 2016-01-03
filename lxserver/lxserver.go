@@ -287,7 +287,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 				}, "could not handle kill task request")
 				return empty, 500, lxerrors.New("could not handle kill task request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_provider_id": taskId}, "removed task provider from LayerX")
+			lxlog.Infof(logrus.Fields{"task_id": taskId}, "killed task")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.queueOperation(fn)
@@ -302,6 +302,31 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 		res.WriteHeader(statusCode)
 	}
 
+	purgeTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		fn := func() ([]byte, int, error) {
+			taskId := params["task_id"]
+			err := lx_core_helpers.PurgeTask(wrapper.state, taskId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle purge task request")
+				return empty, 500, lxerrors.New("could not handle purge task request", err)
+			}
+			lxlog.Infof(logrus.Fields{"task_id": taskId}, "removed task from LayerX")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "purging task")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
@@ -310,19 +335,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 	m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
 	m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
 	m.Post(KillTask+"/:task_id", killTaskHandler)
-
-	m.Post(PurgeTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-//		taskid := params["task_id"]
-//		if _, ok := tasks[taskid]; !ok {
-//			lxlog.Errorf(logrus.Fields{
-//				"tpid": taskid,
-//			}, "task was not submitted")
-//			res.WriteHeader(400)
-//			return
-//		}
-//		delete(tasks, taskid)
-//		res.WriteHeader(202)
-	})
+	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
 
 	m.Post(SubmitResource, func(res http.ResponseWriter, req *http.Request) {
 //		body, err := ioutil.ReadAll(req.Body)
