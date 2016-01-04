@@ -19,6 +19,7 @@ const (
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
 	GetStatusUpdates       = "/GetStatusUpdates"
+	GetStatusUpdate       = "/GetStatusUpdate"
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
@@ -120,6 +121,25 @@ func (tpi *LayerXTpi) GetStatusUpdates(tpid string) ([]*mesosproto.TaskStatus, e
 		return nil, lxerrors.New("unmarshalling json to []*mesosproto.TaskStatus", err)
 	}
 	return statusUpdates, nil
+}
+
+//call this method to retrieve a specific status for
+// a specific task
+func (tpi *LayerXTpi) GetStatusUpdate(taskId string) (*mesosproto.TaskStatus, error) {
+	var status mesosproto.TaskStatus
+	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetStatusUpdate+"/"+taskId, nil)
+	if err != nil {
+		return nil, lxerrors.New("Requesting status update for task "+taskId+" from LayerX core server", err)
+	}
+	if resp.StatusCode != 200 {
+		msg := fmt.Sprintf("Requesting status update for task "+taskId+" from LayerX core server; status code was %v, expected 202", resp.StatusCode)
+		return nil, lxerrors.New(msg, err)
+	}
+	err = json.Unmarshal(body, &status)
+	if err != nil {
+		return nil, lxerrors.New("unmarshalling json to *mesosproto.TaskStatus", err)
+	}
+	return &status, nil
 }
 
 //call this method to submit

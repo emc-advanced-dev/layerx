@@ -10,26 +10,27 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"io/ioutil"
 	"net/http"
-"github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 )
 
 const (
-	//tpi
-	RegisterTpi             = "/RegisterTpi"
-	RegisterTaskProvider   = "/RegisterTaskProvider"
+//tpi
+	RegisterTpi = "/RegisterTpi"
+	RegisterTaskProvider = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
-	GetTaskProviders       = "/GetTaskProviders"
-	GetStatusUpdates       = "/GetStatusUpdates"
-	SubmitTask             = "/SubmitTask"
-	KillTask               = "/KillTask"
-	PurgeTask              = "/PurgeTask"
+	GetTaskProviders = "/GetTaskProviders"
+	GetStatusUpdates = "/GetStatusUpdates"
+	GetStatusUpdate = "/GetStatusUpdate"
+	SubmitTask = "/SubmitTask"
+	KillTask = "/KillTask"
+	PurgeTask = "/PurgeTask"
 //rpi
-	RegisterRpi             = "/RegisterRpi"
-	SubmitResource             = "/SubmitResource"
-	SubmitStatusUpdate         = "/SubmitStatusUpdate"
-	GetNodes         = "/GetNodes"
+	RegisterRpi = "/RegisterRpi"
+	SubmitResource = "/SubmitResource"
+	SubmitStatusUpdate = "/SubmitStatusUpdate"
+	GetNodes = "/GetNodes"
 )
 
 func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
@@ -97,7 +98,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		taskProviders[tp.Id] = &tp
 		res.WriteHeader(202)
 	})
-	m.Post(DeregisterTaskProvider+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(DeregisterTaskProvider + "/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
 		if _, ok := taskProviders[tpid]; !ok {
 			lxlog.Errorf(logrus.Fields{
@@ -153,7 +154,28 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.Write(data)
 	})
 
-	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Get(GetStatusUpdate + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		taskId := params["task_id"]
+		status, ok := statusUpdates[taskId]
+		if !ok {
+			lxlog.Errorf(logrus.Fields{
+				"task_id":  taskId,
+			}, "could not find status for the id in the status")
+			res.WriteHeader(500)
+		}
+		data, err := json.Marshal(status)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(data),
+			}, "could parse status into json")
+			res.WriteHeader(500)
+			return
+		}
+		res.Write(data)
+	})
+
+	m.Post(SubmitTask + "/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
 		tp, ok := taskProviders[tpid]
 		if !ok {
@@ -189,7 +211,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(KillTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(KillTask + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
 		if _, ok := tasks[taskid]; !ok {
 			lxlog.Errorf(logrus.Fields{
@@ -202,7 +224,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(PurgeTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(PurgeTask + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
 		if _, ok := tasks[taskid]; !ok {
 			lxlog.Errorf(logrus.Fields{
@@ -322,7 +344,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Get(GetNodes, func(res http.ResponseWriter){
+	m.Get(GetNodes, func(res http.ResponseWriter) {
 		nodeArr := []*lxtypes.Node{}
 		for _, node := range nodes {
 			nodeArr = append(nodeArr, node)

@@ -120,6 +120,24 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(err).To(BeNil())
 		})
 	})
+	Describe("GetStatusUpdate(taskId)", func(){
+		It("returns the current status of the given task", func(){
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(taskProvider)
+			Expect(err).To(BeNil())
+			fakeLxTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeLxTask)
+			Expect(err).To(BeNil())
+			status, err := lxTpi.GetStatusUpdate("fake_task_id_1")
+			Expect(err).To(BeNil())
+			Expect(status).To(Equal(fakeStatus1))
+			err = lxTpi.DeregisterTaskProvider("fake_task_provider_id")
+			Expect(err).To(BeNil())
+		})
+	})
 	Describe("SubmitTask", func() {
 		It("submits a task to the server", func() {
 			fakeLxTask := fakes.FakeLXTask("fake_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
