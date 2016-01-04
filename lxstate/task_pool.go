@@ -23,6 +23,9 @@ func (taskPool *TaskPool) Initialize() error {
 }
 
 func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
+	if task.TaskProvider == nil {
+		return lxerrors.New("cannot accept task "+task.TaskId+" with no task provider!", nil)
+	}
 	taskId := task.TaskId
 	_, err := taskPool.GetTask(taskId)
 	if err == nil {

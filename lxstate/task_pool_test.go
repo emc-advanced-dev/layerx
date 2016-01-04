@@ -20,6 +20,7 @@ var _ = Describe("TaskPool", func() {
 			Expect(err).To(BeNil())
 			pendingTasks := state.PendingTaskPool
 			fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			task, err := pendingTasks.GetTask(fakeTask.TaskId)
 			Expect(err).NotTo(BeNil())
 			Expect(task).To(BeNil())
@@ -40,6 +41,7 @@ var _ = Describe("TaskPool", func() {
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
 				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				expectedTaskJsonBytes, err := json.Marshal(fakeTask)
@@ -59,6 +61,7 @@ var _ = Describe("TaskPool", func() {
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
 				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				err = pendingTasks.AddTask(fakeTask)
@@ -76,6 +79,7 @@ var _ = Describe("TaskPool", func() {
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
 				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = pendingTasks.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				fakeTask.Mem = 666
@@ -100,6 +104,7 @@ var _ = Describe("TaskPool", func() {
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
 				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = pendingTasks.ModifyTask(fakeTask.TaskId, fakeTask)
 				Expect(err).NotTo(BeNil())
 			})
@@ -114,8 +119,11 @@ var _ = Describe("TaskPool", func() {
 			Expect(err).To(BeNil())
 			pendingTasks := state.PendingTaskPool
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask2.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+			fakeTask3.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			err = pendingTasks.AddTask(fakeTask1)
 			Expect(err).To(BeNil())
 			err = pendingTasks.AddTask(fakeTask2)
@@ -139,8 +147,11 @@ var _ = Describe("TaskPool", func() {
 				Expect(err).To(BeNil())
 				pendingTasks := state.PendingTaskPool
 				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask2.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
+				fakeTask3.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = pendingTasks.AddTask(fakeTask1)
 				Expect(err).To(BeNil())
 				err = pendingTasks.AddTask(fakeTask2)

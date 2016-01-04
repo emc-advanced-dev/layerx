@@ -163,6 +163,7 @@ var _ = Describe("NodePool", func() {
 				Expect(err).To(BeNil())
 				Expect(nodeTaskPool).NotTo(BeNil())
 				fakeTask := fakes.FakeLXTask("fake_task_id_1", "fake_task", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = nodeTaskPool.AddTask(fakeTask)
 				Expect(err).To(BeNil())
 				node, err := nodePool.GetNode(fakeNode.Id)

@@ -50,7 +50,7 @@ func NewLayerXCoreServerWrapper(state *lxstate.State, actionQueue lxactionqueue.
 	}
 }
 
-func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, driverErrc chan error) *martini.ClassicMartini {
+func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *martini.ClassicMartini {
 	registerTpiHandler := func(res http.ResponseWriter, req *http.Request) {
 		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
@@ -379,7 +379,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, dr
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
 			}
-			err = lx_core_helpers.SubmitStatusUpdate(wrapper.state, &status)
+			err = lx_core_helpers.SubmitStatusUpdate(wrapper.state, tpiUrl, &status)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
