@@ -160,6 +160,19 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 	return statuses, nil
 }
 
+func (state *State) GetTaskFromAnywhere(taskId string) (*lxtypes.Task, error) {
+	allTasks, err := state.GetAllTasks()
+	if err != nil {
+		return nil, lxerrors.New("could not get all tasks", err)
+	}
+	for _, task := range allTasks {
+		if task.TaskId == taskId {
+			return task, nil
+		}
+	}
+	return nil, lxerrors.New("task was not found with id "+taskId, nil)
+}
+
 func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) {
 	pendingTasks, err := state.PendingTaskPool.GetTasks()
 	if err != nil {
