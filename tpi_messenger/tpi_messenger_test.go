@@ -38,9 +38,10 @@ var _ = Describe("TpiMessenger", func() {
 
 			driverErrc := make(chan error)
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), driverErrc)
+			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:8866", "127.0.0.1:8855", driverErrc)
 			go m.RunOnAddr(fmt.Sprintf(":7766"))
 			go fakes.RunFakeTpiServer("127.0.0.1:7766", 8866, driverErrc)
+			go fakes.RunFakeRpiServer("127.0.0.1:7766", 8855, driverErrc)
 			go driver.Run()
 			lxlog.ActiveDebugMode()
 
