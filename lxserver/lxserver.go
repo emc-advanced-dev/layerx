@@ -379,7 +379,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
 			}
-			err = lx_core_helpers.SubmitStatusUpdate(wrapper.state, tpiUrl, &status)
+			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, tpiUrl, &status)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
