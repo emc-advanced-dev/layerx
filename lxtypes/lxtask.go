@@ -10,12 +10,12 @@ import (
 const (
 	task_provider_key  = "layerx_mesos_tpi_task_provider_key"
 	kill_requested_key = "layerx_mesos_tpi_kill_requested_key"
-	launched_key       = "layerx_mesos_tpi_launched_key"
+	checkpointed_key       = "layerx_mesos_tpi_checkpointed_key"
 )
 
 type Task struct {
 	TaskProvider  *TaskProvider            `json:"task_provider"`
-	Launched      bool                     `json:"launched"`
+	Checkpointed bool                     `json:"checkpointed"`
 	KillRequested bool                     `json:"kill_requested"`
 	Name          string                   `json:"name,omitempty"`
 	TaskId        string                   `json:"task_id,omitempty"`
@@ -77,16 +77,16 @@ func (t *Task) ToMesos() *mesosproto.TaskInfo {
 		}
 		label_arr = append(label_arr, tasks_label)
 	}
-	//store launched as a label
-	if t.Launched {
+	//store checkpointed as a label
+	if t.Checkpointed {
 		tasks_label := &mesosproto.Label{
-			Key:   proto.String(launched_key),
+			Key:   proto.String(checkpointed_key),
 			Value: proto.String("true"),
 		}
 		label_arr = append(label_arr, tasks_label)
 	} else {
 		tasks_label := &mesosproto.Label{
-			Key:   proto.String(launched_key),
+			Key:   proto.String(checkpointed_key),
 			Value: proto.String("false"),
 		}
 		label_arr = append(label_arr, tasks_label)
@@ -170,7 +170,7 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 	}
 	var taskProvider TaskProvider
 	var killRequested bool
-	var launched bool
+	var checkpointed bool
 	labels := make(map[string]string)
 	for _, label := range taskInfo.GetLabels().GetLabels() {
 		//if label is task_provider_key, populate task provider instead
@@ -180,9 +180,9 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 			if label.GetValue() == "true" {
 				killRequested = true
 			}
-		} else if label.GetKey() == launched_key {
+		} else if label.GetKey() == checkpointed_key {
 			if label.GetValue() == "true" {
-				launched = true
+				checkpointed = true
 			}
 		} else {
 			labels[label.GetKey()] = label.GetValue()
@@ -191,7 +191,7 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 
 	task := &Task{
 		KillRequested: killRequested,
-		Launched:      launched,
+		Checkpointed:      checkpointed,
 		Name:          taskInfo.GetName(),
 		TaskId:        taskInfo.GetTaskId().GetValue(),
 		SlaveId:       taskInfo.GetSlaveId().GetValue(),
