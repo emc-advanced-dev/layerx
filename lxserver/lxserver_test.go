@@ -45,9 +45,10 @@ var _ = Describe("Lxserver", func() {
 			coreServerWrapper := NewLayerXCoreServerWrapper(state, actionQueue)
 			driver := driver.NewLayerXDriver(actionQueue)
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), make(chan error))
+			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", make(chan error))
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
+			go fakes.RunFakeRpiServer("127.0.0.1:6677", 6699, make(chan error))
 			go driver.Run()
 			lxlog.ActiveDebugMode()
 		})
@@ -135,8 +136,11 @@ var _ = Describe("Lxserver", func() {
 			err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
 			Expect(err).To(BeNil())
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task3", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			fakeTask1.TaskProvider = fakeTaskProvider
 			fakeTask2.TaskProvider = fakeTaskProvider
 			fakeTask3.TaskProvider = fakeTaskProvider
@@ -170,6 +174,7 @@ var _ = Describe("Lxserver", func() {
 			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
 			Expect(err).To(BeNil())
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			err = lxTpiClient.SubmitTask("fake_framework", fakeTask1)
 			Expect(err).To(BeNil())
 			task1, err := state.PendingTaskPool.GetTask("fake_task_id_1")
@@ -183,6 +188,7 @@ var _ = Describe("Lxserver", func() {
 		It("sets the flag KillRequested to true on the task", func() {
 			PurgeState()
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			err := state.PendingTaskPool.AddTask(fakeTask1)
 			Expect(err).To(BeNil())
 			err = lxTpiClient.KillTask(fakeTask1.TaskId)
@@ -198,6 +204,7 @@ var _ = Describe("Lxserver", func() {
 		It("deletes the task from the task pool", func() {
 			PurgeState()
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 			err := state.PendingTaskPool.AddTask(fakeTask1)
 			Expect(err).To(BeNil())
 			err = lxTpiClient.PurgeTask(fakeTask1.TaskId)
@@ -247,8 +254,14 @@ var _ = Describe("Lxserver", func() {
 	Describe("SubmitStatusUpdate", func() {
 		It("adds the status to the lx state", func() {
 			PurgeState()
+			purgeErr := state.InitializeState("http://127.0.0.1:4001")
+			Expect(purgeErr).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			err := state.StagingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
 			fakeStatus1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_KILLED)
-			err := lxRpiClient.SubmitStatusUpdate(fakeStatus1)
+			err = lxRpiClient.SubmitStatusUpdate(fakeStatus1)
 			Expect(err).To(BeNil())
 			status, err := state.StatusPool.GetStatus(fakeStatus1.GetTaskId().GetValue())
 			Expect(err).To(BeNil())
