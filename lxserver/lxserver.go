@@ -282,7 +282,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	killTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		fn := func() ([]byte, int, error) {
 			taskId := params["task_id"]
-			err := lx_core_helpers.KillTask(wrapper.state, taskId)
+			err := lx_core_helpers.KillTask(wrapper.state, rpiUrl, taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
