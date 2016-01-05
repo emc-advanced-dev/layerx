@@ -26,6 +26,7 @@ const (
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
 	GetStatusUpdates       = "/GetStatusUpdates"
+	GetStatusUpdate       = "/GetStatusUpdate"
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
@@ -242,6 +243,35 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 		res.Write(data)
 	}
 
+	getStatusUpdateHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		fn := func() ([]byte, int, error) {
+			taskId := params["task_id"]
+			status, err := lx_core_helpers.GetStatusUpdate(wrapper.state, taskId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get Status Update request")
+				return empty, 500, lxerrors.New("could not handle Get Status Update request", err)
+			}
+			data, err := json.Marshal(status)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{}, "could not marshal Status Update to json")
+				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
+			}
+			return data, 200, nil
+		}
+		data, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Status Update message")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
+	}
+
 	submitTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		fn := func() ([]byte, int, error) {
 			tpId := params["task_provider_id"]
@@ -436,6 +466,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
 	m.Get(GetTaskProviders, getTaskProvidersHandler)
 	m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
+	m.Get(GetStatusUpdate+"/:task_id", getStatusUpdateHandler)
 	m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
 	m.Post(KillTask+"/:task_id", killTaskHandler)
 	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)

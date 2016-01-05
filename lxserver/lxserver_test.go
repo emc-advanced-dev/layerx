@@ -167,6 +167,76 @@ var _ = Describe("Lxserver", func() {
 		})
 	})
 
+	Describe("GetStatusUpdate", func() {
+		Context("the task status exists in the database", func(){
+			It("returns that status", func(){
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+				Expect(err).To(BeNil())
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				fakeTask1.TaskProvider = fakeTaskProvider
+				err = state.StagingTaskPool.AddTask(fakeTask1)
+				Expect(err).To(BeNil())
+				fakeStatusUpdate1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
+				err = state.StatusPool.AddStatus(fakeStatusUpdate1)
+				Expect(err).To(BeNil())
+				status, err := lxTpiClient.GetStatusUpdate("fake_task_id_1")
+				Expect(err).To(BeNil())
+				Expect(status).To(Equal(fakeStatusUpdate1))
+			})
+		})
+		Context("the task is in the pending pool", func(){
+			It("returns a status with TASK_STAGING", func(){
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+				Expect(err).To(BeNil())
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				fakeTask1.TaskProvider = fakeTaskProvider
+				err = state.PendingTaskPool.AddTask(fakeTask1)
+				Expect(err).To(BeNil())
+				status, err := lxTpiClient.GetStatusUpdate("fake_task_id_1")
+				Expect(err).To(BeNil())
+				Expect(status.GetState()).To(Equal(mesosproto.TaskState_TASK_STAGING))
+			})
+		})
+		Context("the task is in the staging pool", func(){
+			It("returns a status with TASK_STARTING", func(){
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+				Expect(err).To(BeNil())
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				fakeTask1.TaskProvider = fakeTaskProvider
+				err = state.StagingTaskPool.AddTask(fakeTask1)
+				Expect(err).To(BeNil())
+				status, err := lxTpiClient.GetStatusUpdate("fake_task_id_1")
+				Expect(err).To(BeNil())
+				Expect(status.GetState()).To(Equal(mesosproto.TaskState_TASK_STARTING))
+			})
+		})
+		Context("the does not exist", func(){
+			It("returns a status with TASK_LOST", func(){
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				status, err := lxTpiClient.GetStatusUpdate("fake_task_id_1")
+				Expect(err).To(BeNil())
+				Expect(status.GetState()).To(Equal(mesosproto.TaskState_TASK_LOST))
+			})
+		})
+	})
+
 	Describe("SubmitTask", func() {
 		It("adds the task to the pending task pool, sets the task provider info for the task", func() {
 			PurgeState()
