@@ -396,4 +396,42 @@ var _ = Describe("Lxserver", func() {
 			Expect(tasks).NotTo(ContainElement(fakeTask3))
 		})
 	})
+	Describe("AssignTasks", func(){
+		It("moves a list of tasks to the staging pool, gives them the SlaveId of the target Node", func(){
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask2)
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+			err = lxRpiClient.SubmitResource(fakeResource1)
+			Expect(err).To(BeNil())
+			node, err := state.NodePool.GetNode(fakeResource1.NodeId)
+			Expect(err).To(BeNil())
+			Expect(node.Resources).To(ContainElement(fakeResource1))
+			err = lxBrainClient.AssignTasks(fakeResource1.NodeId, fakeTask1.TaskId, fakeTask2.TaskId, fakeTask3.TaskId)
+			Expect(err).To(BeNil())
+			tasks, err := state.PendingTaskPool.GetTasks()
+			Expect(err).To(BeNil())
+			Expect(tasks).To(BeEmpty())
+			tasks, err = state.StagingTaskPool.GetTasks()
+			Expect(tasks).NotTo(ContainElement(fakeTask1))
+			fakeTask1.SlaveId = fakeResource1.NodeId
+			fakeTask2.SlaveId = fakeResource1.NodeId
+			fakeTask3.SlaveId = fakeResource1.NodeId
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).To(ContainElement(fakeTask3))
+		})
+	})
 })

@@ -17,6 +17,7 @@ import (
 "github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/golang/protobuf/proto"
+	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
 )
 
 const (
@@ -493,6 +494,42 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 		res.Write(data)
 	}
 
+	assignTasksHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing assign tasks request", err)
+			}
+			var assignTasksMessage layerx_brain_client.BrainAssignTasksMessage
+			err = json.Unmarshal(data, &assignTasksMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to assign tasks message", err)
+			}
+			err = lx_core_helpers.AssignTasks(wrapper.state, assignTasksMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Submit status request")
+				return empty, 500, lxerrors.New("could not handle assign tasks message", err)
+			}
+			lxlog.Infof(logrus.Fields{"assignTasksMessage": assignTasksMessage}, "accepted assign tasks message from brain")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing assign tasks request")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	m.Post(RegisterTpi, registerTpiHandler)
 	m.Post(RegisterRpi, registerRpiHandler)
 	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
@@ -507,6 +544,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 	m.Get(GetNodes, getNodesHandler)
 	m.Get(GetPendingTasks, getPendingTasksHandler)
+	m.Post(AssignTasks, assignTasksHandler)
 
 	return m
 }
