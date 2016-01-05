@@ -78,6 +78,15 @@ func FakeLaunchTasksMessage(frameworkId string) *mesosproto.LaunchTasksMessage {
 	}
 }
 
+func FakeReconcileTasksMessage(frameworkId string, statuses []*mesosproto.TaskStatus) *mesosproto.ReconcileTasksMessage {
+	return &mesosproto.ReconcileTasksMessage{
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Statuses: statuses,
+	}
+}
+
 func FakeTask(taskId string) *mesosproto.TaskInfo {
 	return &mesosproto.TaskInfo{
 		Name: proto.String("fake_task_name"),

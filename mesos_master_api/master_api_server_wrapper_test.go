@@ -17,6 +17,7 @@ import (
 	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 var _ = Describe("MasterApiServer", func() {
@@ -29,11 +30,17 @@ var _ = Describe("MasterApiServer", func() {
 	masterServer := NewMesosApiServerWrapper(fakeTpi, actionQueue, frameworkManager)
 	driver := driver.NewMesosTpiDriver(actionQueue)
 
+	statuses := []*mesosproto.TaskStatus{
+		fakes.FakeTaskStatus("task_id_1", mesosproto.TaskState_TASK_FINISHED),
+		fakes.FakeTaskStatus("task_id_2", mesosproto.TaskState_TASK_FAILED),
+		fakes.FakeTaskStatus("task_id_3", mesosproto.TaskState_TASK_ERROR),
+	}
+
 	m := masterServer.WrapWithMesos(lxmartini.QuietMartini(), "master@127.0.0.1:3031", make(chan error))
 	go m.RunOnAddr(fmt.Sprintf(":3031"))
 	go driver.Run()
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
-	go core_fakes.RunFakeLayerXServer(nil, 34443)
+	go core_fakes.RunFakeLayerXServer(statuses, 34443)
 	lxlog.ActiveDebugMode()
 
 	Describe("GET " + GET_MASTER_STATE, func() {
@@ -130,7 +137,12 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
 			fakeFrameworkId := fakeRegisterRequest.GetFramework().GetId().GetValue()
-			fakeLaunchTasks := fakes.FakeLaunchTasksMessage(fakeFrameworkId)
+			statuses := []*mesosproto.TaskStatus{
+				fakes.FakeTaskStatus("task_id_1", mesosproto.TaskState_TASK_RUNNING),
+				fakes.FakeTaskStatus("task_id_2", mesosproto.TaskState_TASK_RUNNING),
+				fakes.FakeTaskStatus("task_id_3", mesosproto.TaskState_TASK_RUNNING),
+			}
+			fakeLaunchTasks := fakes.FakeReconcileTasksMessage(fakeFrameworkId, statuses)
 			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", RECONCILE_TASKS_MESSAGE, headers, fakeLaunchTasks)
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
