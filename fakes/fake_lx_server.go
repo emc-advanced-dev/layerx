@@ -13,6 +13,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
 )
 
 const (
@@ -30,7 +31,14 @@ const (
 	RegisterRpi = "/RegisterRpi"
 	SubmitResource = "/SubmitResource"
 	SubmitStatusUpdate = "/SubmitStatusUpdate"
+	//brain
 	GetNodes = "/GetNodes"
+	GetPendingTasks = "/GetPendingTasks"
+	AssignTasks = "/AssignTasks"
+	MigrateTask = "/MigrateTask"
+
+	//for testing
+	Purge = "/Purge"
 )
 
 func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
@@ -359,6 +367,117 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			return
 		}
 		res.Write(data)
+	})
+
+	m.Get(GetPendingTasks, func(res http.ResponseWriter) {
+		taskArr := []*lxtypes.Task{}
+		for _, task := range tasks {
+			if task.SlaveId == "" {
+				taskArr = append(taskArr, task)
+			}
+		}
+		data, err := json.Marshal(taskArr)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"data":  string(data),
+			}, "could marshal tasks to json")
+			res.WriteHeader(500)
+			return
+		}
+		res.Write(data)
+	})
+
+	m.Post(AssignTasks, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var brainAssignmentMessage layerx_brain_client.BrainAssignTasksMessage
+		err = json.Unmarshal(body, &brainAssignmentMessage)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse json into brainAssignmentMessage")
+			res.WriteHeader(500)
+			return
+		}
+		_, ok := nodes[brainAssignmentMessage.NodeId]
+		if !ok {
+			lxlog.Errorf(logrus.Fields{
+				"node_id": brainAssignmentMessage.NodeId,
+			}, "invalid node id")
+			res.WriteHeader(400)
+		}
+		for _, taskId := range brainAssignmentMessage.TaskIds {
+			task, ok := tasks[taskId]
+			if !ok {
+				lxlog.Errorf(logrus.Fields{
+					"task_id": taskId,
+				}, "invalid task id")
+				res.WriteHeader(400)
+			}
+			task.SlaveId = brainAssignmentMessage.NodeId
+		}
+		res.WriteHeader(202)
+	})
+
+	m.Post(MigrateTask, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		var migrateMessage layerx_brain_client.MigrateTaskMessage
+		err = json.Unmarshal(body, &migrateMessage)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}, "could parse json into brainAssignmentMessage")
+			res.WriteHeader(500)
+			return
+		}
+		_, ok := nodes[migrateMessage.DestinationNodeId]
+		if !ok {
+			lxlog.Errorf(logrus.Fields{
+				"node_id": migrateMessage.DestinationNodeId,
+			}, "invalid destinationNodeId node id")
+			res.WriteHeader(400)
+		}
+		for _, taskId := range migrateMessage.TaskIds {
+			task, ok := tasks[taskId]
+			if !ok {
+				lxlog.Errorf(logrus.Fields{
+					"task_id": taskId,
+				}, "invalid task id")
+				res.WriteHeader(400)
+			}
+			task.SlaveId = migrateMessage.DestinationNodeId
+			res.WriteHeader(202)
+		}
+	})
+
+	m.Post(Purge, func(){
+		taskProviders = make(map[string]*lxtypes.TaskProvider)
+		tasks = make(map[string]*lxtypes.Task)
+		nodes = make(map[string]*lxtypes.Node)
 	})
 
 	m.RunOnAddr(fmt.Sprintf(":%v", port))
