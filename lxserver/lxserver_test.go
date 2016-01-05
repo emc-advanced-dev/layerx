@@ -17,6 +17,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
 )
 
 
@@ -27,6 +28,7 @@ func PurgeState() {
 var _ = Describe("Lxserver", func() {
 	var lxRpiClient *layerx_rpi_client.LayerXRpi
 	var lxTpiClient *layerx_tpi_client.LayerXTpi
+	var lxBrainClient *layerx_brain_client.LayerXBrainClient
 	var state *lxstate.State
 
 	Describe("setup", func() {
@@ -35,6 +37,9 @@ var _ = Describe("Lxserver", func() {
 				CoreURL: "127.0.0.1:6677",
 			}
 			lxTpiClient = &layerx_tpi_client.LayerXTpi{
+				CoreURL: "127.0.0.1:6677",
+			}
+			lxBrainClient = &layerx_brain_client.LayerXBrainClient{
 				CoreURL: "127.0.0.1:6677",
 			}
 
@@ -365,6 +370,30 @@ var _ = Describe("Lxserver", func() {
 			Expect(nodes).To(ContainElement(node1))
 			Expect(nodes).To(ContainElement(node2))
 			Expect(nodes).To(ContainElement(node3))
+		})
+	})
+	Describe("GetPendingTasks", func(){
+		It("returns all tasks in the pending task pool", func(){
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask2)
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = state.StagingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			tasks, err := lxBrainClient.GetPendingTasks()
+			Expect(err).To(BeNil())
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).NotTo(ContainElement(fakeTask3))
 		})
 	})
 })

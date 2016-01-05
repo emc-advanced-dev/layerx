@@ -34,7 +34,11 @@ const (
 	RegisterRpi             = "/RegisterRpi"
 	SubmitResource             = "/SubmitResource"
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
+	//brain
+	GetPendingTasks = "/GetPendingTasks"
 	GetNodes         = "/GetNodes"
+	AssignTasks = "/AssignTasks"
+	MigrateTasks = "/MigrateTasks"
 )
 
 var empty = []byte{}
@@ -445,7 +449,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 				lxlog.Errorf(logrus.Fields{}, "could not marshal nodes to json")
 				return empty, 500, lxerrors.New("marshalling nodes to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"nodes": nodes}, "Added new TaskProvider to LayerX")
+			lxlog.Debugf(logrus.Fields{"nodes": nodes}, "Replying with Nodes")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.queueOperation(fn)
@@ -454,6 +458,35 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Nodes message")
+			driverErrc <- err
+			return
+		}
+		res.Write(data)
+	}
+
+	getPendingTasksHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			tasks, err := lx_core_helpers.GetPendingTasks(wrapper.state)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get Pending Tasks request")
+				return empty, 500, lxerrors.New("could not handle Get Pending Tasks request", err)
+			}
+			data, err := json.Marshal(tasks)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{}, "could not marshal tasks to json")
+				return empty, 500, lxerrors.New("marshalling tasks to json", err)
+			}
+			lxlog.Debugf(logrus.Fields{"tasks": tasks}, "Replying with Pending Tasks")
+			return data, 200, nil
+		}
+		data, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Pending Tasks message")
 			driverErrc <- err
 			return
 		}
@@ -473,6 +506,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	m.Post(SubmitResource, submitResourceHandler)
 	m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 	m.Get(GetNodes, getNodesHandler)
+	m.Get(GetPendingTasks, getPendingTasksHandler)
 
 	return m
 }
