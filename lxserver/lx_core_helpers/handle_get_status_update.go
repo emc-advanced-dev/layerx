@@ -16,10 +16,10 @@ func GetStatusUpdate(state *lxstate.State, taskId string) (*mesosproto.TaskStatu
 		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_LOST, "task not found"), nil
 	}
 	if taskPool == state.PendingTaskPool {
-		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_STAGING, "task not found"), nil
+		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_STAGING, "task is waiting to be scheduled"), nil
 	}
 	if taskPool == state.StagingTaskPool {
-		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_STARTING, "task not found"), nil
+		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_STARTING, "task has been assigned, waiting for status"), nil
 	}
 	return nil, lxerrors.New("task exists on node but no status known yet?", nil)
 }
