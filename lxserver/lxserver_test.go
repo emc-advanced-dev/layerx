@@ -268,6 +268,18 @@ var _ = Describe("Lxserver", func() {
 	})
 
 	Describe("KillTask", func() {
+		Context("task does not exist", func(){
+			It("sends TASK_LOST status to tpi", func() {
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeTaskProvider := fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+				Expect(err).To(BeNil())
+				err = lxTpiClient.KillTask(fakeTaskProvider.Id, "nonexistent_task_id")
+				Expect(err).To(BeNil())
+			})
+		})
 		Context("task staging is not complete", func(){
 			It("deletes the task from staging or pending pool and sends TASK_KILLED status to tpi", func() {
 				PurgeState()
@@ -285,7 +297,7 @@ var _ = Describe("Lxserver", func() {
 				Expect(err).To(BeNil())
 				err = lxBrainClient.AssignTasks(fakeResource1.NodeId, fakeTask1.TaskId)
 				Expect(err).To(BeNil())
-				err = lxTpiClient.KillTask("fake_task_provider_id", fakeTask1.TaskId)
+				err = lxTpiClient.KillTask(fakeTaskProvider.Id, fakeTask1.TaskId)
 				Expect(err).To(BeNil())
 				task1, err := state.GetTaskFromAnywhere(fakeTask1.TaskId)
 				Expect(err).NotTo(BeNil())
@@ -306,7 +318,7 @@ var _ = Describe("Lxserver", func() {
 				Expect(err).To(BeNil())
 				err = nodeTaskPool.AddTask(fakeTask1)
 				Expect(err).To(BeNil())
-				err = lxTpiClient.KillTask("fake_task_provider_id", fakeTask1.TaskId)
+				err = lxTpiClient.KillTask(fakeTask1.TaskProvider.Id, fakeTask1.TaskId)
 				Expect(err).To(BeNil())
 				fakeTask1.KillRequested = true
 				task1, err := nodeTaskPool.GetTask("fake_task_id_1")
