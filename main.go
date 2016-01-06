@@ -42,7 +42,17 @@ func main() {
 		CoreURL: *layerX,
 	}
 
-	rpiClient.RegisterRpi(fmt.Sprintf("s:%v", localip.String(), *port))
+	lxlog.Infof(logrus.Fields{
+		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
+	}, "registering to layerx")
+
+	err = rpiClient.RegisterRpi(fmt.Sprintf("%s:%v", localip.String(), *port))
+	if err != nil {
+		lxlog.Fatalf(logrus.Fields{
+			"error": err.Error(),
+			"layerx_url": *layerX,
+		}, "registering to layerx")
+	}
 
 	rpiScheduler := mesos_framework_api.NewRpiMesosScheduler(rpiClient, actionQueue)
 
@@ -79,6 +89,10 @@ func main() {
 	m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), errc)
 	go m.RunOnAddr(fmt.Sprintf(":%v", *port))
 	go driver.Run()
+
+	lxlog.Infof(logrus.Fields{
+		"config": config,
+	}, "Layer-X Mesos RPI Initialized...")
 
 	err = <-errc
 	if err != nil {
