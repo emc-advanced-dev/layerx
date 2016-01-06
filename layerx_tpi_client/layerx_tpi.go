@@ -158,8 +158,8 @@ func (tpi *LayerXTpi) SubmitTask(tpid string, task *lxtypes.Task) error {
 
 //call this method to submit
 // a requested task to layer-x
-func (tpi *LayerXTpi) KillTask(taskId string) error {
-	resp, _, err := lxhttpclient.Post(tpi.CoreURL, KillTask+"/"+taskId, nil, nil)
+func (tpi *LayerXTpi) KillTask(taskProviderId, taskId string) error {
+	resp, _, err := lxhttpclient.Post(tpi.CoreURL, KillTask+"/"+taskProviderId+"/"+taskId, nil, nil)
 	if err != nil {
 		return lxerrors.New("Requesting KILL on task "+taskId+" to LayerX core server", err)
 	}

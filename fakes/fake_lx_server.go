@@ -219,11 +219,13 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(KillTask + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(KillTask + "/:tpid/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
+		tpid := params["framework_id"]
 		if _, ok := tasks[taskid]; !ok {
 			lxlog.Errorf(logrus.Fields{
-				"tpid": taskid,
+				"taskid": taskid,
+				"tpid": tpid,
 			}, "task was not submitted")
 			res.WriteHeader(400)
 			return

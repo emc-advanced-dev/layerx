@@ -326,14 +326,15 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	killTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		fn := func() ([]byte, int, error) {
 			taskId := params["task_id"]
-			err := lx_core_helpers.KillTask(wrapper.state, wrapper.getRpiUrl(), taskId)
+			taskProviderId := params["task_provider_id"]
+			err := lx_core_helpers.KillTask(wrapper.state, wrapper.getTpiUrl(), wrapper.getRpiUrl(), taskProviderId, taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
 				}, "could not handle kill task request")
 				return empty, 500, lxerrors.New("could not handle kill task request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_id": taskId}, "killed task")
+			lxlog.Infof(logrus.Fields{"task_id": taskId, "task_provider_id": taskProviderId}, "killed task")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.queueOperation(fn)
@@ -583,7 +584,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	wrapper.m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
 	wrapper.m.Get(GetStatusUpdate+"/:task_id", getStatusUpdateHandler)
 	wrapper.m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
-	wrapper.m.Post(KillTask+"/:task_id", killTaskHandler)
+	wrapper.m.Post(KillTask+"/:task_provider_id/:task_id", killTaskHandler)
 	wrapper.m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
 	wrapper.m.Post(SubmitResource, submitResourceHandler)
 	wrapper.m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)

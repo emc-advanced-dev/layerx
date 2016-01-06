@@ -155,7 +155,7 @@ var _ = Describe("LayerxTpi", func() {
 	})
 	Describe("KillTask", func() {
 		It("requests server to flag task with KillRequested", func() {
-			err := lxTpi.KillTask("fake_task_id")
+			err := lxTpi.KillTask("fake_task_provider_id", "fake_task_id")
 			Expect(err).To(BeNil())
 		})
 	})

@@ -268,18 +268,51 @@ var _ = Describe("Lxserver", func() {
 	})
 
 	Describe("KillTask", func() {
-		It("sets the flag KillRequested to true on the task", func() {
-			PurgeState()
-			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
-			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
-			err := state.PendingTaskPool.AddTask(fakeTask1)
-			Expect(err).To(BeNil())
-			err = lxTpiClient.KillTask(fakeTask1.TaskId)
-			Expect(err).To(BeNil())
-			fakeTask1.KillRequested = true
-			task1, err := state.PendingTaskPool.GetTask("fake_task_id_1")
-			Expect(err).To(BeNil())
-			Expect(task1).To(Equal(fakeTask1))
+		Context("task staging is not complete", func(){
+			It("deletes the task from staging or pending pool and sends TASK_KILLED status to tpi", func() {
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+				err = lxRpiClient.SubmitResource(fakeResource1)
+				Expect(err).To(BeNil())
+				fakeTaskProvider := fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+				Expect(err).To(BeNil())
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask1.TaskProvider = fakeTaskProvider
+				err = state.PendingTaskPool.AddTask(fakeTask1)
+				Expect(err).To(BeNil())
+				err = lxBrainClient.AssignTasks(fakeResource1.NodeId, fakeTask1.TaskId)
+				Expect(err).To(BeNil())
+				err = lxTpiClient.KillTask("fake_task_provider_id", fakeTask1.TaskId)
+				Expect(err).To(BeNil())
+				task1, err := state.GetTaskFromAnywhere(fakeTask1.TaskId)
+				Expect(err).NotTo(BeNil())
+				Expect(task1).To(BeNil())
+			})
+		})
+		Context("task staging is complete", func(){
+			It("sets the flag KillRequested to true on the task and sends KillTask request to RPI", func() {
+				PurgeState()
+				err := state.InitializeState("http://127.0.0.1:4001")
+				Expect(err).To(BeNil())
+				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+				err = lxRpiClient.SubmitResource(fakeResource1)
+				Expect(err).To(BeNil())
+				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+				fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+				nodeTaskPool, err := state.NodePool.GetNodeTaskPool(fakeResource1.NodeId)
+				Expect(err).To(BeNil())
+				err = nodeTaskPool.AddTask(fakeTask1)
+				Expect(err).To(BeNil())
+				err = lxTpiClient.KillTask("fake_task_provider_id", fakeTask1.TaskId)
+				Expect(err).To(BeNil())
+				fakeTask1.KillRequested = true
+				task1, err := nodeTaskPool.GetTask("fake_task_id_1")
+				Expect(err).To(BeNil())
+				Expect(task1).To(Equal(fakeTask1))
+			})
 		})
 	})
 
