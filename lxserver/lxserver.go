@@ -512,7 +512,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
-				}, "could not handle Submit status request")
+				}, "could not handle assign tasks request")
 				return empty, 500, lxerrors.New("could not handle assign tasks message", err)
 			}
 			lxlog.Infof(logrus.Fields{"assignTasksMessage": assignTasksMessage}, "accepted assign tasks message from brain")
@@ -524,6 +524,42 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing assign tasks request")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
+	migrateTasksHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing migrate tasks request", err)
+			}
+			var migrateTasksMessage layerx_brain_client.MigrateTaskMessage
+			err = json.Unmarshal(data, &migrateTasksMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to migrate tasks message", err)
+			}
+			err = lx_core_helpers.MigrateTasks(wrapper.state, migrateTasksMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle migrate tasks request")
+				return empty, 500, lxerrors.New("could not handle migrate tasks message", err)
+			}
+			lxlog.Infof(logrus.Fields{"migrateTasksMessage": migrateTasksMessage}, "accepted migrate tasks message from brain")
+			return empty, 202, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing migrate tasks request")
 			driverErrc <- err
 			return
 		}
@@ -545,6 +581,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	m.Get(GetNodes, getNodesHandler)
 	m.Get(GetPendingTasks, getPendingTasksHandler)
 	m.Post(AssignTasks, assignTasksHandler)
+	m.Post(MigrateTasks, migrateTasksHandler)
 
 	return m
 }

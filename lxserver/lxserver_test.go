@@ -30,6 +30,7 @@ var _ = Describe("Lxserver", func() {
 	var lxTpiClient *layerx_tpi_client.LayerXTpi
 	var lxBrainClient *layerx_brain_client.LayerXBrainClient
 	var state *lxstate.State
+	var serverErr error
 
 	Describe("setup", func() {
 		It("sets up for the tests", func() {
@@ -50,7 +51,14 @@ var _ = Describe("Lxserver", func() {
 			coreServerWrapper := NewLayerXCoreServerWrapper(state, actionQueue)
 			driver := driver.NewLayerXDriver(actionQueue)
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", make(chan error))
+			driverErrc := make(chan error)
+			go func() {
+				for {
+					serverErr = <-driverErrc
+				}
+			}()
+
+			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:6677", 6699, make(chan error))
@@ -432,6 +440,50 @@ var _ = Describe("Lxserver", func() {
 			Expect(tasks).To(ContainElement(fakeTask1))
 			Expect(tasks).To(ContainElement(fakeTask2))
 			Expect(tasks).To(ContainElement(fakeTask3))
+		})
+	})
+	Describe("MigrateTasks", func(){
+		It("moves a list of runnning tasks on various nodes back to the staging pool, gives them the SlaveId of the target Node", func(){
+			PurgeState()
+			purgeErr := state.InitializeState("http://127.0.0.1:4001")
+			Expect(purgeErr).To(BeNil())
+			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+			err := lxRpiClient.SubmitResource(fakeResource1)
+			Expect(err).To(BeNil())
+			fakeResource2 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_2", "fake_slave_id_2"))
+			err = lxRpiClient.SubmitResource(fakeResource2)
+			Expect(err).To(BeNil())
+			nodeTaskPool1, err := state.NodePool.GetNodeTaskPool(fakeResource1.NodeId)
+			Expect(err).To(BeNil())
+			nodeTaskPool2, err := state.NodePool.GetNodeTaskPool(fakeResource2.NodeId)
+			Expect(err).To(BeNil())
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			err = nodeTaskPool1.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakeTaskProvider
+			err = nodeTaskPool1.AddTask(fakeTask2)
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = nodeTaskPool2.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+
+			err = lxBrainClient.MigrateTasks(fakeResource2.NodeId, fakeTask1.TaskId, fakeTask2.TaskId, fakeTask3.TaskId)
+			Expect(err).To(BeNil())
+			tasks, err := nodeTaskPool1.GetTasks()
+			Expect(err).To(BeNil())
+			Expect(tasks).To(BeEmpty())
+			tasks, err = state.StagingTaskPool.GetTasks()
+			Expect(tasks).NotTo(ContainElement(fakeTask1))
+			fakeTask1.SlaveId = fakeResource2.NodeId
+			fakeTask2.SlaveId = fakeResource2.NodeId
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).NotTo(ContainElement(fakeTask3))
 		})
 	})
 })

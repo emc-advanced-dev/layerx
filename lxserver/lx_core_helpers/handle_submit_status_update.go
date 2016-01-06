@@ -29,7 +29,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 		if err != nil {
 			return lxerrors.New("retrieving node pool for node "+nodeId, err)
 		}
-		err = migrateTask(task, taskPool, nodeTaskPool)
+		err = moveTaskBetweenPools(task, taskPool, nodeTaskPool)
 		if err != nil {
 			return lxerrors.New("migrating task from staging task pool to node "+nodeId+" task pook", err)
 		}
@@ -45,7 +45,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 	return nil
 }
 
-func migrateTask(task *lxtypes.Task, sourceTaskPool, destinationTaskPool *lxstate.TaskPool) error {
+func moveTaskBetweenPools(task *lxtypes.Task, sourceTaskPool, destinationTaskPool *lxstate.TaskPool) error {
 	err := sourceTaskPool.DeleteTask(task.TaskId)
 	if err != nil {
 		return lxerrors.New("deleting task from source task pool ", err)
