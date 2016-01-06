@@ -265,7 +265,8 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 				return empty, 500, lxerrors.New("could not unmarshal data to killTaskMessage", err)
 			}
 			taskId := killTaskMessage.GetTaskId().GetValue()
-			err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, taskId)
+			frameworkId := killTaskMessage.FrameworkId
+			err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, frameworkId, taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
