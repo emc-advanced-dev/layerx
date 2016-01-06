@@ -13,6 +13,7 @@ import (
 "github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/golang/protobuf/proto"
+"github.com/pborman/uuid"
 )
 
 const (
@@ -118,9 +119,12 @@ func fakeCollectResources(layerXUrl string) error {
 	rpiClient := layerx_rpi_client.LayerXRpi{
 		CoreURL: layerXUrl,
 	}
-	fakeResource1 := lxtypes.NewResourceFromMesos(FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
-	fakeResource2 := lxtypes.NewResourceFromMesos(FakeOffer("fake_offer_id_2", "fake_slave_id_2"))
-	fakeResource3 := lxtypes.NewResourceFromMesos(FakeOffer("fake_offer_id_3", "fake_slave_id_3"))
+	fakeResourceId1 := "fake_offer_id_"+uuid.New()
+	fakeResourceId2 := "fake_offer_id_"+uuid.New()
+	fakeResourceId3 := "fake_offer_id_"+uuid.New()
+	fakeResource1 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId1, "fake_slave_id_1"))
+	fakeResource2 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId2, "fake_slave_id_2"))
+	fakeResource3 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId3, "fake_slave_id_3"))
 	err := rpiClient.SubmitResource(fakeResource1)
 	if err != nil {
 		return lxerrors.New("submitting resource", err)
