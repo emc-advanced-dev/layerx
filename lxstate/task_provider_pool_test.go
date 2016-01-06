@@ -51,7 +51,7 @@ var _ = Describe("TaskProviderPool", func() {
 			})
 		})
 		Context("the taskProvider is not new", func(){
-			It("returns an error", func(){
+			It("accepts the task provider", func(){
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -62,7 +62,7 @@ var _ = Describe("TaskProviderPool", func() {
 				err = taskProviderPool.AddTaskProvider(fakeTaskProvider)
 				Expect(err).To(BeNil())
 				err = taskProviderPool.AddTaskProvider(fakeTaskProvider)
-				Expect(err).NotTo(BeNil())
+				Expect(err).To(BeNil())
 			})
 		})
 	})

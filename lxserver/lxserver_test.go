@@ -48,7 +48,6 @@ var _ = Describe("Lxserver", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := NewLayerXCoreServerWrapper(state, actionQueue)
 			driver := driver.NewLayerXDriver(actionQueue)
 
 			driverErrc := make(chan error)
@@ -58,7 +57,8 @@ var _ = Describe("Lxserver", func() {
 				}
 			}()
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
+			coreServerWrapper := NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
+			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:6677", 6699, make(chan error))

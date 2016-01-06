@@ -31,12 +31,12 @@ var _ = Describe("RpiMessenger", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue)
+			driverErrc := make(chan error)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:9955", "127.0.0.1:9966", driverErrc)
 			driver := driver.NewLayerXDriver(actionQueue)
 
-			driverErrc := make(chan error)
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:9955", "127.0.0.1:9966", driverErrc)
+			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5566"))
 			go fakes.RunFakeTpiServer("127.0.0.1:5566", 9955, driverErrc)
 			go fakes.RunFakeRpiServer("127.0.0.1:5566", 9966, driverErrc)

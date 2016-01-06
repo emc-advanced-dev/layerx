@@ -18,6 +18,7 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
+	"time"
 )
 
 const (
@@ -47,16 +48,24 @@ var empty = []byte{}
 type layerxCoreServerWrapper struct {
 	actionQueue      lxactionqueue.ActionQueue
 	state			*lxstate.State
+	m *martini.ClassicMartini
+	tpiUrl string
+	rpiUrl string
+	driverErrc chan error
 }
 
-func NewLayerXCoreServerWrapper(state *lxstate.State, actionQueue lxactionqueue.ActionQueue) *layerxCoreServerWrapper {
+func NewLayerXCoreServerWrapper(state *lxstate.State, actionQueue lxactionqueue.ActionQueue, m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *layerxCoreServerWrapper {
 	return &layerxCoreServerWrapper{
 		actionQueue: actionQueue,
 		state: state,
+		m: m,
+		tpiUrl: tpiUrl,
+		rpiUrl: rpiUrl,
+		driverErrc: driverErrc,
 	}
 }
 
-func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *martini.ClassicMartini {
+func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	registerTpiHandler := func(res http.ResponseWriter, req *http.Request) {
 		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
@@ -87,7 +96,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing register tpi message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -123,7 +132,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing register rpi message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -159,7 +168,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing register TaskProvider message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -184,7 +193,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing deregister TaskProvider message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -213,7 +222,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get TaskProviders message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
@@ -242,7 +251,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Status Updates message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
@@ -271,7 +280,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Status Update message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
@@ -308,7 +317,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Status Updates message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -317,7 +326,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 	killTaskHandler := func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		fn := func() ([]byte, int, error) {
 			taskId := params["task_id"]
-			err := lx_core_helpers.KillTask(wrapper.state, rpiUrl, taskId)
+			err := lx_core_helpers.KillTask(wrapper.state, wrapper.getRpiUrl(), taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -333,7 +342,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "killing task")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -358,7 +367,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "purging task")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -394,7 +403,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Submit Resource request")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -414,7 +423,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
 			}
-			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, tpiUrl, &status)
+			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, wrapper.getTpiUrl(), &status)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -430,7 +439,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing submit status request")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -459,7 +468,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Nodes message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
@@ -488,7 +497,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing Get Pending Tasks message")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
@@ -524,7 +533,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing assign tasks request")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -560,33 +569,57 @@ func (wrapper *layerxCoreServerWrapper) WrapServer(m *martini.ClassicMartini, tp
 			lxlog.Errorf(logrus.Fields{
 				"error": err.Error(),
 			}, "processing migrate tasks request")
-			driverErrc <- err
+			wrapper.driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
 	}
 
-	m.Post(RegisterTpi, registerTpiHandler)
-	m.Post(RegisterRpi, registerRpiHandler)
-	m.Post(RegisterTaskProvider, registerTaskProviderHandler)
-	m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
-	m.Get(GetTaskProviders, getTaskProvidersHandler)
-	m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
-	m.Get(GetStatusUpdate+"/:task_id", getStatusUpdateHandler)
-	m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
-	m.Post(KillTask+"/:task_id", killTaskHandler)
-	m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
-	m.Post(SubmitResource, submitResourceHandler)
-	m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
-	m.Get(GetNodes, getNodesHandler)
-	m.Get(GetPendingTasks, getPendingTasksHandler)
-	m.Post(AssignTasks, assignTasksHandler)
-	m.Post(MigrateTasks, migrateTasksHandler)
+	wrapper.m.Post(RegisterTpi, registerTpiHandler)
+	wrapper.m.Post(RegisterRpi, registerRpiHandler)
+	wrapper.m.Post(RegisterTaskProvider, registerTaskProviderHandler)
+	wrapper.m.Post(DeregisterTaskProvider+"/:task_provider_id", deregisterTaskProviderHandler)
+	wrapper.m.Get(GetTaskProviders, getTaskProvidersHandler)
+	wrapper.m.Get(GetStatusUpdates+"/:task_provider_id", getStatusUpdatesHandler)
+	wrapper.m.Get(GetStatusUpdate+"/:task_id", getStatusUpdateHandler)
+	wrapper.m.Post(SubmitTask+"/:task_provider_id", submitTaskHandler)
+	wrapper.m.Post(KillTask+"/:task_id", killTaskHandler)
+	wrapper.m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
+	wrapper.m.Post(SubmitResource, submitResourceHandler)
+	wrapper.m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
+	wrapper.m.Get(GetNodes, getNodesHandler)
+	wrapper.m.Get(GetPendingTasks, getPendingTasksHandler)
+	wrapper.m.Post(AssignTasks, assignTasksHandler)
+	wrapper.m.Post(MigrateTasks, migrateTasksHandler)
 
-	return m
+	return wrapper.m
 }
 
+func (wrapper *layerxCoreServerWrapper) getTpiUrl() string {
+	for {
+		if wrapper.tpiUrl != "" {
+			lxlog.Infof(logrus.Fields{
+				"tpiUrl": wrapper.tpiUrl,
+			}, "TPI registered...")
+			return wrapper.tpiUrl
+		}
+		wrapper.tpiUrl, _ = wrapper.state.GetTpi()
+		time.Sleep(500 * time.Millisecond)
+	}
+}
 
+func (wrapper *layerxCoreServerWrapper) getRpiUrl() string {
+	for {
+		if wrapper.rpiUrl != "" {
+			lxlog.Infof(logrus.Fields{
+				"rpiUrl": wrapper.rpiUrl,
+			}, "RPI registered...")
+			return wrapper.rpiUrl
+		}
+		wrapper.rpiUrl, _ = wrapper.state.GetRpi()
+		time.Sleep(500 * time.Millisecond)
+	}
+}
 
 func (wrapper *layerxCoreServerWrapper) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
 	datac := make(chan []byte)

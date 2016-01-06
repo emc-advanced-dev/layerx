@@ -34,10 +34,10 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:5599", "127.0.0.1:4499", make(chan error))
 			driver := driver.NewLayerXDriver(actionQueue)
 
-			m := coreServerWrapper.WrapServer(lxmartini.QuietMartini(), "127.0.0.1:5599", "127.0.0.1:4499", make(chan error))
+			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5675"))
 			go fakes.RunFakeTpiServer("127.0.0.1:5675", 5599, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:5675", 4499, make(chan error))
