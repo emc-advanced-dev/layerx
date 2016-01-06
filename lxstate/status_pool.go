@@ -26,7 +26,7 @@ func (statusPool *StatusPool) AddStatus(status *mesosproto.TaskStatus) error {
 	statusId := status.GetTaskId().GetValue()
 	_, err := statusPool.GetStatus(statusId)
 	if err == nil {
-		return lxerrors.New("status "+statusId+" already exists in database, try Modify()?", err)
+		return statusPool.ModifyStatus(statusId, status)
 	}
 	statusData, err := json.Marshal(status)
 	if err != nil {

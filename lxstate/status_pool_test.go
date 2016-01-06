@@ -52,7 +52,7 @@ var _ = Describe("StatusPool", func() {
 			})
 		})
 		Context("the status is not new", func(){
-			It("returns an error", func(){
+			It("modifies the original status", func(){
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -62,8 +62,15 @@ var _ = Describe("StatusPool", func() {
 				fakeStatus := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
 				err = statusPool.AddStatus(fakeStatus)
 				Expect(err).To(BeNil())
+				fakeStatus = fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_FINISHED)
 				err = statusPool.AddStatus(fakeStatus)
-				Expect(err).NotTo(BeNil())
+				Expect(err).To(BeNil())
+				expectedStatusJsonBytes, err := json.Marshal(fakeStatus)
+				Expect(err).To(BeNil())
+				expectedStatusJson := string(expectedStatusJsonBytes)
+				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/"+fakeStatus.GetTaskId().GetValue())
+				Expect(err).To(BeNil())
+				Expect(actualStatusJson).To(Equal(expectedStatusJson))
 			})
 		})
 	})
