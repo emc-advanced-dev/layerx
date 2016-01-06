@@ -13,41 +13,41 @@ const (
 	KILL_TASK = "/kill_task"
 )
 
-func SendResourceCollectionRequest(tpiUrl string) error {
-	resp, _, err := lxhttpclient.Post(tpiUrl, COLLECT_RESOURCES, nil, nil)
+func SendResourceCollectionRequest(rpiUrl string) error {
+	resp, _, err := lxhttpclient.Post(rpiUrl, COLLECT_RESOURCES, nil, nil)
 	if err != nil {
-		return lxerrors.New("POSTing COLLECT_RESOURCES to TPI server", err)
+		return lxerrors.New("POSTing COLLECT_RESOURCES to RPI server", err)
 	}
 	if resp.StatusCode != 202 {
-		msg := fmt.Sprintf("POSTing COLLECT_RESOURCES to TPI server; status code was %v, expected 202", resp.StatusCode)
+		msg := fmt.Sprintf("POSTing COLLECT_RESOURCES to RPI server; status code was %v, expected 202", resp.StatusCode)
 		return lxerrors.New(msg, err)
 	}
 	return nil
 }
 
-func SendLaunchTasksMessage(tpiUrl string, tasksToLaunch []*lxtypes.Task, resourcesToUse []*lxtypes.Resource) error {
+func SendLaunchTasksMessage(rpiUrl string, tasksToLaunch []*lxtypes.Task, resourcesToUse []*lxtypes.Resource) error {
 	launchTasksMessage := &layerx_rpi_client.LaunchTasksMessage{
 		TasksToLaunch: tasksToLaunch,
 		ResourcesToUse: resourcesToUse,
 	}
-	resp, _, err := lxhttpclient.Post(tpiUrl, LAUNCH_TASKS, nil, launchTasksMessage)
+	resp, _, err := lxhttpclient.Post(rpiUrl, LAUNCH_TASKS, nil, launchTasksMessage)
 	if err != nil {
-		return lxerrors.New("POSTing tasksToLaunch to TPI server", err)
+		return lxerrors.New("POSTing tasksToLaunch to RPI server", err)
 	}
 	if resp.StatusCode != 202 {
-		msg := fmt.Sprintf("POSTing tasksToLaunch to TPI server; status code was %v, expected 202", resp.StatusCode)
+		msg := fmt.Sprintf("POSTing tasksToLaunch to RPI server; status code was %v, expected 202", resp.StatusCode)
 		return lxerrors.New(msg, err)
 	}
 	return nil
 }
 
-func SendKillTaskRequest(tpiUrl string, taskId string) error {
-	resp, _, err := lxhttpclient.Post(tpiUrl, KILL_TASK+"/"+taskId, nil, nil)
+func SendKillTaskRequest(rpiUrl string, taskId string) error {
+	resp, _, err := lxhttpclient.Post(rpiUrl, KILL_TASK+"/"+taskId, nil, nil)
 	if err != nil {
-		return lxerrors.New("POSTing KillTask request for task "+taskId+" to TPI server", err)
+		return lxerrors.New("POSTing KillTask request for task "+taskId+" to RPI server", err)
 	}
 	if resp.StatusCode != 202 {
-		msg := fmt.Sprintf("POSTing KillTask request for task "+taskId+" to TPI server; status code was %v, expected 202", resp.StatusCode)
+		msg := fmt.Sprintf("POSTing KillTask request for task "+taskId+" to RPI server; status code was %v, expected 202", resp.StatusCode)
 		return lxerrors.New(msg, err)
 	}
 	return nil

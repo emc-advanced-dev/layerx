@@ -155,6 +155,9 @@ func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.Launc
 			return lxerrors.New("submitting fake TASK_RUNNING status update to layerx core", err)
 		}
 	}
+	for _, task := range launchTaskMessage.TasksToLaunch {
+		lxlog.Debugf(logrus.Fields{"task": task}, "fake rpi launching fake tasks")
+	}
 	for _, resource := range launchTaskMessage.ResourcesToUse {
 		lxlog.Debugf(logrus.Fields{"resource": resource}, "fake rpi launching fake tasks on resource")
 	}
