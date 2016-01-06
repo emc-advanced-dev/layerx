@@ -24,10 +24,6 @@ func (taskProviderPool *TaskProviderPool) Initialize() error {
 
 func (taskProviderPool *TaskProviderPool) AddTaskProvider(taskProvider *lxtypes.TaskProvider) error {
 	taskProviderId := taskProvider.Id
-	_, err := taskProviderPool.GetTaskProvider(taskProviderId)
-	if err == nil {
-		return lxerrors.New("taskProvider "+taskProviderId+" already exists in database, try Modify()?", err)
-	}
 	taskProviderData, err := json.Marshal(taskProvider)
 	if err != nil {
 		return lxerrors.New("could not marshal taskProvider to json", err)
