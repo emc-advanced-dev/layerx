@@ -52,6 +52,7 @@ var _ = Describe("RpiMessenger", func() {
 	})
 	Describe("SendResurceCollectionRequest", func() {
 		It("sends a POST to /collect_resources on the rpi server", func() {
+			PurgeState()
 			err := SendResourceCollectionRequest("127.0.0.1:9966")
 			Expect(err).To(BeNil())
 		})
@@ -61,11 +62,25 @@ var _ = Describe("RpiMessenger", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
+			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+			fakeNode1 := lxtypes.NewNode(fakeResource1.NodeId)
+			err := fakeNode1.AddResource(fakeResource1)
+			Expect(err).To(BeNil())
+			err = state.NodePool.AddNode(fakeNode1)
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
-			fakeResoure1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+			fakeTaskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id_1",
+				Source: "taskprovider1@tphost:port",
+			}
+			fakeTask1.SlaveId = fakeNode1.Id
+			fakeTask1.TaskProvider = fakeTaskProvider
 			fakeTasks := []*lxtypes.Task{fakeTask1}
-			fakeResources := []*lxtypes.Resource{fakeResoure1}
-			err := SendLaunchTasksMessage("127.0.0.1:9966", fakeTasks, fakeResources)
+			fakeResources := []*lxtypes.Resource{fakeResource1}
+
+			err = state.StagingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+
+			err = SendLaunchTasksMessage("127.0.0.1:9966", fakeTasks, fakeResources)
 			Expect(err).To(BeNil())
 		})
 	})

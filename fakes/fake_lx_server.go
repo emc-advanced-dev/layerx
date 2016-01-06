@@ -35,7 +35,7 @@ const (
 	GetNodes = "/GetNodes"
 	GetPendingTasks = "/GetPendingTasks"
 	AssignTasks = "/AssignTasks"
-	MigrateTask = "/MigrateTask"
+	MigrateTasks = "/MigrateTasks"
 
 	//for testing
 	Purge = "/Purge"
@@ -431,7 +431,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(MigrateTask, func(res http.ResponseWriter, req *http.Request) {
+	m.Post(MigrateTasks, func(res http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
 			defer req.Body.Close()

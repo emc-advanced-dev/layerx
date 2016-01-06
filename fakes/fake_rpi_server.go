@@ -11,6 +11,8 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-commons/lxerrors"
 "github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -135,28 +137,23 @@ func fakeCollectResources(layerXUrl string) error {
 }
 
 func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.LaunchTasksMessage) error {
-//	msg := fmt.Sprintf("accepted fake collect resources message")
-//	lxlog.Debugf(logrus.Fields{}, msg)
-//	rpiClient := layerx_rpi_client.LayerXRpi{
-//		CoreURL: layerXUrl,
-//	}
-//	for _
-//	taskId := launcht
-//	fakeStatus := FakeTaskStatus()
-//	err := rpiClient.SubmitStatusUpdate()
-//	if err != nil {
-//		return lxerrors.New("submitting resource", err)
-//	}
-//	err = rpiClient.SubmitResource(fakeResource2)
-//	if err != nil {
-//		return lxerrors.New("submitting resource", err)
-//	}
-//	err = rpiClient.SubmitResource(fakeResource3)
-//	if err != nil {
-//		return lxerrors.New("submitting resource", err)
-//	}
+	if len(launchTaskMessage.ResourcesToUse) < 1 {
+		return lxerrors.New("must specify at least one resource for fake launch!", nil)
+	}
+	nodeId := launchTaskMessage.ResourcesToUse[0].NodeId
 	for _, task := range launchTaskMessage.TasksToLaunch {
 		lxlog.Debugf(logrus.Fields{"task": task}, "fake rpi launching fake task")
+		rpiClient := layerx_rpi_client.LayerXRpi{
+			CoreURL: layerXUrl,
+		}
+		fakeRunningStatus := FakeTaskStatus(task.TaskId, mesosproto.TaskState_TASK_RUNNING)
+		fakeRunningStatus.SlaveId = &mesosproto.SlaveID{
+			Value: proto.String(nodeId),
+		}
+		err := rpiClient.SubmitStatusUpdate(fakeRunningStatus)
+		if err != nil {
+			return lxerrors.New("submitting fake TASK_RUNNING status update to layerx core", err)
+		}
 	}
 	for _, resource := range launchTaskMessage.ResourcesToUse {
 		lxlog.Debugf(logrus.Fields{"resource": resource}, "fake rpi launching fake tasks on resource")
