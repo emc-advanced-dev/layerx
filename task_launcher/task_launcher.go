@@ -67,6 +67,17 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 			}, "trying to launch tasks on rpi")
 			return lxerrors.New("sending launch task message to rpi", err)
 		}
+		//flush resources from node
+		for resourceId, resource := range resourcesToUseMap {
+			err := nodeResourcePool.DeleteResource(resourceId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"resource": fmt.Sprintf("%v",resource),
+					"node_id": fmt.Sprintf("%s",nodeId),
+				}, "flushing resource "+resourceId+" from node "+nodeId)
+				return lxerrors.New("flushing resource "+resourceId+" from node "+nodeId, err)
+			}
+		}
 	}
 	return nil
 }
