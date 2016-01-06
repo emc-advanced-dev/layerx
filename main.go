@@ -64,6 +64,14 @@ func main () {
 	go tpiServer.RunOnAddr(fmt.Sprintf(":%v",*port))
 	go driver.Run()
 
+	err = tpi.RegisterTpi(fmt.Sprintf("%s:%v",localip, *port))
+	if err != nil {
+		lxlog.Fatalf(logrus.Fields{
+			"error": err.Error(),
+			"layerx_url": *layerX,
+		}, "registering to layerx")
+	}
+
 	lxlog.Infof(logrus.Fields{
 		"port":          *port,
 		"layer-x-url":   *layerX,
