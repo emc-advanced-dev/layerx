@@ -18,7 +18,7 @@ import (
 
 const (
 	COLLECT_RESOURCES = "/collect_resources"
-	LAUNCH_TASKS = "/launch_resources"
+	LAUNCH_TASKS = "/launch_tasks"
 	KILL_TASK = "/kill_task"
 )
 
