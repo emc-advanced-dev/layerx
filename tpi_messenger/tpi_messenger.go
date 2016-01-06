@@ -6,6 +6,8 @@ import (
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+"github.com/layer-x/layerx-commons/lxlog"
 )
 
 const (
@@ -23,7 +25,7 @@ func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvi
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing CollectTasksMessage to TPI server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		lxlog.Warnf(logrus.Fields{"response":resp}, "error: "+msg)
 	}
 	return nil
 }
