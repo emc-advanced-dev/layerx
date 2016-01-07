@@ -431,7 +431,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				}, "could not handle Submit status request")
 				return empty, 500, lxerrors.New("could not handle submit status request", err)
 			}
-			lxlog.Infof(logrus.Fields{"status": status}, "accepted status update from rpi")
+			lxlog.Infof(logrus.Fields{"status": status, "message": status.GetMessage()}, "accepted status update from rpi")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.queueOperation(fn)
