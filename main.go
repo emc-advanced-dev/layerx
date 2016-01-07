@@ -66,7 +66,7 @@ func main () {
 
 	err = tpi.RegisterTpi(fmt.Sprintf("%s:%v",localip, *port))
 	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
+		lxlog.Errorf(logrus.Fields{
 			"error": err.Error(),
 			"layerx_url": *layerX,
 		}, "registering to layerx")
