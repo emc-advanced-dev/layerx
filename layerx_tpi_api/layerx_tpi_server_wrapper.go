@@ -65,7 +65,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 				"error": err.Error(),
 				"request_sent_by": masterUpidString,
 			}, "processing collect tasks message")
-			driverErrc <- err
+//			driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
