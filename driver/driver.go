@@ -20,7 +20,7 @@ func NewLayerXDriver(actionQueue lxactionqueue.ActionQueue) *coreDriver {
 func (d *coreDriver) Run() {
 	for {
 		d.lock.Lock()
-		go d.actionQueue.ExecuteNext()
+		d.actionQueue.ExecuteNext()
 		d.lock.Unlock()
 	}
 }
