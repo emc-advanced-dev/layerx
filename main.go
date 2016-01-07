@@ -48,7 +48,7 @@ func main() {
 
 	err = rpiClient.RegisterRpi(fmt.Sprintf("%s:%v", localip.String(), *port))
 	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
+		lxlog.Errorf(logrus.Fields{
 			"error": err.Error(),
 			"layerx_url": *layerX,
 		}, "registering to layerx")
