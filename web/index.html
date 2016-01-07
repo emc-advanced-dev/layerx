@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset='utf-8'>
+<link rel="shortcut icon" href="favicon.ico">
+<link href='dist/dragula.css' rel='stylesheet' type='text/css' />
+<link href='example/example.css' rel='stylesheet' type='text/css' />
+<title>Layer-X WebUI Brain</title>
+<h1><img src='resources/logo.png' onerror='this.src="resources/icon.png"' alt='dragula'/></a></h1>
+<h3 class='tagline'><span class='tagline-text'>Layer-X Task Scheduling</span></h3>
+<a href='https://github.com/layer-x/layerx-core_v2'>
+    <img class='gh-fork' src='https://camo.githubusercontent.com/52760788cde945287fbb584134c4cbc2bc36f904/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67' alt='Fork me on GitHub' data-canonical-src='https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png' />
+</a>
+<div class='examples'>
+    <div class='parent'>
+        <label align='center' for='hy'>State</label>
+        <div id='state' class='wrapper'>
+            <div id='pending-tasks' class='container movable'>
+                <div class='non-movable'><h1>Pending Tasks</h1></div>
+                <div>Task 1<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+                <div>Task 2<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+                <div>Task 3<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+            </div>
+            <div id='staging-tasks' class='container'>
+                <div class='non-movable'><h1>Staging Tasks</h1></div>
+                <div>Task 4<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+                <div>Task 5<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+                <div>Task 6<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+            </div>
+        </div>
+    </div>
+    <div id='task_info' class='container wrapper'>
+        <div>
+            <div class='non-movable'><h1>Task Info</h1></div>
+            <div>Task 1<br><code>CPUS:0.1</code><br><code>MEM:16</code><br><code>DISK:1</code><br><code>STATUS:TASK_STAGING</code></div>
+        </div>
+    </div>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+
+<div id="id01">replace me</div>
+
+<!-- <script>
+var xmlhttp = new XMLHttpRequest();
+var url = "http://192.168.50.5/GetNodes";
+
+xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        var myArr = JSON.parse(xmlhttp.responseText);
+        myFunction(myArr);
+    }
+};
+xmlhttp.open("GET", url, true);
+xmlhttp.send();
+
+function myFunction(arr) {
+    var out = "";
+    var i;
+    for(i = 0; i < arr.length; i++) {
+        out += '<a href="' + arr[i].url + '">' +
+        arr[i].display + '</a><br>';
+    }
+    document.getElementById("id01").innerHTML = out;
+}
+</script> -->
+
+<script src='dist/dragula.js'></script>
+<script src='example/example.min.js'></script>
+</html>

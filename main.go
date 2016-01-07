@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/layer-x/layerx-core_v2/main_loop"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
+	"github.com/go-martini/martini"
 )
 
 func purgeState() error {
@@ -72,6 +73,9 @@ func main(){
 	coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, mainServer, "", "", driverErrc)
 
 	mainServer = coreServerWrapper.WrapServer()
+
+	mainServer.Use(martini.Static("web"))
+
 	go mainServer.RunOnAddr(fmt.Sprintf(":%v", *portPtr))
 
 
