@@ -8,7 +8,12 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-core_v2/rpi_messenger"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
+	"sync"
+"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 )
+
+var mainLoopLock = &sync.Mutex{}
 
 //run as goroutine
 func MainLoop(actionQueue lxactionqueue.ActionQueue, taskLauncher *task_launcher.TaskLauncher, state *lxstate.State, tpiUrl, rpiUrl string, driverErrc chan error) {
@@ -27,6 +32,8 @@ func MainLoop(actionQueue lxactionqueue.ActionQueue, taskLauncher *task_launcher
 }
 
 func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, tpiUrl, rpiUrl string) error {
+	mainLoopLock.Lock()
+	defer mainLoopLock.Unlock()
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
 		return lxerrors.New("retrieving list of task providers from state", err)
@@ -37,12 +44,14 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	}
 	err = tpi_messenger.SendTaskCollectionMessage(tpiUrl, taskProviders)
 	if err != nil {
-		return lxerrors.New("sending task collection message to tpi", err)
+//		return lxerrors.New("sending task collection message to tpi", err)
+		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending task collection message to tpi. Is Tpi connected?")
 	}
 
 	err = rpi_messenger.SendResourceCollectionRequest(rpiUrl)
 	if err != nil {
-		return lxerrors.New("sending resource collection request to rpi", err)
+//		return lxerrors.New("sending resource collection request to rpi", err)
+		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending resource collection request to rpi. Is Rpi connected?")
 	}
 	err = taskLauncher.LaunchStagedTasks()
 	if err != nil {
