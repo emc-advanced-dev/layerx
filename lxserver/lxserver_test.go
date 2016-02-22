@@ -7,9 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-core_v2/driver"
 	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/layer-x/layerx-commons/lxlog"
 	"fmt"
@@ -44,11 +42,9 @@ var _ = Describe("Lxserver", func() {
 				CoreURL: "127.0.0.1:6677",
 			}
 
-			actionQueue := lxactionqueue.NewActionQueue()
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			driver := driver.NewLayerXDriver(actionQueue)
 
 			driverErrc := make(chan error)
 			go func() {
@@ -57,12 +53,11 @@ var _ = Describe("Lxserver", func() {
 				}
 			}()
 
-			coreServerWrapper := NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
+			coreServerWrapper := NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:6677", 6699, make(chan error))
-			go driver.Run()
 			lxlog.ActiveDebugMode()
 		})
 	})
@@ -428,6 +423,31 @@ var _ = Describe("Lxserver", func() {
 
 	Describe("GetPendingTasks", func(){
 		It("returns all tasks in the pending task pool", func(){
+			PurgeState()
+			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakeTaskProvider
+			err = state.PendingTaskPool.AddTask(fakeTask2)
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakeTaskProvider
+			err = state.StagingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			tasks, err := lxBrainClient.GetPendingTasks()
+			Expect(err).To(BeNil())
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).NotTo(ContainElement(fakeTask3))
+		})
+	})
+
+	Describe("GetStagingTasks", func(){
+		It("returns all tasks in the staging task pool", func(){
 			PurgeState()
 			fakeTaskProvider := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
 			err := lxTpiClient.RegisterTaskProvider(fakeTaskProvider)

@@ -6,8 +6,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
-"github.com/layer-x/layerx-core_v2/driver"
 "github.com/layer-x/layerx-commons/lxlog"
 "github.com/layer-x/layerx-core_v2/fakes"
 	"fmt"
@@ -30,18 +28,15 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 
 	Describe("setup", func() {
 		It("sets up for the tests", func() {
-			actionQueue := lxactionqueue.NewActionQueue()
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:5599", "127.0.0.1:4499", make(chan error))
-			driver := driver.NewLayerXDriver(actionQueue)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:5599", "127.0.0.1:4499", make(chan error))
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5675"))
 			go fakes.RunFakeTpiServer("127.0.0.1:5675", 5599, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:5675", 4499, make(chan error))
-			go driver.Run()
 			lxlog.ActiveDebugMode()
 		})
 	})

@@ -1,10 +1,8 @@
 package lxserver
 
-
 import (
 	"github.com/go-martini/martini"
 	"net/http"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/Sirupsen/logrus"
 "github.com/layer-x/layerx-commons/lxlog"
@@ -46,7 +44,6 @@ const (
 var empty = []byte{}
 
 type layerxCoreServerWrapper struct {
-	actionQueue      lxactionqueue.ActionQueue
 	state			*lxstate.State
 	m *martini.ClassicMartini
 	tpiUrl string
@@ -54,9 +51,8 @@ type layerxCoreServerWrapper struct {
 	driverErrc chan error
 }
 
-func NewLayerXCoreServerWrapper(state *lxstate.State, actionQueue lxactionqueue.ActionQueue, m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *layerxCoreServerWrapper {
+func NewLayerXCoreServerWrapper(state *lxstate.State, m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *layerxCoreServerWrapper {
 	return &layerxCoreServerWrapper{
-		actionQueue: actionQueue,
 		state: state,
 		m: m,
 		tpiUrl: tpiUrl,
@@ -90,7 +86,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"tpi_url": tpiRegistrationMessage.TpiUrl}, "Registered TPI to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -126,7 +122,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"rpi_url": rpiRegistrationMessage.RpiUrl}, "Registered TPI to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -162,7 +158,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"task_provider": taskProvider}, "Added new TaskProvider to LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -187,7 +183,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"task_provider_id": tpId}, "removed task provider from LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -216,7 +212,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Debugf(logrus.Fields{"task_providers": taskProviders}, "Added new TaskProvider to LayerX")
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(fn)
+		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -245,7 +241,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(fn)
+		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -274,7 +270,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(fn)
+		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -311,7 +307,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"task_provider_id": tpId, "task": task}, "accepted task from task provider")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -337,7 +333,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"task_id": taskId, "task_provider_id": taskProviderId}, "killed task")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -362,7 +358,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"task_id": taskId}, "removed task from LayerX")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -398,7 +394,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"resource": resource}, "accepted resource from rpi")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -434,7 +430,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"status": status, "message": status.GetMessage()}, "accepted status update from rpi")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -463,7 +459,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Debugf(logrus.Fields{"nodes": nodes}, "Replying with Nodes")
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(fn)
+		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -492,7 +488,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Debugf(logrus.Fields{"tasks": tasks}, "Replying with Pending Tasks")
 			return data, 200, nil
 		}
-		data, statusCode, err := wrapper.queueOperation(fn)
+		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -528,7 +524,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"assignTasksMessage": assignTasksMessage}, "accepted assign tasks message from brain")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -564,7 +560,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			lxlog.Infof(logrus.Fields{"migrateTasksMessage": migrateTasksMessage}, "accepted migrate tasks message from brain")
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(fn)
+		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -622,16 +618,15 @@ func (wrapper *layerxCoreServerWrapper) getRpiUrl() string {
 	}
 }
 
-func (wrapper *layerxCoreServerWrapper) queueOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
+func (wrapper *layerxCoreServerWrapper) doOperation(f func() ([]byte, int, error)) ([]byte, int, error) {
 	datac := make(chan []byte)
 	statusCodec := make(chan int)
 	errc := make(chan error)
-	wrapper.actionQueue.Push(
-		func() {
-			data, statusCode, err := f()
-			datac <- data
-			statusCodec <- statusCode
-			errc <- err
-		})
+	go func() {
+		data, statusCode, err := f()
+		datac <- data
+		statusCodec <- statusCode
+		errc <- err
+	}()
 	return <-datac, <-statusCodec, <-errc
 }

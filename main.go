@@ -8,8 +8,6 @@ import (
 	"time"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-core_v2/lxserver"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
-	"github.com/layer-x/layerx-core_v2/driver"
 	"fmt"
 	"github.com/layer-x/layerx-core_v2/main_loop"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
@@ -63,14 +61,9 @@ func main(){
 		"etcd": *etcdUrlPtr,
 	}, "Layer-X Core Initialized. Waiting for registration of TPI and RPI...")
 
-	actionQueue := lxactionqueue.NewActionQueue()
-	driver := driver.NewLayerXDriver(actionQueue)
-	//run driver
-	go driver.Run()
-
 	driverErrc := make(chan error)
 	mainServer := lxmartini.QuietMartini()
-	coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, mainServer, "", "", driverErrc)
+	coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, mainServer, "", "", driverErrc)
 
 	mainServer = coreServerWrapper.WrapServer()
 
@@ -95,7 +88,7 @@ func main(){
 	}
 
 	taskLauncher := task_launcher.NewTaskLauncher(rpiUrl, state)
-	go main_loop.MainLoop(actionQueue, taskLauncher, state, tpiUrl, rpiUrl, driverErrc)
+	go main_loop.MainLoop(taskLauncher, state, tpiUrl, rpiUrl, driverErrc)
 	lxlog.Infof(logrus.Fields{
 		"tpiUrl": tpiUrl,
 		"rpiUrl": rpiUrl,

@@ -9,10 +9,8 @@ import (
 "github.com/layer-x/layerx-core_v2/fakes"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
-"github.com/layer-x/layerx-core_v2/driver"
 "github.com/layer-x/layerx-core_v2/lxserver"
 	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"time"
@@ -30,7 +28,6 @@ var _ = Describe("MainLoop", func() {
 	var state *lxstate.State
 	var serverErr error
 
-	actionQueue := lxactionqueue.NewActionQueue()
 	driverErrc := make(chan error)
 	var taskLauncher *task_launcher.TaskLauncher
 
@@ -45,8 +42,7 @@ var _ = Describe("MainLoop", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
-			driver := driver.NewLayerXDriver(actionQueue)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
 
 			taskLauncher = task_launcher.NewTaskLauncher("127.0.0.1:2299", state)
 
@@ -60,7 +56,6 @@ var _ = Describe("MainLoop", func() {
 			go m.RunOnAddr(fmt.Sprintf(":2277"))
 			go fakes.RunFakeTpiServer("127.0.0.1:2277", 2288, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:2277", 2299, make(chan error))
-			go driver.Run()
 			lxlog.ActiveDebugMode()
 		})
 	})
@@ -70,7 +65,7 @@ var _ = Describe("MainLoop", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			go MainLoop(actionQueue, taskLauncher, state, "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
+			go MainLoop(taskLauncher, state, "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
 			time.Sleep(1000 * time.Millisecond)
 			Expect(serverErr).To(BeNil())
 		})

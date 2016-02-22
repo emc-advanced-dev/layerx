@@ -9,10 +9,8 @@ import (
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-core_v2/driver"
 	"github.com/layer-x/layerx-core_v2/lxserver"
 	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 "github.com/layer-x/layerx-core_v2/lxtypes"
 )
@@ -27,20 +25,16 @@ var _ = Describe("RpiMessenger", func() {
 
 	Describe("setup", func() {
 		It("sets up for the tests", func() {
-			actionQueue := lxactionqueue.NewActionQueue()
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			driverErrc := make(chan error)
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, actionQueue, lxmartini.QuietMartini(), "127.0.0.1:9955", "127.0.0.1:9966", driverErrc)
-			driver := driver.NewLayerXDriver(actionQueue)
-
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:9955", "127.0.0.1:9966", driverErrc)
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5566"))
 			go fakes.RunFakeTpiServer("127.0.0.1:5566", 9955, driverErrc)
 			go fakes.RunFakeRpiServer("127.0.0.1:5566", 9966, driverErrc)
-			go driver.Run()
 			lxlog.ActiveDebugMode()
 
 			go func() {
