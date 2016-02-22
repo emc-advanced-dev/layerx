@@ -14,6 +14,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
+	"time"
 )
 
 const (
@@ -34,6 +35,7 @@ const (
 	//brain
 	GetNodes = "/GetNodes"
 	GetPendingTasks = "/GetPendingTasks"
+	GetStagingTasks = "/GetStagingTasks"
 	AssignTasks = "/AssignTasks"
 	MigrateTasks = "/MigrateTasks"
 
@@ -45,6 +47,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	taskProviders := make(map[string]*lxtypes.TaskProvider)
 	statusUpdates := make(map[string]*mesosproto.TaskStatus)
 	tasks := make(map[string]*lxtypes.Task)
+	stagingTasks := make(map[string]*lxtypes.Task)
 	nodes := make(map[string]*lxtypes.Node)
 
 	for _, status := range fakeStatuses {
@@ -374,9 +377,25 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	m.Get(GetPendingTasks, func(res http.ResponseWriter) {
 		taskArr := []*lxtypes.Task{}
 		for _, task := range tasks {
-			if task.SlaveId == "" {
-				taskArr = append(taskArr, task)
-			}
+			taskArr = append(taskArr, task)
+		}
+		data, err := json.Marshal(taskArr)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"data":  string(data),
+			}, "could marshal tasks to json")
+			res.WriteHeader(500)
+			return
+		}
+		res.Write(data)
+	})
+
+	m.Get(GetStagingTasks, func(res http.ResponseWriter) {
+		taskArr := []*lxtypes.Task{}
+		lxlog.Infof(logrus.Fields{"stagingTasks": stagingTasks}, "GETSTAGINGTASKS current staging tasks pool")
+		for _, task := range stagingTasks {
+			taskArr = append(taskArr, task)
 		}
 		data, err := json.Marshal(taskArr)
 		if err != nil {
@@ -413,7 +432,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		_, ok := nodes[brainAssignmentMessage.NodeId]
+		node, ok := nodes[brainAssignmentMessage.NodeId]
 		if !ok {
 			lxlog.Errorf(logrus.Fields{
 				"node_id": brainAssignmentMessage.NodeId,
@@ -429,6 +448,23 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				res.WriteHeader(400)
 			}
 			task.SlaveId = brainAssignmentMessage.NodeId
+			stagingTasks[taskId] = task
+			delete(tasks, taskId)
+			lxlog.Infof(logrus.Fields{"stagingTasks": stagingTasks}, "current staging tasks pool")
+			err = node.AddTask(task)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"node_id": brainAssignmentMessage.NodeId,
+				}, "could not add task to node")
+				res.WriteHeader(400)
+			} else {
+				lxlog.Infof(logrus.Fields{"task": task, "node": node}, "added task to node")
+				go func(){
+					//delay this for testing
+					time.Sleep(3 * time.Second)
+					delete(stagingTasks, taskId)
+				}()
+			}
 		}
 		res.WriteHeader(202)
 	})
@@ -456,29 +492,61 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		_, ok := nodes[migrateMessage.DestinationNodeId]
+		targetNode, ok := nodes[migrateMessage.DestinationNodeId]
 		if !ok {
 			lxlog.Errorf(logrus.Fields{
 				"node_id": migrateMessage.DestinationNodeId,
 			}, "invalid destinationNodeId node id")
 			res.WriteHeader(400)
+			return
 		}
 		for _, taskId := range migrateMessage.TaskIds {
-			task, ok := tasks[taskId]
-			if !ok {
-				lxlog.Errorf(logrus.Fields{
-					"task_id": taskId,
-				}, "invalid task id")
+			var task *lxtypes.Task
+			var sourceNode *lxtypes.Node
+			for _, node := range nodes {
+				lxlog.Infof(logrus.Fields{"task_id": taskId, "node": node}, "searching node for task")
+				task = node.GetTask(taskId)
+				sourceNode = node
+				if task != nil {
+					break
+				}
+			}
+			if task == nil {
+				lxlog.Errorf(logrus.Fields{"task_id": taskId, "nodes": nodes}, "invalid task id")
 				res.WriteHeader(400)
+				return
 			}
 			task.SlaveId = migrateMessage.DestinationNodeId
-			res.WriteHeader(202)
+			err = sourceNode.RemoveTask(taskId)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{"task_id": taskId, "node": sourceNode}, "could not remove task from node")
+				res.WriteHeader(400)
+				return
+			}
+			stagingTasks[taskId] = task
+			go func(){
+				lxlog.Debugf(logrus.Fields{}, "in 3 seconds, moving from staging to running on the node")
+				time.Sleep(1 * time.Second)
+				err = targetNode.AddTask(task)
+				if err != nil {
+					lxlog.Errorf(logrus.Fields{
+						"node_id": task.SlaveId,
+					}, "could not add task to node")
+					res.WriteHeader(400)
+					return
+				} else {
+					delete(stagingTasks, taskId)
+				}
+			}()
+
 		}
+		res.WriteHeader(202)
 	})
 
 	m.Post(Purge, func(){
 		taskProviders = make(map[string]*lxtypes.TaskProvider)
 		tasks = make(map[string]*lxtypes.Task)
+		stagingTasks = make(map[string]*lxtypes.Task)
 		nodes = make(map[string]*lxtypes.Node)
 	})
 
