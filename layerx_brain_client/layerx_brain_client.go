@@ -13,6 +13,7 @@ type LayerXBrainClient struct {
 
 const (
 	GetPendingTasks = "/GetPendingTasks"
+	GetStagingTasks = "/GetStagingTasks"
 	GetNodes         = "/GetNodes"
 	AssignTasks = "/AssignTasks"
 	MigrateTasks = "/MigrateTasks"
@@ -21,6 +22,26 @@ const (
 //call this method to see unassigned tasks
 func (brainClient *LayerXBrainClient) GetPendingTasks() ([]*lxtypes.Task, error) {
 	resp, data, err := lxhttpclient.Get(brainClient.CoreURL, GetPendingTasks, nil)
+	if err != nil {
+		return nil, lxerrors.New("GETing tasks from LayerX core server", err)
+	}
+	if resp.StatusCode != 200 {
+		msg := fmt.Sprintf("GETing tasks from LayerX core server; status code was %v, expected 200", resp.StatusCode)
+		return nil, lxerrors.New(msg, err)
+	}
+	var tasks []*lxtypes.Task
+	err = json.Unmarshal(data, &tasks)
+	if err != nil {
+		msg := fmt.Sprintf("unmarshalling data %s into task array", string(data))
+		return nil, lxerrors.New(msg, err)
+	}
+	fmt.Printf("\n\n\n\nTASKS: %v\n\n\n\n", tasks)
+	return tasks, nil
+}
+
+//call this method to see unassigned tasks
+func (brainClient *LayerXBrainClient) GetStagingTasks() ([]*lxtypes.Task, error) {
+	resp, data, err := lxhttpclient.Get(brainClient.CoreURL, GetStagingTasks, nil)
 	if err != nil {
 		return nil, lxerrors.New("GETing tasks from LayerX core server", err)
 	}

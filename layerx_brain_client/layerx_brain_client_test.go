@@ -129,6 +129,55 @@ var _ = Describe("LayerxBrainClient", func() {
 		})
 	})
 
+	Describe("GetStagingTasks", func() {
+		It("returns the list of taks in the staging pool", func() {
+			purgeErr := PurgeFakeServer("127.0.0.1:12349")
+			Expect(purgeErr).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "", "echo FAKE_COMMAND")
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "", "echo FAKE_COMMAND")
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "", "echo FAKE_COMMAND")
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(taskProvider)
+			Expect(err).To(BeNil())
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeTask1)
+			Expect(err).To(BeNil())
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeTask2)
+			Expect(err).To(BeNil())
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeTask3)
+			Expect(err).To(BeNil())
+
+			fakeTask1.TaskProvider = taskProvider
+			fakeTask2.TaskProvider = taskProvider
+			fakeTask3.TaskProvider = taskProvider
+
+			fakeOffer1 := fakes.FakeOffer("fake_offer_id_1", "_1")
+			fakeOffer2 := fakes.FakeOffer("fake_offer_id_2", "_1")
+			fakeResource1 := lxtypes.NewResourceFromMesos(fakeOffer1)
+			fakeResource2 := lxtypes.NewResourceFromMesos(fakeOffer2)
+			err = lxRpi.SubmitResource(fakeResource1)
+			Expect(err).To(BeNil())
+			err = lxRpi.SubmitResource(fakeResource2)
+			Expect(err).To(BeNil())
+			nodes, err := lxRpi.GetNodes()
+			Expect(err).To(BeNil())
+			fakeNode := nodes[0]
+
+			err = brainClient.AssignTasks(fakeNode.Id, fakeTask1.TaskId, fakeTask2.TaskId, fakeTask3.TaskId)
+			Expect(err).To(BeNil())
+			tasks, err := brainClient.GetStagingTasks()
+			Expect(err).To(BeNil())
+			fakeTask1.SlaveId = fakeNode.Id
+			fakeTask2.SlaveId = fakeNode.Id
+			fakeTask3.SlaveId = fakeNode.Id
+			Expect(tasks).To(ContainElement(fakeTask1))
+			Expect(tasks).To(ContainElement(fakeTask2))
+			Expect(tasks).To(ContainElement(fakeTask3))
+		})
+	})
+
 	Describe("AssignTasks", func() {
 		It("assigns the NodeId as the SlaveId on the specified tasks", func() {
 			purgeErr := PurgeFakeServer("127.0.0.1:12349")
@@ -174,8 +223,8 @@ var _ = Describe("LayerxBrainClient", func() {
 		})
 	})
 
-	Describe("AssignTasks", func() {
-		It("assigns the NodeId as the SlaveId on the specified tasks", func() {
+	Describe("MigrateTasks", func() {
+		It("eventually moves the specified tasks from one node to another", func() {
 			purgeErr := PurgeFakeServer("127.0.0.1:12349")
 			Expect(purgeErr).To(BeNil())
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "", "echo FAKE_COMMAND")
