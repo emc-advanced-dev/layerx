@@ -240,6 +240,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				lxlog.Errorf(logrus.Fields{}, "could not marshal Status Updates to json")
 				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
 			}
+			lxlog.Debugf(logrus.Fields{"statuses": statuses}, "Replying with Statuses")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
