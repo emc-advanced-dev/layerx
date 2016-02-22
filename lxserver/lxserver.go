@@ -616,6 +616,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	wrapper.m.Post(SubmitResource, submitResourceHandler)
 	wrapper.m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 	wrapper.m.Get(GetNodes, getNodesHandler)
+	wrapper.m.Get(GetStatusUpdates, getStatusUpdatesHandler)
 	wrapper.m.Get(GetPendingTasks, getPendingTasksHandler)
 	wrapper.m.Get(GetStagingTasks, getStagingTasksHandler)
 	wrapper.m.Post(AssignTasks, assignTasksHandler)

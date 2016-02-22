@@ -135,7 +135,7 @@ var _ = Describe("Lxserver", func() {
 		})
 	})
 
-	Describe("GetStatusUpdates", func() {
+	Describe("GetStatusUpdates(taskProvider)", func() {
 		It("gets the list of status updates for the given task provider", func() {
 			PurgeState()
 			err := state.InitializeState("http://127.0.0.1:4001")
@@ -172,6 +172,78 @@ var _ = Describe("Lxserver", func() {
 			Expect(statuses).To(ContainElement(fakeStatusUpdate1))
 			Expect(statuses).To(ContainElement(fakeStatusUpdate2))
 			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
+		})
+	})
+
+	Describe("GetStatusUpdates", func() {
+		It("gets all status updates", func() {
+			PurgeState()
+			err := state.InitializeState("http://127.0.0.1:4001")
+			Expect(err).To(BeNil())
+			fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider1)
+			Expect(err).To(BeNil())
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task2", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask2.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task3", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask3.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask1.TaskProvider = fakeTaskProvider1
+			fakeTask2.TaskProvider = fakeTaskProvider1
+			fakeTask3.TaskProvider = fakeTaskProvider1
+			err = state.StagingTaskPool.AddTask(fakeTask1)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask2)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask3)
+			Expect(err).To(BeNil())
+			fakeStatusUpdate1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
+			fakeStatusUpdate2 := fakes.FakeTaskStatus("fake_task_id_2", mesosproto.TaskState_TASK_KILLED)
+			fakeStatusUpdate3 := fakes.FakeTaskStatus("fake_task_id_3", mesosproto.TaskState_TASK_ERROR)
+			err = state.StatusPool.AddStatus(fakeStatusUpdate1)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate2)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate3)
+			Expect(err).To(BeNil())
+
+			fakeTaskProvider2 := fakes.FakeTaskProvider("fake_framework", "ff@fakeip:fakeport")
+			err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider2)
+			Expect(err).To(BeNil())
+			fakeTask4 := fakes.FakeLXTask("fake_task_id_4", "fake_task4", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask4.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask5 := fakes.FakeLXTask("fake_task_id_5", "fake_task5", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask5.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask6 := fakes.FakeLXTask("fake_task_id_6", "fake_task6", "fake_node_id_1", "echo FAKECOMMAND")
+			fakeTask6.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
+			fakeTask4.TaskProvider = fakeTaskProvider2
+			fakeTask5.TaskProvider = fakeTaskProvider2
+			fakeTask6.TaskProvider = fakeTaskProvider2
+			err = state.StagingTaskPool.AddTask(fakeTask4)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask5)
+			Expect(err).To(BeNil())
+			err = state.StagingTaskPool.AddTask(fakeTask6)
+			Expect(err).To(BeNil())
+			fakeStatusUpdate4 := fakes.FakeTaskStatus("fake_task_id_4", mesosproto.TaskState_TASK_RUNNING)
+			fakeStatusUpdate5 := fakes.FakeTaskStatus("fake_task_id_5", mesosproto.TaskState_TASK_KILLED)
+			fakeStatusUpdate6 := fakes.FakeTaskStatus("fake_task_id_6", mesosproto.TaskState_TASK_ERROR)
+			err = state.StatusPool.AddStatus(fakeStatusUpdate4)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate5)
+			Expect(err).To(BeNil())
+			err = state.StatusPool.AddStatus(fakeStatusUpdate6)
+			Expect(err).To(BeNil())
+
+			statuses, err := lxBrainClient.GetStatusUpdates()
+			Expect(err).To(BeNil())
+			Expect(statuses).To(ContainElement(fakeStatusUpdate1))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate2))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate4))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate5))
+			Expect(statuses).To(ContainElement(fakeStatusUpdate6))
 		})
 	})
 
