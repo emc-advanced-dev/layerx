@@ -8,7 +8,7 @@ import (
 func  GetNodes(state *lxstate.State) ([]*lxtypes.Node, error) {
 	nodeMap, err := state.NodePool.GetNodes()
 	if err != nil {
-		return nil, lxerrors.New("deleting task provider from pool", err)
+		return nil, lxerrors.New("getting node list from pool", err)
 	}
 	nodes := []*lxtypes.Node{}
 	for _, node := range nodeMap {

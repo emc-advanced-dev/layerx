@@ -75,35 +75,22 @@ var _ = Describe("LayerxBrainClient", func() {
 		})
 	})
 
-	Describe("GetNodes", func() {
-		It("returns the list of known nodes", func() {
+	Describe("GetStatusUpdates", func() {
+		It("returns the list of status updates", func() {
 			purgeErr := PurgeFakeServer("127.0.0.1:12349")
 			Expect(purgeErr).To(BeNil())
-			fakeOffer1 := fakes.FakeOffer("fake_offer_id_1", "_1")
-			fakeOffer2 := fakes.FakeOffer("fake_offer_id_2", "_1")
-			fakeOffer3 := fakes.FakeOffer("fake_offer_id_3", "_2")
-			fakeResource1 := lxtypes.NewResourceFromMesos(fakeOffer1)
-			fakeResource2 := lxtypes.NewResourceFromMesos(fakeOffer2)
-			fakeResource3 := lxtypes.NewResourceFromMesos(fakeOffer3)
-			err := lxRpi.SubmitResource(fakeResource1)
+			taskProvider := &lxtypes.TaskProvider{
+				Id:     "fake_task_provider_id",
+				Source: "taskprovider@tphost:port",
+			}
+			err := lxTpi.RegisterTaskProvider(taskProvider)
 			Expect(err).To(BeNil())
-			err = lxRpi.SubmitResource(fakeResource2)
+			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "", "echo FAKE_COMMAND")
+			err = lxTpi.SubmitTask("fake_task_provider_id", fakeTask1)
 			Expect(err).To(BeNil())
-			err = lxRpi.SubmitResource(fakeResource3)
+			statuses, err := brainClient.GetStatusUpdates()
 			Expect(err).To(BeNil())
-			fakeNode1 := lxtypes.NewNode("_1")
-			err = fakeNode1.AddResource(fakeResource1)
-			Expect(err).To(BeNil())
-			err = fakeNode1.AddResource(fakeResource2)
-			Expect(err).To(BeNil())
-			fakeNode2 := lxtypes.NewNode("_2")
-			err = fakeNode2.AddResource(fakeResource3)
-			Expect(err).To(BeNil())
-			//the actual test
-			nodes, err := brainClient.GetNodes()
-			Expect(err).To(BeNil())
-			Expect(nodes).To(ContainElement(fakeNode1))
-			Expect(nodes).To(ContainElement(fakeNode2))
+			Expect(statuses).To(ContainElement(fakeStatus1))
 		})
 	})
 

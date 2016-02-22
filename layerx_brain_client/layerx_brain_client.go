@@ -5,6 +5,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"fmt"
 	"encoding/json"
+"github.com/mesos/mesos-go/mesosproto"
 )
 
 type LayerXBrainClient struct {
@@ -15,6 +16,7 @@ const (
 	GetPendingTasks = "/GetPendingTasks"
 	GetStagingTasks = "/GetStagingTasks"
 	GetNodes         = "/GetNodes"
+	GetStatusUpdates  = "/GetStatusUpdates"
 	AssignTasks = "/AssignTasks"
 	MigrateTasks = "/MigrateTasks"
 )
@@ -77,6 +79,26 @@ func (brainClient *LayerXBrainClient) GetNodes() ([]*lxtypes.Node, error) {
 		return nil, lxerrors.New(msg, err)
 	}
 	return nodes, nil
+}
+
+//call this method to see most recent status updates
+//for all tasks
+func (brainClient *LayerXBrainClient) GetStatusUpdates() ([]*mesosproto.TaskStatus, error) {
+	resp, data, err := lxhttpclient.Get(brainClient.CoreURL, GetStatusUpdates, nil)
+	if err != nil {
+		return nil, lxerrors.New("GETing task statuses from LayerX core server", err)
+	}
+	if resp.StatusCode != 200 {
+		msg := fmt.Sprintf("GETing task statuses from LayerX core server; status code was %v, expected 200", resp.StatusCode)
+		return nil, lxerrors.New(msg, err)
+	}
+	var taskStatuses []*mesosproto.TaskStatus
+	err = json.Unmarshal(data, &taskStatuses)
+	if err != nil {
+		msg := fmt.Sprintf("unmarshalling data %s into task status array", string(data))
+		return nil, lxerrors.New(msg, err)
+	}
+	return taskStatuses, nil
 }
 
 //call this method to assign tasks to a node

@@ -8,7 +8,7 @@ import (
 func  GetTaskProviders(state *lxstate.State) ([]*lxtypes.TaskProvider, error) {
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
-		return nil, lxerrors.New("deleting task provider from pool", err)
+		return nil, lxerrors.New("getting task provider list from pool", err)
 	}
 	taskProviders := []*lxtypes.TaskProvider{}
 	for _, taskProvider := range taskProviderMap {

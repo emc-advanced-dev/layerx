@@ -164,6 +164,30 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		}
 		res.Write(data)
 	})
+	m.Get(GetStatusUpdates, func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		statuses := []*mesosproto.TaskStatus{}
+		for _, status := range statusUpdates {
+			taskId := status.GetTaskId().GetValue()
+			_, ok := tasks[taskId]
+			if !ok {
+				lxlog.Errorf(logrus.Fields{
+					"task_id":  taskId,
+				}, "could not find task for the id in the status")
+				res.WriteHeader(500)
+			}
+			statuses = append(statuses, status)
+		}
+		data, err := json.Marshal(statuses)
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err,
+				"body":  string(data),
+			}, "could parse statuses into json")
+			res.WriteHeader(500)
+			return
+		}
+		res.Write(data)
+	})
 
 	m.Get(GetStatusUpdate + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskId := params["task_id"]
