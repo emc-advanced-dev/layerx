@@ -36,6 +36,7 @@ const (
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
 //brain
 	GetPendingTasks = "/GetPendingTasks"
+	GetStagingTasks = "/GetStagingTasks"
 	GetNodes         = "/GetNodes"
 	AssignTasks = "/AssignTasks"
 	MigrateTasks = "/MigrateTasks"
@@ -500,6 +501,36 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		res.Write(data)
 	}
 
+
+	getStagingTasksHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			tasks, err := lx_core_helpers.GetStagingTasks(wrapper.state)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle Get Staging Tasks request")
+				return empty, 500, lxerrors.New("could not handle Get Staging Tasks request", err)
+			}
+			data, err := json.Marshal(tasks)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{}, "could not marshal tasks to json")
+				return empty, 500, lxerrors.New("marshalling tasks to json", err)
+			}
+			lxlog.Debugf(logrus.Fields{"tasks": tasks}, "Replying with Staging Tasks")
+			return data, 200, nil
+		}
+		data, statusCode, err := wrapper.doOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing Get Staging Tasks message")
+			wrapper.driverErrc <- err
+			return
+		}
+		res.Write(data)
+	}
+
 	assignTasksHandler := func(res http.ResponseWriter, req *http.Request) {
 		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
@@ -586,6 +617,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	wrapper.m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 	wrapper.m.Get(GetNodes, getNodesHandler)
 	wrapper.m.Get(GetPendingTasks, getPendingTasksHandler)
+	wrapper.m.Get(GetStagingTasks, getStagingTasksHandler)
 	wrapper.m.Post(AssignTasks, assignTasksHandler)
 	wrapper.m.Post(MigrateTasks, migrateTasksHandler)
 

@@ -463,11 +463,11 @@ var _ = Describe("Lxserver", func() {
 			fakeTask3.TaskProvider = fakeTaskProvider
 			err = state.StagingTaskPool.AddTask(fakeTask3)
 			Expect(err).To(BeNil())
-			tasks, err := lxBrainClient.GetPendingTasks()
+			tasks, err := lxBrainClient.GetStagingTasks()
 			Expect(err).To(BeNil())
-			Expect(tasks).To(ContainElement(fakeTask1))
-			Expect(tasks).To(ContainElement(fakeTask2))
-			Expect(tasks).NotTo(ContainElement(fakeTask3))
+			Expect(tasks).NotTo(ContainElement(fakeTask1))
+			Expect(tasks).NotTo(ContainElement(fakeTask2))
+			Expect(tasks).To(ContainElement(fakeTask3))
 		})
 	})
 
