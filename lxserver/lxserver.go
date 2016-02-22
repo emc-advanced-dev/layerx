@@ -36,7 +36,7 @@ const (
 	RegisterRpi             = "/RegisterRpi"
 	SubmitResource             = "/SubmitResource"
 	SubmitStatusUpdate         = "/SubmitStatusUpdate"
-	//brain
+//brain
 	GetPendingTasks = "/GetPendingTasks"
 	GetNodes         = "/GetNodes"
 	AssignTasks = "/AssignTasks"

@@ -425,6 +425,7 @@ var _ = Describe("Lxserver", func() {
 			Expect(nodes).To(ContainElement(node3))
 		})
 	})
+
 	Describe("GetPendingTasks", func(){
 		It("returns all tasks in the pending task pool", func(){
 			PurgeState()
@@ -449,6 +450,7 @@ var _ = Describe("Lxserver", func() {
 			Expect(tasks).NotTo(ContainElement(fakeTask3))
 		})
 	})
+
 	Describe("AssignTasks", func(){
 		It("moves a list of tasks to the staging pool, gives them the SlaveId of the target Node", func(){
 			PurgeState()

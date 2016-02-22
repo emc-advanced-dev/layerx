@@ -19,6 +19,10 @@ func NewLayerXDriver(actionQueue lxactionqueue.ActionQueue) *coreDriver {
 //run as goroutine
 func (d *coreDriver) Run() {
 	for {
-		go d.actionQueue.ExecuteNext()
+		func() {
+			d.lock.Lock()
+			defer d.lock.Unlock()
+			d.actionQueue.ExecuteNext()
+		}()
 	}
 }

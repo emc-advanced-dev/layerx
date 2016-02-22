@@ -8,7 +8,7 @@ import (
 func  GetPendingTasks(state *lxstate.State) ([]*lxtypes.Task, error) {
 	taskMap, err := state.PendingTaskPool.GetTasks()
 	if err != nil {
-		return nil, lxerrors.New("deleting task provider from pool", err)
+		return nil, lxerrors.New("getting list of tasks from pending task pool", err)
 	}
 	tasks := []*lxtypes.Task{}
 	for _, task := range taskMap {
