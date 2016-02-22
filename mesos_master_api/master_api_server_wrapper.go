@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_api_helpers"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/gogo/protobuf/proto"
@@ -17,7 +15,6 @@ import (
 const (
 	GET_MASTER_STATE = "/master/state.json"
 	GET_MASTER_STATE_DEPRECATED = "/state.json"
-	MESOS_SCHEDULER_CALL = "/master/mesos.scheduler.Call"
 	REGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.RegisterFrameworkMessage"
 	REREGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.ReregisterFrameworkMessage"
 	UNREGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.UnregisterFrameworkMessage"
@@ -31,14 +28,12 @@ const (
 var empty = []byte{}
 
 type mesosApiServerWrapper struct {
-	actionQueue      lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
 	tpi              *layerx_tpi_client.LayerXTpi
 }
 
-func NewMesosApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
+func NewMesosApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
 	return &mesosApiServerWrapper{
-		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,
 		tpi: tpi,
 	}
@@ -63,33 +58,6 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			return
 		}
 		res.Write(data)
-	}
-	mesosSchedulerCallHandler := func(req *http.Request, res http.ResponseWriter) {
-		processMesosCallFn := func() ([]byte, int, error) {
-			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
-			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reregisterFramework request", err)
-			}
-			err = wrapper.processMesosCall(data, upid)
-			if err != nil {
-				lxlog.Errorf(logrus.Fields{
-					"error": err,
-				}, "could not read process scheduler call request")
-				return empty, 500, lxerrors.New("could not read process scheduler call request", err)
-			}
-			return empty, 202, nil
-		}
-		_, statusCode, err := wrapper.queueOperation(processMesosCallFn)
-		if err != nil {
-			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
-				"request_sent_by": masterUpidString,
-			}, "processing mesos call message")
-			driverErrc <- err
-			return
-		}
-		res.WriteHeader(statusCode)
 	}
 	registerFrameworkMessageHandler := func(req *http.Request, res http.ResponseWriter) {
 		registerFrameworkFn := func() ([]byte, int, error) {
@@ -354,7 +322,6 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 
 	m.Get(GET_MASTER_STATE, getMasterStateHandler)
 	m.Get(GET_MASTER_STATE_DEPRECATED, getMasterStateHandler)
-	m.Post(MESOS_SCHEDULER_CALL, mesosSchedulerCallHandler)
 	m.Post(REGISTER_FRAMEWORK_MESSAGE, registerFrameworkMessageHandler)
 	m.Post(REREGISTER_FRAMEWORK_MESSAGE, reregisterFrameworkMessageHandler)
 	m.Post(UNREGISTER_FRAMEWORK_MESSAGE, unregisterFrameworkMessageHandler)
@@ -370,40 +337,11 @@ func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, erro
 	datac := make(chan []byte)
 	statusCodec := make(chan int)
 	errc := make(chan error)
-	wrapper.actionQueue.Push(
-		func() {
-			data, statusCode, err := f()
-			datac <- data
-			statusCodec <- statusCode
-			errc <- err
-		})
+	go func() {
+		data, statusCode, err := f()
+		datac <- data
+		statusCodec <- statusCode
+		errc <- err
+	}()
 	return <-datac, <-statusCodec, <-errc
-}
-
-func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_data.UPID) error {
-	var call mesosproto.Call
-	err := proto.Unmarshal(data, &call)
-	if err != nil {
-		return lxerrors.New("could not parse data to protobuf msg Call", err)
-	}
-	callType := call.GetType()
-	lxlog.Debugf(logrus.Fields{
-		"call_type":     callType.String(),
-		"framework_pid": upid.String(),
-		"whole call":    call.String(),
-	}, "Received mesosproto.Call")
-
-	switch callType {
-	case mesosproto.Call_SUBSCRIBE:
-		subscribe := call.Subscribe
-		err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
-		if err != nil {
-			return lxerrors.New("processing subscribe request", err)
-		}
-		break
-	default:
-		return lxerrors.New("processing unknown call type: " + callType.String(), nil)
-	}
-
-	return nil
 }

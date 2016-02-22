@@ -9,12 +9,10 @@ import (
 	"github.com/layer-x/layerx-commons/lxlog"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
@@ -22,21 +20,18 @@ import (
 )
 
 var _ = Describe("LayerxTpiServerWrapper", func() {
-	actionQueue := lxactionqueue.NewActionQueue()
 	fakeMasterUpid, _ := mesos_data.UPIDFromString("master@127.0.0.1:3032")
 	frameworkManager := framework_manager.NewFrameworkManager(fakeMasterUpid)
 	fakeTpi := &layerx_tpi_client.LayerXTpi{
 		CoreURL: "127.0.0.1:34445",
 	}
-	tpiServerWrapper := NewTpiApiServerWrapper(fakeTpi, actionQueue, frameworkManager)
-	driver := driver.NewMesosTpiDriver(actionQueue)
+	tpiServerWrapper := NewTpiApiServerWrapper(fakeTpi, frameworkManager)
 
-	masterServer := mesos_master_api.NewMesosApiServerWrapper(fakeTpi, actionQueue, frameworkManager)
+	masterServer := mesos_master_api.NewMesosApiServerWrapper(fakeTpi, frameworkManager)
 
 	m := tpiServerWrapper.WrapWithTpi(lxmartini.QuietMartini(), "master@127.0.0.1:3032", make(chan error))
 	m = masterServer.WrapWithMesos(m, "master@127.0.0.1:3032", make(chan error))
 	go m.RunOnAddr(fmt.Sprintf(":3032"))
-	go driver.Run()
 	go fakes.RunFakeFrameworkServer("fakeframework", 3002)
 	go core_fakes.RunFakeLayerXServer(nil, 34445)
 	lxlog.ActiveDebugMode()

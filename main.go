@@ -5,8 +5,6 @@ import (
 "github.com/layer-x/layerx-commons/lxlog"
 "github.com/layer-x/layerx-commons/lxutils"
 	"fmt"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
-	"github.com/layer-x/layerx-mesos-tpi_v2/driver"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
@@ -47,22 +45,19 @@ func main () {
 		}, "generating master upid")
 	}
 
-	actionQueue := lxactionqueue.NewActionQueue()
-	driver := driver.NewMesosTpiDriver(actionQueue)
 	frameworkManager := framework_manager.NewFrameworkManager(masterUpid)
 	tpi := &layerx_tpi_client.LayerXTpi{
 		CoreURL: *layerX,
 	}
 
-	masterServerWrapper := mesos_master_api.NewMesosApiServerWrapper(tpi, actionQueue, frameworkManager)
-	tpiServerWrapper := layerx_tpi_api.NewTpiApiServerWrapper(tpi, actionQueue, frameworkManager)
+	masterServerWrapper := mesos_master_api.NewMesosApiServerWrapper(tpi, frameworkManager)
+	tpiServerWrapper := layerx_tpi_api.NewTpiApiServerWrapper(tpi, frameworkManager)
 	errc := make(chan error)
 	tpiServer := lxmartini.QuietMartini()
 	tpiServer = masterServerWrapper.WrapWithMesos(tpiServer, masterUpidString, errc)
 	tpiServer = tpiServerWrapper.WrapWithTpi(tpiServer, masterUpidString, errc)
 
 	go tpiServer.RunOnAddr(fmt.Sprintf(":%v",*port))
-	go driver.Run()
 
 	err = tpi.RegisterTpi(fmt.Sprintf("%s:%v",localip, *port))
 	if err != nil {
@@ -76,7 +71,6 @@ func main () {
 		"port":          *port,
 		"layer-x-url":   *layerX,
 		"upid":            masterUpidString,
-		"driver":    		driver,
 	}, "Layerx Mesos TPI initialized...")
 
 	err = <- errc

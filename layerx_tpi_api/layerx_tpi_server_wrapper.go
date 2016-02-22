@@ -2,7 +2,6 @@ package layerx_tpi_api
 import (
 "github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 "github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/go-martini/martini"
 "net/http"
 	"github.com/Sirupsen/logrus"
@@ -21,14 +20,12 @@ const (
 var empty = []byte{}
 
 type tpiApiServerWrapper struct {
-	actionQueue      lxactionqueue.ActionQueue
 	frameworkManager framework_manager.FrameworkManager
 	tpi              *layerx_tpi_client.LayerXTpi
 }
 
-func NewTpiApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, actionQueue lxactionqueue.ActionQueue, frameworkManager framework_manager.FrameworkManager) *tpiApiServerWrapper {
+func NewTpiApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager) *tpiApiServerWrapper {
 	return &tpiApiServerWrapper{
-		actionQueue: actionQueue,
 		frameworkManager: frameworkManager,
 		tpi: tpi,
 	}
@@ -115,12 +112,11 @@ func (wrapper *tpiApiServerWrapper) queueOperation(f func() ([]byte, int, error)
 	datac := make(chan []byte)
 	statusCodec := make(chan int)
 	errc := make(chan error)
-	wrapper.actionQueue.Push(
-		func() {
-			data, statusCode, err := f()
-			datac <- data
-			statusCodec <- statusCode
-			errc <- err
-		})
+	go func() {
+		data, statusCode, err := f()
+		datac <- data
+		statusCodec <- statusCode
+		errc <- err
+	}()
 	return <-datac, <-statusCodec, <-errc
 }
