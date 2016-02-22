@@ -16,29 +16,31 @@ var _ = Describe("Driver", func() {
 	go driver.Run()
 
 	Describe("Driver main thread", func(){
-		It("synchronously executes functions in the action queue", func(){
+		It("asynchronously executes functions in the action queue", func(){
 			resultchan := make(chan int)
 			fun1 := func(){
 				resultchan <- 1
 			}
-			actionQueue.Push(fun1)
 
 			fun2 := func(){
 				resultchan <- 2
 			}
-			actionQueue.Push(fun2)
 
 			fun3 := func(){
 				resultchan <- 3
 			}
+
+			actionQueue.Push(fun1)
+			actionQueue.Push(fun2)
 			actionQueue.Push(fun3)
 
 			result1 := <-resultchan
-			Expect(result1).To(Equal(1))
 			result2 := <- resultchan
-			Expect(result2).To(Equal(2))
 			result3 := <- resultchan
-			Expect(result3).To(Equal(3))
+			results := []int{result1, result2, result3}
+			Expect(results).To(ContainElement(1))
+			Expect(results).To(ContainElement(2))
+			Expect(results).To(ContainElement(3))
 		})
 	})
 })
