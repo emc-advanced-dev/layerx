@@ -160,6 +160,28 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 	return statuses, nil
 }
 
+func (state *State) GetStatusUpdates() (map[string]*mesosproto.TaskStatus, error) {
+	allTasks, err := state.GetAllTasks()
+	if err != nil {
+		return nil, lxerrors.New("getting all tasks from state", err)
+	}
+	targetTaskIds := []string{}
+	for _, task := range allTasks {
+		targetTaskIds = append(targetTaskIds, task.TaskId)
+	}
+	allStatuses, err := state.StatusPool.GetStatuses()
+	if err != nil {
+		return nil, lxerrors.New("getting all statuses from state", err)
+	}
+	statuses := make(map[string]*mesosproto.TaskStatus)
+	for _, status := range allStatuses {
+		if containsString(targetTaskIds, status.GetTaskId().GetValue()) {
+			statuses[status.GetTaskId().GetValue()] = status
+		}
+	}
+	return statuses, nil
+}
+
 func (state *State) GetTaskFromAnywhere(taskId string) (*lxtypes.Task, error) {
 	allTasks, err := state.GetAllTasks()
 	if err != nil {
