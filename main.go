@@ -11,12 +11,14 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-mesos-tpi_v2/layerx_tpi_api"
+"net"
 )
 
 func main () {
 	port := flag.Int("port", 3030, "listening port for mesos tpi, default: 3000")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
+	localIpStr := flag.String("localip", "", "binding address for the rpi")
 
 	flag.Parse()
 
@@ -30,11 +32,15 @@ func main () {
 		}, "-layerx flag not set")
 	}
 
-	localip, err := lxutils.GetLocalIp()
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err.Error(),
-		}, "retrieving local ip")
+	localip := net.ParseIP(*localIpStr)
+	if localip == nil {
+		var err error
+		localip, err = lxutils.GetLocalIp()
+		if err != nil {
+			lxlog.Fatalf(logrus.Fields{
+				"error": err.Error(),
+			}, "retrieving local ip")
+		}
 	}
 	masterUpidString := fmt.Sprintf("master@%s:%v", localip.String(), *port)
 	masterUpid, err := mesos_data.UPIDFromString(masterUpidString)
