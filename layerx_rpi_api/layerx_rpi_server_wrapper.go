@@ -1,6 +1,5 @@
 package layerx_rpi_api
 import (
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/go-martini/martini"
 "net/http"
@@ -22,15 +21,13 @@ const (
 var empty = []byte{}
 
 type rpiApiServerWrapper struct {
-	actionQueue      lxactionqueue.ActionQueue
 	rpi              *layerx_rpi_client.LayerXRpi
 	mesosSchedulerDriver scheduler.SchedulerDriver
 }
 
 
-func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver, actionQueue lxactionqueue.ActionQueue) *rpiApiServerWrapper {
+func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
 	return &rpiApiServerWrapper{
-		actionQueue: actionQueue,
 		mesosSchedulerDriver: mesosSchedulerDriver,
 		rpi: rpi,
 	}
@@ -127,12 +124,11 @@ func (wrapper *rpiApiServerWrapper) queueOperation(f func() ([]byte, int, error)
 	datac := make(chan []byte)
 	statusCodec := make(chan int)
 	errc := make(chan error)
-	wrapper.actionQueue.Push(
-		func() {
-			data, statusCode, err := f()
-			datac <- data
-			statusCodec <- statusCode
-			errc <- err
-		})
+	go func() {
+		data, statusCode, err := f()
+		datac <- data
+		statusCodec <- statusCode
+		errc <- err
+	}()
 	return <-datac, <-statusCodec, <-errc
 }

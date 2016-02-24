@@ -5,9 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/layer-x/layerx-mesos-rpi_v2/driver"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxlog"
@@ -37,7 +35,6 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			if os.Getenv("MESOS_URL") != "" {
 				mesosUrl = os.Getenv("MESOS_URL")
 			}
-			actionQueue := lxactionqueue.NewActionQueue()
 			fakeFramework := &mesosproto.FrameworkInfo{
 				User: proto.String(""),
 				Id: &mesosproto.FrameworkID{
@@ -46,23 +43,26 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 				FailoverTimeout: proto.Float64(15),
 				Name: proto.String("FAKE Layer-X Mesos RPI Framework"),
 			}
-			fakeRpiScheduler := mesos_framework_api.NewRpiMesosScheduler(fakeRpi, actionQueue)
+			fakeRpiScheduler := mesos_framework_api.NewRpiMesosScheduler(fakeRpi)
 			config := scheduler.DriverConfig{
 				Scheduler:  fakeRpiScheduler,
 				Framework:  fakeFramework,
 				Master:     mesosUrl,
+				HostnameOverride: "localhost",
 				Credential: (*mesosproto.Credential)(nil),
 			}
-			
+
+			driver, err := scheduler.NewMesosSchedulerDriver(config)
+			if err != nil {
+				err = lxerrors.New("initializing mesos schedulerdriver", err)
+				lxlog.Errorf(logrus.Fields{
+					"error":     err,
+					"mesos_url": mesosUrl,
+				}, "error initializing mesos schedulerdriver")
+			}
+			Expect(err).To(BeNil())
+
 			go func() {
-				driver, err := scheduler.NewMesosSchedulerDriver(config)
-				if err != nil {
-					err = lxerrors.New("initializing mesos schedulerdriver", err)
-					lxlog.Errorf(logrus.Fields{
-						"error":     err,
-						"mesos_url": mesosUrl,
-					}, "error initializing mesos schedulerdriver")
-				}
 				status, err := driver.Run()
 				if err != nil {
 					err = lxerrors.New("Framework stopped with status " + status.String(), err)
@@ -70,17 +70,15 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 						"error":     err,
 						"mesos_url": mesosUrl,
 					}, "error running mesos schedulerdriver")
-					return
+					panic(err)
 				}
 			}()
 			mesosSchedulerDriver := fakeRpiScheduler.GetDriver()
-			rpiServerWrapper := NewRpiApiServerWrapper(fakeRpi, mesosSchedulerDriver, actionQueue)
-			driver := driver.NewMesosRpiDriver(actionQueue)
+			rpiServerWrapper := NewRpiApiServerWrapper(fakeRpi, mesosSchedulerDriver)
 
 			m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), make(chan error))
 			go core_fakes.RunFakeLayerXServer(nil, 34446)
 			go m.RunOnAddr(fmt.Sprintf(":3033"))
-			go driver.Run()
 			lxlog.ActiveDebugMode()
 		})
 	})

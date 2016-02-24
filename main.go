@@ -9,12 +9,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-mesos-rpi_v2/mesos_framework_api"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/layer-x/layerx-commons/lxactionqueue"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-mesos-rpi_v2/layerx_rpi_api"
-	"github.com/layer-x/layerx-mesos-rpi_v2/driver"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
+	"net"
 )
 
 func main() {
@@ -22,6 +21,7 @@ func main() {
 	master := flag.String("master", "127.0.0.1:5050", "url of mesos master")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
+	localIpStr := flag.String("localip", "", "binding address for the rpi")
 	flag.Parse()
 
 	if *debug == "true" {
@@ -29,13 +29,16 @@ func main() {
 		lxlog.Debugf(logrus.Fields{}, "debugging activated")
 	}
 
-	localip, err := lxutils.GetLocalIp()
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err.Error(),
-		}, "retrieving local ip")
+	localip := net.ParseIP(*localIpStr)
+	if localip == nil {
+		var err error
+		localip, err = lxutils.GetLocalIp()
+		if err != nil {
+			lxlog.Fatalf(logrus.Fields{
+				"error": err.Error(),
+			}, "retrieving local ip")
+		}
 	}
-	actionQueue := lxactionqueue.NewActionQueue()
 
 	rpiFramework := prepareFrameworkInfo(*layerX)
 	rpiClient := &layerx_rpi_client.LayerXRpi{
@@ -46,7 +49,7 @@ func main() {
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}, "registering to layerx")
 
-	err = rpiClient.RegisterRpi(fmt.Sprintf("%s:%v", localip.String(), *port))
+	err := rpiClient.RegisterRpi(fmt.Sprintf("%s:%v", localip.String(), *port))
 	if err != nil {
 		lxlog.Errorf(logrus.Fields{
 			"error": err.Error(),
@@ -54,7 +57,7 @@ func main() {
 		}, "registering to layerx")
 	}
 
-	rpiScheduler := mesos_framework_api.NewRpiMesosScheduler(rpiClient, actionQueue)
+	rpiScheduler := mesos_framework_api.NewRpiMesosScheduler(rpiClient)
 
 	config := scheduler.DriverConfig{
 		Scheduler:  rpiScheduler,
@@ -83,12 +86,10 @@ func main() {
 		}
 	}()
 	mesosSchedulerDriver := rpiScheduler.GetDriver()
-	rpiServerWrapper := layerx_rpi_api.NewRpiApiServerWrapper(rpiClient, mesosSchedulerDriver, actionQueue)
-	driver := driver.NewMesosRpiDriver(actionQueue)
+	rpiServerWrapper := layerx_rpi_api.NewRpiApiServerWrapper(rpiClient, mesosSchedulerDriver)
 	errc := make(chan error)
 	m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), errc)
 	go m.RunOnAddr(fmt.Sprintf(":%v", *port))
-	go driver.Run()
 
 	lxlog.Infof(logrus.Fields{
 		"config": config,
@@ -103,10 +104,10 @@ func main() {
 func prepareFrameworkInfo(layerxUrl string) *mesosproto.FrameworkInfo {
 	return &mesosproto.FrameworkInfo{
 		User: proto.String(""),
-		Id: &mesosproto.FrameworkID{
-			Value: proto.String("lx_mesos_rpi_framework"),
-		},
-		FailoverTimeout: proto.Float64(15),
+//		Id: &mesosproto.FrameworkID{
+//			Value: proto.String("lx_mesos_rpi_framework_3"),
+//		},
+		FailoverTimeout: proto.Float64(0),
 		Name: proto.String("Layer-X Mesos RPI Framework"),
 		WebuiUrl:        proto.String(layerxUrl),
 	}
