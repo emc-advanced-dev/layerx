@@ -16,3 +16,7 @@ type UpdateTaskStatusMessage struct {
 	TaskProvider *lxtypes.TaskProvider `json:"task_provider"`
 	TaskStatus *mesosproto.TaskStatus `json:"task_status"`
 }
+
+type HealthCheckTaskProviderMessage struct {
+	TaskProvider *lxtypes.TaskProvider `json:"task_provider"`
+}

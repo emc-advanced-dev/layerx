@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 "github.com/layer-x/layerx-commons/lxlog"
+	"net/http"
 )
 
 const (
 	COLLECT_TASKS = "/collect_tasks"
 	UPDATE_TASK_STATUS = "/update_task_status"
+	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
 )
 
 func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvider) error {
@@ -44,4 +46,22 @@ func SendStatusUpdate(tpiUrl string, taskProvider *lxtypes.TaskProvider, status 
 		return lxerrors.New(msg, err)
 	}
 	return nil
+}
+
+func HealthCheck(tpiUrl string, taskProvider *lxtypes.TaskProvider) (bool, error) {
+	healthCheckTaskProvider := &layerx_tpi_client.HealthCheckTaskProviderMessage{
+		TaskProvider: taskProvider,
+	}
+	resp, _, err := lxhttpclient.Post(tpiUrl, HEALTH_CHECK_TASK_PROVIDER, nil, healthCheckTaskProvider)
+	if err != nil {
+		return false, lxerrors.New("POSTing HealthCheckTaskProviderMessage to TPI server", err)
+	}
+	if resp.StatusCode == http.StatusOK {
+		return true, nil
+	}
+	if resp.StatusCode == http.StatusGone {
+		return false, nil
+	}
+	msg := fmt.Sprintf("POSTing HealthCheckTaskProviderMessage to TPI server; status code was %v, expected 200 or 410", resp.StatusCode)
+	return false, lxerrors.New(msg, err)
 }

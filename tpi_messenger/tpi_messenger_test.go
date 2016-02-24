@@ -65,12 +65,30 @@ var _ = Describe("TpiMessenger", func() {
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("SendStatusUpdate(tpiUrl string []*lxtypes.TaskProvider)", func(){
-		It("sends a task collection request to the TPI", func(){
+	Describe("SendStatusUpdate(tpiUrl *lxtypes.TaskProvider *mesosproto.TaskStatus)", func(){
+		It("sends a status update to the TPI for a specific task, specific task provider", func(){
 			fakeStatus1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
 			fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1", "ff@fakeip1:fakeport")
 			err := SendStatusUpdate("127.0.0.1:8866", fakeTaskProvider1, fakeStatus1)
 			Expect(err).To(BeNil())
+		})
+	})
+	Describe("HealthCheck(tpiUrl *lxtypes.TaskProvider)", func(){
+		Context("the task provider is no longer connected", func(){
+			It("returns false", func(){
+				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1_"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
+				healthy, err := HealthCheck("127.0.0.1:8866", fakeTaskProvider1)
+				Expect(err).To(BeNil())
+				Expect(healthy).To(BeFalse())
+			})
+		})
+		Context("the task provider is still connected", func(){
+			It("returns true", func(){
+				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1_", "ff@fakeip1:fakeport")
+				healthy, err := HealthCheck("127.0.0.1:8866", fakeTaskProvider1)
+				Expect(err).To(BeNil())
+				Expect(healthy).To(BeTrue())
+			})
 		})
 	})
 

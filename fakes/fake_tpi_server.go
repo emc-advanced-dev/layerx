@@ -10,11 +10,15 @@ import (
 	"net/http"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-commons/lxerrors"
+	"strings"
 )
 
 const (
 	COLLECT_TASKS = "/collect_tasks"
 	UPDATE_TASK_STATUS = "/update_task_status"
+	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
+
+	FAIL_ON_PURPOSE="failonpurpose"
 )
 
 var empty = []byte{}
@@ -91,9 +95,42 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 		}
 		res.WriteHeader(statusCode)
 	}
+	healthCheckTaskProviderHandler := func(req *http.Request, res http.ResponseWriter) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing update health check task provider request", err)
+			}
+			var healthCheckTaskProviderMessage layerx_tpi_client.HealthCheckTaskProviderMessage
+			err = json.Unmarshal(data, &healthCheckTaskProviderMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to health check task provider message", err)
+			}
+			//this is to make the request fail for testing
+			failOnPurpose := strings.Contains(healthCheckTaskProviderMessage.TaskProvider.Id, FAIL_ON_PURPOSE)
+			if failOnPurpose {
+				return empty, http.StatusGone, nil
+			}
+			return empty, http.StatusOK, nil
+		}
+		_, statusCode, err := fn()
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "processing update task status message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Post(COLLECT_TASKS, collectTasksHandler)
 	m.Post(UPDATE_TASK_STATUS, updateTaskStatusHandler)
+	m.Post(HEALTH_CHECK_TASK_PROVIDER, healthCheckTaskProviderHandler)
 
 	m.RunOnAddr(fmt.Sprintf(":%v", port))
 }
