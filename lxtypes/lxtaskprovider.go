@@ -9,5 +9,9 @@ type TaskProvider struct {
 	Source string `json:"source"`
 	//indicates whether task provider
 	//has a failover timeout
+	//(seconds)
 	FailoverTimeout float64 `json:"failover_timeout"`
+	//marked when the task provider times out
+	//mark with time.Unix()
+	TimeFailed float64 `json:"time_failed"`
 }

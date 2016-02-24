@@ -12,6 +12,7 @@ const (
 	pending_tasks = state_root + "/pending_tasks"
 	staging_tasks = state_root + "/staging_tasks"
 	task_providers = state_root + "/task_providers"
+	failed_task_providers = state_root + "/failed_task_providers"
 	statuses = state_root + "/statuses"
 	tpi_url_key = state_root + "/tpi_url"
 	rpi_url_key = state_root + "/rpi_url"
@@ -22,6 +23,7 @@ type State struct {
 	StagingTaskPool *TaskPool
 	NodePool	*NodePool
 	TaskProviderPool *TaskProviderPool
+	FailedTaskProviderPool *TaskProviderPool
 	StatusPool *StatusPool
 }
 
@@ -38,6 +40,9 @@ func NewState() *State {
 		},
 		TaskProviderPool: &TaskProviderPool{
 			rootKey: task_providers,
+		},
+		FailedTaskProviderPool: &TaskProviderPool{
+			rootKey: failed_task_providers,
 		},
 		StatusPool: &StatusPool{
 			rootKey: statuses,
