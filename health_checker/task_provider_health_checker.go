@@ -64,7 +64,6 @@ func (hc *HealthChecker) ExpireTimedOutTaskProviders() error {
 	}
 	for _, failedTaskProvider := range failedTaskProviders {
 		expirationTime := failedTaskProvider.TimeFailed + failedTaskProvider.FailoverTimeout
-		lxlog.Warnf(logrus.Fields{"now": float64(time.Now().Unix()), "expire-time": expirationTime}, "did we expire yet?")
 		if float64(time.Now().Unix()) > expirationTime {
 			lxlog.Warnf(logrus.Fields{"task-provider": failedTaskProvider}, "failed-over task provider has expired, proceeding to purge")
 			err = hc.destroyFailedTaskProvider(failedTaskProvider)

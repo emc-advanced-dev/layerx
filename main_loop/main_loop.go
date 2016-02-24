@@ -10,16 +10,17 @@ import (
 	"sync"
 "github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
+	"github.com/layer-x/layerx-core_v2/health_checker"
 )
 
 var mainLoopLock = &sync.Mutex{}
 
 //run as goroutine
-func MainLoop(taskLauncher *task_launcher.TaskLauncher, state *lxstate.State, tpiUrl, rpiUrl string, driverErrc chan error) {
+func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, state *lxstate.State, tpiUrl, rpiUrl string, driverErrc chan error) {
 	for {
 		errc := make(chan error)
 		go func () {
-			result := singleExeuction(state, taskLauncher, tpiUrl, rpiUrl)
+			result := singleExeuction(state, taskLauncher, healthChecker, tpiUrl, rpiUrl)
 			errc <- result
 		}()
 		err := <- errc
@@ -30,7 +31,7 @@ func MainLoop(taskLauncher *task_launcher.TaskLauncher, state *lxstate.State, tp
 	}
 }
 
-func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, tpiUrl, rpiUrl string) error {
+func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, tpiUrl, rpiUrl string) error {
 	mainLoopLock.Lock()
 	defer mainLoopLock.Unlock()
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
@@ -53,6 +54,16 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 
 	if tpiErr != nil || rpiErr != nil {
 		return nil
+	}
+
+	err = healthChecker.FailDisconnectedTaskProviders()
+	if err != nil {
+		return lxerrors.New("failing disconnected task providers", err)
+	}
+
+	err = healthChecker.ExpireTimedOutTaskProviders()
+	if err != nil {
+		return lxerrors.New("expiring timed out providers", err)
 	}
 
 	err = taskLauncher.LaunchStagedTasks()

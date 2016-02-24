@@ -12,6 +12,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/main_loop"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
 	"github.com/go-martini/martini"
+	"github.com/layer-x/layerx-core_v2/health_checker"
 )
 
 func purgeState() error {
@@ -88,7 +89,8 @@ func main(){
 	}
 
 	taskLauncher := task_launcher.NewTaskLauncher(rpiUrl, state)
-	go main_loop.MainLoop(taskLauncher, state, tpiUrl, rpiUrl, driverErrc)
+	healthChecker := health_checker.NewHealthChecker(tpiUrl, rpiUrl, state)
+	go main_loop.MainLoop(taskLauncher, healthChecker, state, tpiUrl, rpiUrl, driverErrc)
 	lxlog.Infof(logrus.Fields{
 		"tpiUrl": tpiUrl,
 		"rpiUrl": rpiUrl,
