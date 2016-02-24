@@ -62,4 +62,20 @@ var _ = Describe("FrameworkManager", func() {
 			Expect(err).To(BeNil())
 		})
 	})
+	Describe("Health Check Framework", func() {
+		It("sends a GET request to the framework and returns true/false indicating whether connection was refused", func() {
+			fakeMasterUpid, err := mesos_data.UPIDFromString("fakemesos@127.0.0.1:3031")
+			Expect(err).To(BeNil())
+			frameworkManager := NewFrameworkManager(fakeMasterUpid)
+			frameworkUpid, err := mesos_data.UPIDFromString("fakeframework@127.0.0.1:3001")
+			Expect(err).To(BeNil())
+			err = frameworkManager.SendTaskCollectionOffer(
+				"fake_framework_id",
+				"fake_offer_id",
+				"fake_slave_id",
+				"fake_slave_pid",
+				frameworkUpid)
+			Expect(err).To(BeNil())
+		})
+	})
 })

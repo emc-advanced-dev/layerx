@@ -17,6 +17,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
 	"github.com/mesos/mesos-go/mesosproto"
+	"net/http"
 )
 
 var _ = Describe("LayerxTpiServerWrapper", func() {
@@ -72,6 +73,35 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 			resp, _, err := lxhttpclient.Post("127.0.0.1:3032", UPDATE_TASK_STATUS, nil, fakeUpdateTaskStatusMessage)
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
+
+	Describe("POST {HealthCheckTaskProviderMessage} " + HEALTH_CHECK_TASK_PROVIDER, func() {
+		Context("the framework is not connected", func(){
+			It("performs a health check on the target framework and responds with 410", func() {
+				fakeHealthCheckTaskProviderMessage := &layerx_tpi_client.HealthCheckTaskProviderMessage{
+					TaskProvider: &lxtypes.TaskProvider{
+						Id: "fakedisconnectedframework",
+						Source: "fakedisconnectedframework@127.0.0.1:1987",
+					},
+				}
+				resp, _, err := lxhttpclient.Post("127.0.0.1:3032", HEALTH_CHECK_TASK_PROVIDER, nil, fakeHealthCheckTaskProviderMessage)
+				Expect(err).To(BeNil())
+				Expect(resp.StatusCode).To(Equal(http.StatusGone))
+			})
+		})
+		Context("the framework is connected", func(){
+			It("performs a health check on the target framework and responds with 200", func() {
+				fakeHealthCheckTaskProviderMessage := &layerx_tpi_client.HealthCheckTaskProviderMessage{
+					TaskProvider: &lxtypes.TaskProvider{
+						Id: "fake_task_provider_id",
+						Source: "fakeframework@127.0.0.1:3002",
+					},
+				}
+				resp, _, err := lxhttpclient.Post("127.0.0.1:3032", HEALTH_CHECK_TASK_PROVIDER, nil, fakeHealthCheckTaskProviderMessage)
+				Expect(err).To(BeNil())
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			})
 		})
 	})
 

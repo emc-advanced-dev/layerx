@@ -15,6 +15,7 @@ import (
 const (
 	COLLECT_TASKS = "/collect_tasks"
 	UPDATE_TASK_STATUS = "/update_task_status"
+	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
 )
 
 var empty = []byte{}
@@ -102,9 +103,49 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 		}
 		res.WriteHeader(statusCode)
 	}
+	healthCheckFrameworkHandler := func(req *http.Request, res http.ResponseWriter) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, lxerrors.New("parsing health check task provider request", err)
+			}
+			var healthCheckMessage layerx_tpi_client.HealthCheckTaskProviderMessage
+			err = json.Unmarshal(data, &healthCheckMessage)
+			if err != nil {
+				return empty, 500, lxerrors.New("could not parse json to health check task provider message", err)
+			}
+			healthy, err := tpi_api_helpers.HealthCheck(wrapper.tpi, wrapper.frameworkManager, healthCheckMessage)
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{
+					"error": err,
+				}, "could not handle collect tasks request")
+				return empty, 500, lxerrors.New("could not handle health check task provider request", err)
+			}
+			statusCode := http.StatusGone
+			if healthy {
+				statusCode = http.StatusOK
+			}
+			return empty, statusCode, nil
+		}
+		_, statusCode, err := wrapper.queueOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+				"request_sent_by": masterUpidString,
+			}, "processing health check task provider message")
+			driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
 
 	m.Post(COLLECT_TASKS, collectTasksHandler)
 	m.Post(UPDATE_TASK_STATUS, updateTaskStatusHandler)
+	m.Post(HEALTH_CHECK_TASK_PROVIDER, healthCheckFrameworkHandler)
 	return m
 }
 

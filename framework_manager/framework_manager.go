@@ -18,6 +18,7 @@ type FrameworkManager interface {
 	NotifyFrameworkRegistered(frameworkName, frameworkId string, frameworkUpid *mesos_data.UPID) error
 	SendStatusUpdate(frameworkId string, frameworkUpid *mesos_data.UPID, status *mesosproto.TaskStatus) error
 	SendTaskCollectionOffer(frameworkId, phonyOfferId, phonySlaveId, phonySlavePid string, frameworkUpid *mesos_data.UPID) error
+	HealthCheckFramework(frameworkId string, frameworkUpid *mesos_data.UPID) (bool, error)
 }
 
 type frameworkManager struct {
@@ -116,6 +117,21 @@ func (manager *frameworkManager) SendTaskCollectionOffer(frameworkId, phonyOffer
 		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
 	}
 	return nil
+}
+
+func (manager *frameworkManager) HealthCheckFramework(frameworkId string, frameworkUpid *mesos_data.UPID) (bool, error) {
+	lxlog.Debugf(logrus.Fields{
+		"frameworkid": frameworkId,
+	}, "checking health of framework")
+	url := frameworkUpid.Host+":"+frameworkUpid.Port
+	_, _, err := lxhttpclient.Get(url, "/", nil)
+	if err != nil {
+		if strings.Contains(err.Error(), "connection refused") {
+			return false, nil
+		}
+		return false, lxerrors.New("performing health check on framework", err)
+	}
+	return true, nil
 }
 
 
