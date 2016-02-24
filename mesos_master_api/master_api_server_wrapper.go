@@ -384,11 +384,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		return lxerrors.New("could not parse data to protobuf msg Call", err)
 	}
 	callType := call.GetType()
-	lxlog.Debugf(logrus.Fields{
+	lxlog.Infof(logrus.Fields{
 		"call_type":     callType.String(),
 		"framework_pid": upid.String(),
 		"whole call":    call.String(),
-	}, "Received mesosproto.Call")
+	}, "Received scheduler.Call")
 
 	switch callType {
 	case scheduler.Call_SUBSCRIBE:
