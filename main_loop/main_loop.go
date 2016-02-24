@@ -41,17 +41,20 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	for _, taskProvider := range taskProviderMap {
 		taskProviders = append(taskProviders, taskProvider)
 	}
-	err = tpi_messenger.SendTaskCollectionMessage(tpiUrl, taskProviders)
-	if err != nil {
-//		return lxerrors.New("sending task collection message to tpi", err)
+	tpiErr := tpi_messenger.SendTaskCollectionMessage(tpiUrl, taskProviders)
+	if tpiErr != nil {
 		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending task collection message to tpi. Is Tpi connected?")
 	}
 
-	err = rpi_messenger.SendResourceCollectionRequest(rpiUrl)
-	if err != nil {
-//		return lxerrors.New("sending resource collection request to rpi", err)
+	rpiErr := rpi_messenger.SendResourceCollectionRequest(rpiUrl)
+	if rpiErr != nil {
 		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending resource collection request to rpi. Is Rpi connected?")
 	}
+
+	if tpiErr != nil || rpiErr != nil {
+		return nil
+	}
+
 	err = taskLauncher.LaunchStagedTasks()
 	if err != nil {
 		return lxerrors.New("launching staged tasks", err)
