@@ -431,6 +431,14 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 			return lxerrors.New("processing Call_ACCEPT message from framework "+frameworkId, err)
 		}
 		break
+	case scheduler.Call_KILL:
+		kill := call.Kill
+		taskId := kill.GetTaskId().GetValue()
+		err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, frameworkId, taskId)
+		if err != nil {
+			return lxerrors.New("processing Call_KILL message from framework "+frameworkId, err)
+		}
+		break
 	default:
 		return lxerrors.New("processing unknown call type: " + callType.String(), nil)
 	}

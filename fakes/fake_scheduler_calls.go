@@ -99,3 +99,18 @@ func FakeLaunchTasksCall(frameworkId string, offerIds []string, taskInfos ...*me
 		},
 	}
 }
+
+func FakeKillTaskCall(frameworkId, taskId string) *scheduler.Call {
+	callType := scheduler.Call_KILL
+	return &scheduler.Call {
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Type: &callType,
+		Kill: &scheduler.Call_Kill{
+			TaskId: &mesosproto.TaskID{
+				Value: proto.String(taskId),
+			},
+		},
+	}
+}
