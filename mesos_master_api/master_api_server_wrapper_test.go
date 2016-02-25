@@ -16,6 +16,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"github.com/mesos/mesos-go/mesosproto"
+"github.com/Sirupsen/logrus"
 )
 
 var _ = Describe("MasterApiServer", func() {
@@ -32,10 +33,20 @@ var _ = Describe("MasterApiServer", func() {
 		fakes.FakeTaskStatus("task_id_3", mesosproto.TaskState_TASK_ERROR),
 	}
 
-	m := masterServer.WrapWithMesos(lxmartini.QuietMartini(), "master@127.0.0.1:3031", make(chan error))
+	driverErrc := make(chan error)
+
+	m := masterServer.WrapWithMesos(lxmartini.QuietMartini(), "master@127.0.0.1:3031", driverErrc)
 	go m.RunOnAddr(fmt.Sprintf(":3031"))
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	go core_fakes.RunFakeLayerXServer(statuses, 34443)
+	go func(){
+		for {
+			err := <- driverErrc
+			if err != nil {
+				lxlog.Errorf(logrus.Fields{"err": err},"SHOULD BE TESTING THIS ERROR!")
+			}
+		}
+	}()
 	lxlog.ActiveDebugMode()
 
 	Describe("GET " + GET_MASTER_STATE, func() {
@@ -75,11 +86,26 @@ var _ = Describe("MasterApiServer", func() {
 	})
 	Describe("POST {decline_call} " + MESOS_SCHEDULER_CALL, func() {
 		It("declines the task-collection offer(s) returns 202 to framework", func() {
-			fakeDecline := fakes.FakeDeclineOffersCall("fakeframework", []string{"fake_offer_id"})
+			fakeDecline := fakes.FakeDeclineOffersCall("fakeframework", "fake_offer_id")
 			headers := map[string]string{
 				"Libprocess-From": "fakeframework@127.0.0.1:3001",
 			}
 			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, headers, fakeDecline)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
+	Describe("POST {reconcile_tasks} " + MESOS_SCHEDULER_CALL, func() {
+		It("tells the layer-x core to bubble up status updates", func() {
+			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", REGISTER_FRAMEWORK_MESSAGE, headers, fakeRegisterRequest)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+			reconcile := fakes.FakeReconcileTasksCall("fakeframework", "task_id_1", "task_id_2", "task_id_3")
+			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, headers, reconcile)
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
 		})
@@ -134,7 +160,7 @@ var _ = Describe("MasterApiServer", func() {
 		})
 	})
 	Describe("POST " + RECONCILE_TASKS_MESSAGE, func() {
-		It("submits tasks to layerx core", func() {
+		It("tells the layer-x core to bubble up status updates", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
 				"Libprocess-From": "fakeframework@127.0.0.1:3001",
@@ -148,8 +174,8 @@ var _ = Describe("MasterApiServer", func() {
 				fakes.FakeTaskStatus("task_id_2", mesosproto.TaskState_TASK_RUNNING),
 				fakes.FakeTaskStatus("task_id_3", mesosproto.TaskState_TASK_RUNNING),
 			}
-			fakeLaunchTasks := fakes.FakeReconcileTasksMessage(fakeFrameworkId, statuses)
-			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", RECONCILE_TASKS_MESSAGE, headers, fakeLaunchTasks)
+			fakeReconcile := fakes.FakeReconcileTasksMessage(fakeFrameworkId, statuses)
+			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", RECONCILE_TASKS_MESSAGE, headers, fakeReconcile)
 			Expect(err).To(BeNil())
 			Expect(resp.StatusCode).To(Equal(202))
 		})

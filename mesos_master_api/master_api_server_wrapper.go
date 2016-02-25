@@ -63,7 +63,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		res.Write(data)
 	}
 	mesosSchedulerCallHandler := func(req *http.Request, res http.ResponseWriter) {
-		processMesosCallFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
 				return empty, statusCode, lxerrors.New("parsing reregisterFramework request", err)
@@ -77,7 +77,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(processMesosCallFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -230,7 +230,12 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			if err != nil {
 				return empty, 500, lxerrors.New("could not unmarshal data to reconcile tasks", err)
 			}
-			err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, reconcileTasksMessage)
+			frameworkId := reconcileTasksMessage.GetFrameworkId().GetValue()
+			taskIds := []string{}
+			for _, status := range reconcileTasksMessage.GetStatuses() {
+				taskIds = append(taskIds, status.GetTaskId().GetValue())
+			}
+			err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, frameworkId, taskIds)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -374,6 +379,7 @@ func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, erro
 		statusCodec <- statusCode
 		errc <- err
 	}()
+	println("reached1")
 	return <-datac, <-statusCodec, <-errc
 }
 
@@ -384,6 +390,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		return lxerrors.New("could not parse data to protobuf msg Call", err)
 	}
 	callType := call.GetType()
+	frameworkId := call.GetFrameworkId().GetValue()
 	lxlog.Infof(logrus.Fields{
 		"call_type":     callType.String(),
 		"framework_pid": upid.String(),
@@ -400,8 +407,18 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		break
 	case scheduler.Call_DECLINE:
 		decline := call.Decline
-		lxlog.Debugf(logrus.Fields{"declined-offers": decline.OfferIds}, "you declined my offers! see if i care...")
-			return nil
+		lxlog.Debugf(logrus.Fields{"declined-offers": decline.OfferIds, "framework-id": frameworkId}, "you declined my offers! see if i care...")
+		break
+	case scheduler.Call_RECONCILE:
+		reconcile := call.Reconcile
+		taskIds := []string{}
+		for _, task := range reconcile.GetTasks() {
+			taskIds = append(taskIds, task.GetTaskId().GetValue())
+		}
+		err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, frameworkId, taskIds)
+		if err != nil {
+			return lxerrors.New("processing reconcile tasks request", err)
+		}
 		break
 	default:
 		return lxerrors.New("processing unknown call type: " + callType.String(), nil)

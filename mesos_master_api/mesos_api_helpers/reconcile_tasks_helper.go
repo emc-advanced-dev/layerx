@@ -9,11 +9,9 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, reconcileTasksMessage mesosproto.ReconcileTasksMessage) error {
-	frameworkId := reconcileTasksMessage.GetFrameworkId().GetValue()
+func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, frameworkUpid *mesos_data.UPID, frameworkId string, taskIds []string) error {
 	statusUpdates := []*mesosproto.TaskStatus{}
-	for _, desiredStatus := range reconcileTasksMessage.GetStatuses() {
-		taskId := desiredStatus.GetTaskId().GetValue()
+	for _, taskId := range taskIds {
 		status, err := tpi.GetStatusUpdate(taskId)
 		if err != nil {
 			return lxerrors.New("getting status for task " + taskId + " from layerx core", err)

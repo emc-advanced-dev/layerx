@@ -20,7 +20,7 @@ func FakeSubscribeCall() *scheduler.Call {
 	}
 }
 
-func FakeDeclineOffersCall(frameworkId string, offerIds []string) *scheduler.Call {
+func FakeDeclineOffersCall(frameworkId string, offerIds ...string) *scheduler.Call {
 	callType := scheduler.Call_DECLINE
 	mesosOfferIds := []*mesosproto.OfferID{}
 	for _, offerId := range offerIds {
@@ -35,6 +35,27 @@ func FakeDeclineOffersCall(frameworkId string, offerIds []string) *scheduler.Cal
 		Type: &callType,
 		Decline: &scheduler.Call_Decline{
 			OfferIds: mesosOfferIds,
+		},
+	}
+}
+
+func FakeReconcileTasksCall(frameworkId string, taskIds ...string) *scheduler.Call {
+	callType := scheduler.Call_RECONCILE
+	reconcileTasks := []*scheduler.Call_Reconcile_Task{}
+	for _, taskId := range taskIds {
+		reconcileTasks = append(reconcileTasks, &scheduler.Call_Reconcile_Task{
+			TaskId: &mesosproto.TaskID{
+				Value: proto.String(taskId),
+			},
+		})
+	}
+	return &scheduler.Call {
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Type: &callType,
+		Reconcile: &scheduler.Call_Reconcile{
+			Tasks: reconcileTasks,
 		},
 	}
 }
