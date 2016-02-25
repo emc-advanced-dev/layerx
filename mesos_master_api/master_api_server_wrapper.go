@@ -424,9 +424,39 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 			"framework_id": frameworkId,
 		}, "framework %s requested to revive offers", frameworkId)
 		break
+	case scheduler.Call_ACCEPT:
+		accept := call.Accept
+		err := wrapper.processAcceptCall(frameworkId, accept)
+		if err != nil {
+			return lxerrors.New("processing Call_ACCEPT message from framework "+frameworkId, err)
+		}
+		break
 	default:
 		return lxerrors.New("processing unknown call type: " + callType.String(), nil)
 	}
 
+	return nil
+}
+
+func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, accept *scheduler.Call_Accept) error {
+	for _, operation := range accept.GetOperations() {
+		operationType := operation.GetType()
+		lxlog.Debugf(logrus.Fields{
+			"operation_type":  operationType.String(),
+			"whole operation":    operation.String(),
+			"framework-dd":    frameworkId,
+		}, "processing ACCEPT_OFFERS_OPERATION for framework")
+		switch operationType {
+		case mesosproto.Offer_Operation_LAUNCH:
+			launchOperation := operation.GetLaunch()
+			mesosTasks := launchOperation.GetTaskInfos()
+			err := mesos_api_helpers.HandleLaunchTasksRequest(wrapper.tpi, frameworkId, mesosTasks)
+			if err != nil {
+				return lxerrors.New("processing launch tasks operation", err)
+			}
+		default:
+			return lxerrors.New("processing unknown operation type: " + operationType.String(), nil)
+		}
+	}
 	return nil
 }

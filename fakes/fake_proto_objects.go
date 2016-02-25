@@ -55,9 +55,9 @@ func FakeUnregisterFrameworkMessage() *mesosproto.UnregisterFrameworkMessage {
 }
 
 func FakeLaunchTasksMessage(frameworkId string) *mesosproto.LaunchTasksMessage {
-	fakeTask1 := FakeTask("fake_task_1")
-	fakeTask2 := FakeTask("fake_task_2")
-	fakeTask3 := FakeTask("fake_task_3")
+	fakeTask1 := FakeMesosTask("fake_task_1")
+	fakeTask2 := FakeMesosTask("fake_task_2")
+	fakeTask3 := FakeMesosTask("fake_task_3")
 	fakeTasks := []*mesosproto.TaskInfo{
 		fakeTask1,
 		fakeTask2,
@@ -87,7 +87,7 @@ func FakeReconcileTasksMessage(frameworkId string, statuses []*mesosproto.TaskSt
 	}
 }
 
-func FakeTask(taskId string) *mesosproto.TaskInfo {
+func FakeMesosTask(taskId string) *mesosproto.TaskInfo {
 	return &mesosproto.TaskInfo{
 		Name: proto.String("fake_task_name"),
 		TaskId: &mesosproto.TaskID{

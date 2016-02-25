@@ -69,3 +69,33 @@ func FakeReviveOffersCall(frameworkId string) *scheduler.Call {
 		Type: &callType,
 	}
 }
+
+func FakeLaunchTasksCall(frameworkId string, offerIds []string, taskInfos ...*mesosproto.TaskInfo) *scheduler.Call {
+	callType := scheduler.Call_ACCEPT
+	mesosOfferIds := []*mesosproto.OfferID{}
+	for _, offerId := range offerIds {
+		mesosOfferIds = append(mesosOfferIds, &mesosproto.OfferID{
+			Value: proto.String(offerId),
+		})
+	}
+	operationType := mesosproto.Offer_Operation_LAUNCH
+	launchOperations := []*mesosproto.Offer_Operation{}
+	for _, taskInfo := range taskInfos {
+		launchOperations = append(launchOperations, &mesosproto.Offer_Operation{
+			Type: &operationType,
+			Launch: &mesosproto.Offer_Operation_Launch{
+				TaskInfos: []*mesosproto.TaskInfo{taskInfo},
+			},
+		})
+	}
+	return &scheduler.Call {
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Type: &callType,
+		Accept: &scheduler.Call_Accept{
+			OfferIds: mesosOfferIds,
+			Operations: launchOperations,
+		},
+	}
+}

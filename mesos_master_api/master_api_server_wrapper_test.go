@@ -125,6 +125,25 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST {ACCEPT_OFFERS} " + MESOS_SCHEDULER_CALL, func() {
+		It("submits tasks to layerx core", func() {
+			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", REGISTER_FRAMEWORK_MESSAGE, headers, fakeRegisterRequest)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+			fakeFrameworkId := fakeRegisterRequest.GetFramework().GetId().GetValue()
+			fakeTask1 := fakes.FakeMesosTask("fake_task_1")
+			fakeTask2 := fakes.FakeMesosTask("fake_task_2")
+			fakeTask3 := fakes.FakeMesosTask("fake_task_3")
+			fakeLaunchTasks := fakes.FakeLaunchTasksCall(fakeFrameworkId, []string{"fake_offer_id"}, fakeTask1, fakeTask2, fakeTask3)
+			resp, _, err = lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, headers, fakeLaunchTasks)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 	Describe("POST " + REGISTER_FRAMEWORK_MESSAGE, func() {
 		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
