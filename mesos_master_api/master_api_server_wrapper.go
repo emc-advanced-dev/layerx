@@ -398,6 +398,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 			return lxerrors.New("processing subscribe request", err)
 		}
 		break
+	case scheduler.Call_DECLINE:
+		decline := call.Decline
+		lxlog.Debugf(logrus.Fields{"declined-offers": decline.OfferIds}, "you declined my offers! see if i care...")
+			return nil
+		break
 	default:
 		return lxerrors.New("processing unknown call type: " + callType.String(), nil)
 	}

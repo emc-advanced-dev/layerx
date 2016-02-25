@@ -73,6 +73,17 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
+	Describe("POST {decline_call} " + MESOS_SCHEDULER_CALL, func() {
+		It("declines the task-collection offer(s) returns 202 to framework", func() {
+			fakeDecline := fakes.FakeDeclineOffersCall("fakeframework", []string{"fake_offer_id"})
+			headers := map[string]string{
+				"Libprocess-From": "fakeframework@127.0.0.1:3001",
+			}
+			resp, _, err := lxhttpclient.Post("127.0.0.1:3031", MESOS_SCHEDULER_CALL, headers, fakeDecline)
+			Expect(err).To(BeNil())
+			Expect(resp.StatusCode).To(Equal(202))
+		})
+	})
 	Describe("POST " + REGISTER_FRAMEWORK_MESSAGE, func() {
 		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
