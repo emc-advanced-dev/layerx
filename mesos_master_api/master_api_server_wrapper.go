@@ -323,7 +323,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		res.WriteHeader(statusCode)
 	}
 	reviveOffersHandler := func(req *http.Request, res http.ResponseWriter) {
-		logReviveOffersFn := func() ([]byte, int, error) {
+		fn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
 				return empty, statusCode, lxerrors.New("parsing reviveOffers request", err)
@@ -342,7 +342,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			return empty, 202, nil
 		}
-		_, statusCode, err := wrapper.queueOperation(logReviveOffersFn)
+		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
 			lxlog.Errorf(logrus.Fields{
@@ -379,7 +379,6 @@ func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, erro
 		statusCodec <- statusCode
 		errc <- err
 	}()
-	println("reached1")
 	return <-datac, <-statusCodec, <-errc
 }
 
@@ -419,6 +418,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		if err != nil {
 			return lxerrors.New("processing reconcile tasks request", err)
 		}
+		break
+	case scheduler.Call_REVIVE:
+		lxlog.Debugf(logrus.Fields{
+			"framework_id": frameworkId,
+		}, "framework %s requested to revive offers", frameworkId)
 		break
 	default:
 		return lxerrors.New("processing unknown call type: " + callType.String(), nil)

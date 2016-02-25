@@ -59,3 +59,13 @@ func FakeReconcileTasksCall(frameworkId string, taskIds ...string) *scheduler.Ca
 		},
 	}
 }
+
+func FakeReviveOffersCall(frameworkId string) *scheduler.Call {
+	callType := scheduler.Call_REVIVE
+	return &scheduler.Call {
+		FrameworkId: &mesosproto.FrameworkID{
+			Value: proto.String(frameworkId),
+		},
+		Type: &callType,
+	}
+}
