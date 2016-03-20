@@ -60,6 +60,7 @@ func (state *State) InitializeState(etcdUrl string) error {
 	state.StagingTaskPool.Initialize()
 	state.NodePool.Initialize()
 	state.TaskProviderPool.Initialize()
+	state.FailedTaskProviderPool.Initialize()
 	state.StatusPool.Initialize()
 	return nil
 }
