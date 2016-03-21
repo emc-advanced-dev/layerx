@@ -544,12 +544,13 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			var assignTasksMessage layerx_brain_client.BrainAssignTasksMessage
 			err = json.Unmarshal(data, &assignTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to assign tasks message", err)
+				return empty, 500, lxerrors.New("could not parse json to assign tasks message ("+string(data)+")", err)
 			}
 			err = lx_core_helpers.AssignTasks(wrapper.state, assignTasksMessage)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
+					"data": string(data),
 				}, "could not handle assign tasks request")
 				return empty, 500, lxerrors.New("could not handle assign tasks message", err)
 			}

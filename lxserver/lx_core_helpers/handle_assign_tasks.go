@@ -18,6 +18,9 @@ func AssignTasks(state *lxstate.State, assignTasksMessage layerx_brain_client.Br
 }
 
 func assignTask(state *lxstate.State, nodeId, taskId string) error {
+	if _, err := state.NodePool.GetNode(nodeId); err != nil {
+		return lxerrors.New("retrieving node "+nodeId, err)
+	}
 	task, err := state.PendingTaskPool.GetTask(taskId)
 	if err != nil {
 		return lxerrors.New("retrieving task "+taskId+" from pending task pool", err)
