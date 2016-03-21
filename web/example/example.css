@@ -146,6 +146,11 @@ button:hover {
   background-color: rgba(255, 255, 255, 0.2);
   width: 50%;
 }
+.containerlike {
+  display: table-cell;
+  background-color: rgba(255, 255, 255, 0.2);
+  width: 50%;
+}
 .container:nth-child(odd) {
   background-color: rgba(0, 0, 0, 0.2);
 }
