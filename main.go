@@ -96,9 +96,11 @@ func main(){
 		"rpiUrl": rpiUrl,
 	}, "Layer-X Server initialized successfully.")
 
-	err = <- driverErrc
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{"error": err},
-			"Layer-X Core failed!")
+	for {
+		err = <- driverErrc
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{"error": err},
+				"Layer-X Core had an error!")
+		}
 	}
 }
