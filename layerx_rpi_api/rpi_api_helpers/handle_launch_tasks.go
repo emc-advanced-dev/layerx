@@ -23,9 +23,7 @@ func LaunchTasks(driver scheduler.SchedulerDriver, launchTasksMessage layerx_rpi
 		}
 		offerIds = append(offerIds, offerId)
 	}
-	filters := &mesosproto.Filters{
-		RefuseSeconds: proto.Float64(0),
-	}
+	filters := &mesosproto.Filters{}
 	status, err := driver.LaunchTasks(offerIds, mesosTasks, filters)
 	if err != nil {
 		errmsg := fmt.Sprintf("launching %v tasks on %v offers with mesos schedulerdriver", len(mesosTasks), len(offerIds))

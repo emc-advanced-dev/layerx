@@ -37,9 +37,6 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			}
 			fakeFramework := &mesosproto.FrameworkInfo{
 				User: proto.String(""),
-				Id: &mesosproto.FrameworkID{
-					Value: proto.String("fake_lx_mesos_rpi_framework"),
-				},
 				FailoverTimeout: proto.Float64(15),
 				Name: proto.String("FAKE Layer-X Mesos RPI Framework"),
 			}
