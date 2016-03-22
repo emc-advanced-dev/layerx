@@ -95,9 +95,11 @@ func main() {
 		"config": config,
 	}, "Layer-X Mesos RPI Initialized...")
 
-	err = <-errc
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{"error": err}, "LayerX Mesos RPI Failed!")
+	for {
+		err = <-errc
+		if err != nil {
+			lxlog.Fatalf(logrus.Fields{"error": err}, "LayerX Mesos RPI Failed!")
+		}
 	}
 }
 
