@@ -79,11 +79,13 @@ func main () {
 		"upid":            masterUpidString,
 	}, "Layerx Mesos TPI initialized...")
 
-	err = <- errc
-	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err.Error(),
-		}, "Mesos server failed")
+	for {
+		err = <- errc
+		if err != nil {
+			lxlog.Errorf(logrus.Fields{
+				"error": err.Error(),
+			}, "Mesos tpi experienced a failure!")
+		}
 	}
 
 }
