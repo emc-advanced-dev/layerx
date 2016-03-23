@@ -11,7 +11,6 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
-	"github.com/mesos/mesos-go/mesosproto/scheduler"
 )
 
 const (
@@ -383,7 +382,7 @@ func (wrapper *mesosApiServerWrapper) queueOperation(f func() ([]byte, int, erro
 }
 
 func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_data.UPID) error {
-	var call scheduler.Call
+	var call mesosproto.Call
 	err := proto.Unmarshal(data, &call)
 	if err != nil {
 		return lxerrors.New("could not parse data to protobuf msg Call", err)
@@ -397,18 +396,18 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	}, "Received scheduler.Call")
 
 	switch callType {
-	case scheduler.Call_SUBSCRIBE:
+	case mesosproto.Call_SUBSCRIBE:
 		subscribe := call.Subscribe
 		err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
 		if err != nil {
 			return lxerrors.New("processing subscribe request", err)
 		}
 		break
-	case scheduler.Call_DECLINE:
+	case mesosproto.Call_DECLINE:
 		decline := call.Decline
 		lxlog.Debugf(logrus.Fields{"declined-offers": decline.OfferIds, "framework-id": frameworkId}, "you declined my offers! see if i care...")
 		break
-	case scheduler.Call_RECONCILE:
+	case mesosproto.Call_RECONCILE:
 		reconcile := call.Reconcile
 		taskIds := []string{}
 		for _, task := range reconcile.GetTasks() {
@@ -419,19 +418,19 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 			return lxerrors.New("processing reconcile tasks request", err)
 		}
 		break
-	case scheduler.Call_REVIVE:
+	case mesosproto.Call_REVIVE:
 		lxlog.Debugf(logrus.Fields{
 			"framework_id": frameworkId,
 		}, "framework %s requested to revive offers", frameworkId)
 		break
-	case scheduler.Call_ACCEPT:
+	case mesosproto.Call_ACCEPT:
 		accept := call.Accept
 		err := wrapper.processAcceptCall(frameworkId, accept)
 		if err != nil {
 			return lxerrors.New("processing Call_ACCEPT message from framework "+frameworkId, err)
 		}
 		break
-	case scheduler.Call_KILL:
+	case mesosproto.Call_KILL:
 		kill := call.Kill
 		taskId := kill.GetTaskId().GetValue()
 		err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, frameworkId, taskId)
@@ -446,7 +445,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	return nil
 }
 
-func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, accept *scheduler.Call_Accept) error {
+func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, accept *mesosproto.Call_Accept) error {
 	for _, operation := range accept.GetOperations() {
 		operationType := operation.GetType()
 		lxlog.Debugf(logrus.Fields{
