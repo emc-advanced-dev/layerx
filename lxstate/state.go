@@ -15,7 +15,7 @@ const (
 	failed_task_providers = state_root + "/failed_task_providers"
 	statuses = state_root + "/statuses"
 	tpi_url_key = state_root + "/tpi_url"
-	rpi_url_key = state_root + "/rpi_url"
+	rpis = state_root + "/rpis"
 )
 
 type State struct {
@@ -25,6 +25,7 @@ type State struct {
 	TaskProviderPool *TaskProviderPool
 	FailedTaskProviderPool *TaskProviderPool
 	StatusPool *StatusPool
+	RpiPool *RpiPool
 }
 
 func NewState() *State {
@@ -47,6 +48,9 @@ func NewState() *State {
 		StatusPool: &StatusPool{
 			rootKey: statuses,
 		},
+		RpiPool: &RpiPool{
+			rootKey: rpis,
+		},
 	}
 }
 
@@ -62,6 +66,7 @@ func (state *State) InitializeState(etcdUrl string) error {
 	state.TaskProviderPool.Initialize()
 	state.FailedTaskProviderPool.Initialize()
 	state.StatusPool.Initialize()
+	state.RpiPool.Initialize()
 	return nil
 }
 
@@ -79,22 +84,6 @@ func (state *State) GetTpi() (string, error) {
 		return "", lxerrors.New("could not get tpi url", err)
 	}
 	return tpiUrl, nil
-}
-
-func (state *State) SetRpi(rpiUrl string) error {
-	err := lxdatabase.Set(rpi_url_key, rpiUrl)
-	if err != nil {
-		return lxerrors.New("could not set rpi url", err)
-	}
-	return nil
-}
-
-func (state *State) GetRpi() (string, error) {
-	rpiUrl, err := lxdatabase.Get(rpi_url_key)
-	if err != nil {
-		return "", lxerrors.New("could not get rpi url", err)
-	}
-	return rpiUrl, nil
 }
 
 func (state *State) GetAllTasks() (map[string]*lxtypes.Task, error) {

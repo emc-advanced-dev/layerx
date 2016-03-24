@@ -45,20 +45,6 @@ var _ = Describe("State", func() {
 			Expect(tpiUrl).To(Equal("fake_url"))
 		})
 	})
-	Describe("Set/GetRpiUrl(tpiUrl)", func() {
-		It("sets and gets the rpiurl", func() {
-			state := NewState()
-			state.InitializeState("http://127.0.0.1:4001")
-			PurgeState()
-			err := state.InitializeState("http://127.0.0.1:4001")
-			Expect(err).To(BeNil())
-			err = state.SetRpi("fake_url")
-			Expect(err).To(BeNil())
-			rpiUrl, err := state.GetRpi()
-			Expect(err).To(BeNil())
-			Expect(rpiUrl).To(Equal("fake_url"))
-		})
-	})
 	Describe("GetAllTasks", func(){
 		It("returns all known tasks from pending, staging, and node task pools", func(){
 			state := NewState()
