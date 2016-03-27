@@ -16,12 +16,15 @@ import (
 	"net"
 )
 
+const rpi_name="Mesos-RPI-0.0.0"
+
 func main() {
 	port := flag.Int("port", 4040, "listening port for mesos rpi, default: 2999")
 	master := flag.String("master", "127.0.0.1:5050", "url of mesos master")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
 	localIpStr := flag.String("localip", "", "binding address for the rpi")
+	rpiName := flag.String("name", rpi_name, "name to use to register to layerx")
 	flag.Parse()
 
 	if *debug == "true" {
@@ -43,13 +46,14 @@ func main() {
 	rpiFramework := prepareFrameworkInfo(*layerX)
 	rpiClient := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
+		RpiName: *rpiName,
 	}
 
 	lxlog.Infof(logrus.Fields{
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}, "registering to layerx")
 
-	err := rpiClient.RegisterRpi(fmt.Sprintf("%s:%v", localip.String(), *port))
+	err := rpiClient.RegisterRpi(*rpiName, fmt.Sprintf("%s:%v", localip.String(), *port))
 	if err != nil {
 		lxlog.Errorf(logrus.Fields{
 			"error": err.Error(),
