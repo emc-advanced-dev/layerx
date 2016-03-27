@@ -5,7 +5,6 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxstate"
 	"flag"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"time"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-core_v2/lxserver"
 	"fmt"
@@ -64,7 +63,7 @@ func main(){
 
 	driverErrc := make(chan error)
 	mainServer := lxmartini.QuietMartini()
-	coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, mainServer, "", "", driverErrc)
+	coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, mainServer, driverErrc)
 
 	mainServer = coreServerWrapper.WrapServer()
 
@@ -72,28 +71,12 @@ func main(){
 
 	go mainServer.RunOnAddr(fmt.Sprintf(":%v", *portPtr))
 
+	clearRpisAndResources(state)
 
-	rpiUrl := ""
-	tpiUrl := ""
-	for {
-		tpiUrl, _ = state.GetTpi()
-		rpiUrl, _ = state.GetRpi()
-		if tpiUrl != "" && rpiUrl != "" {
-			lxlog.Infof(logrus.Fields{
-				"tpiUrl": tpiUrl,
-				"rpiUrl": rpiUrl,
-			}, "TPI and RPI have registered. Initializing Layer-X Server...")
-			break
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	taskLauncher := task_launcher.NewTaskLauncher(rpiUrl, state)
-	healthChecker := health_checker.NewHealthChecker(tpiUrl, rpiUrl, state)
-	go main_loop.MainLoop(taskLauncher, healthChecker, state, tpiUrl, rpiUrl, driverErrc)
+	taskLauncher := task_launcher.NewTaskLauncher(state)
+	healthChecker := health_checker.NewHealthChecker(state)
+	go main_loop.MainLoop(taskLauncher, healthChecker, state, driverErrc)
 	lxlog.Infof(logrus.Fields{
-		"tpiUrl": tpiUrl,
-		"rpiUrl": rpiUrl,
 	}, "Layer-X Server initialized successfully.")
 
 	for {
@@ -101,6 +84,27 @@ func main(){
 		if err != nil {
 			lxlog.Errorf(logrus.Fields{"error": err},
 				"Layer-X Core had an error!")
+		}
+	}
+}
+
+func clearRpisAndResources(state *lxstate.State) {
+	//clear previous rpis
+	oldRpis, _ := state.RpiPool.GetRpis()
+	for _, rpi := range oldRpis {
+		state.RpiPool.DeleteRpi(rpi.Name)
+	}
+	//clear previous resources
+	oldNodes, _ := state.NodePool.GetNodes()
+	for _, node := range oldNodes {
+		nodeResourcePool, err := state.NodePool.GetNodeResourcePool(node.Id)
+		if err != nil {
+			lxlog.Warnf(logrus.Fields{"err": err, "node": node}, "retreiving resource pool for node")
+			continue
+		}
+		resources, _ := nodeResourcePool.GetResources()
+		for _, resource := range resources {
+			nodeResourcePool.DeleteResource(resource.Id)
 		}
 	}
 }

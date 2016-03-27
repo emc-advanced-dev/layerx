@@ -16,7 +16,6 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
-	"time"
 )
 
 const (
@@ -47,17 +46,13 @@ var empty = []byte{}
 type layerxCoreServerWrapper struct {
 	state			*lxstate.State
 	m *martini.ClassicMartini
-	tpiUrl string
-	rpiUrl string
 	driverErrc chan error
 }
 
-func NewLayerXCoreServerWrapper(state *lxstate.State, m *martini.ClassicMartini, tpiUrl, rpiUrl string, driverErrc chan error) *layerxCoreServerWrapper {
+func NewLayerXCoreServerWrapper(state *lxstate.State, m *martini.ClassicMartini, driverErrc chan error) *layerxCoreServerWrapper {
 	return &layerxCoreServerWrapper{
 		state: state,
 		m: m,
-		tpiUrl: tpiUrl,
-		rpiUrl: rpiUrl,
 		driverErrc: driverErrc,
 	}
 }
@@ -108,19 +103,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			if err != nil {
 				return empty, 400, lxerrors.New("parsing register rpi request", err)
 			}
-			var rpiRegistrationMessage layerx_rpi_client.RpiRegistrationMessage
+			var rpiRegistrationMessage layerx_rpi_client.RpiInfo
 			err = json.Unmarshal(data, &rpiRegistrationMessage)
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse json to register rpi message", err)
 			}
-			err = lx_core_helpers.RegisterRpi(wrapper.state, rpiRegistrationMessage.RpiUrl)
+			err = lx_core_helpers.RegisterRpi(wrapper.state, rpiRegistrationMessage)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
 				}, "could not handle register rpi request")
 				return empty, 500, lxerrors.New("could not handle register rpi request", err)
 			}
-			lxlog.Infof(logrus.Fields{"rpi_url": rpiRegistrationMessage.RpiUrl}, "Registered TPI to LayerX")
+			lxlog.Infof(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}, "Registered TPI to LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
@@ -325,7 +320,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		fn := func() ([]byte, int, error) {
 			taskId := params["task_id"]
 			taskProviderId := params["task_provider_id"]
-			err := lx_core_helpers.KillTask(wrapper.state, wrapper.getTpiUrl(), wrapper.getRpiUrl(), taskProviderId, taskId)
+			err := lx_core_helpers.KillTask(wrapper.state, wrapper.state.GetTpiUrl(), taskProviderId, taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -422,7 +417,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			if err != nil {
 				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
 			}
-			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, wrapper.getTpiUrl(), &status)
+			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, wrapper.state.GetTpiUrl(), &status)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{
 					"error": err,
@@ -625,32 +620,6 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	wrapper.m.Post(MigrateTasks, migrateTasksHandler)
 
 	return wrapper.m
-}
-
-func (wrapper *layerxCoreServerWrapper) getTpiUrl() string {
-	for {
-		if wrapper.tpiUrl != "" {
-			lxlog.Infof(logrus.Fields{
-				"tpiUrl": wrapper.tpiUrl,
-			}, "TPI registered...")
-			return wrapper.tpiUrl
-		}
-		wrapper.tpiUrl, _ = wrapper.state.GetTpi()
-		time.Sleep(500 * time.Millisecond)
-	}
-}
-
-func (wrapper *layerxCoreServerWrapper) getRpiUrl() string {
-	for {
-		if wrapper.rpiUrl != "" {
-			lxlog.Infof(logrus.Fields{
-				"rpiUrl": wrapper.rpiUrl,
-			}, "RPI registered...")
-			return wrapper.rpiUrl
-		}
-		wrapper.rpiUrl, _ = wrapper.state.GetRpi()
-		time.Sleep(500 * time.Millisecond)
-	}
 }
 
 func (wrapper *layerxCoreServerWrapper) doOperation(f func() ([]byte, int, error)) ([]byte, int, error) {

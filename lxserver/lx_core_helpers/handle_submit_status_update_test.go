@@ -31,7 +31,13 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:5599", "127.0.0.1:4499", make(chan error))
+			err = state.SetTpi( "127.0.0.1:4499")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:5599",
+			})
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), make(chan error))
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5675"))

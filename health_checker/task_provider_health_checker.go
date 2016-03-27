@@ -12,15 +12,11 @@ import (
 )
 
 type HealthChecker struct {
-	tpiUrl string
-	rpiUrl string
 	state  *lxstate.State
 }
 
-func NewHealthChecker(tpiUrl, rpiUrl string, state *lxstate.State) *HealthChecker {
+func NewHealthChecker(state *lxstate.State) *HealthChecker {
 	return &HealthChecker{
-		tpiUrl: tpiUrl,
-		rpiUrl: rpiUrl,
 		state: state,
 	}
 }
@@ -31,7 +27,7 @@ func (hc *HealthChecker) FailDisconnectedTaskProviders() error {
 		return lxerrors.New("getting task providers from pool", err)
 	}
 	for _, taskProvider := range taskProviders {
-		healthy, err := tpi_messenger.HealthCheck(hc.tpiUrl, taskProvider)
+		healthy, err := tpi_messenger.HealthCheck(hc.state.GetTpiUrl(), taskProvider)
 		if err != nil {
 			return lxerrors.New("performing health check on task provider "+taskProvider.Id, err)
 		}
@@ -84,9 +80,11 @@ func (hc *HealthChecker) destroyFailedTaskProvider(taskProvider *lxtypes.TaskPro
 	for taskId, task := range allTasks {
 		if task.TaskProvider.Id == taskProvider.Id {
 			lxlog.Debugf(logrus.Fields{"task-provider": taskProvider, "task": task}, "destroying task for terminated task provider")
-			err = rpi_messenger.SendKillTaskRequest(hc.rpiUrl, taskId)
-			if err != nil {
-				return lxerrors.New("sending kill task request to resource provider", err)
+			for _, rpiUrl := range hc.state.GetRpiUrls() {
+				err = rpi_messenger.SendKillTaskRequest(rpiUrl, taskId)
+				if err != nil {
+					lxlog.Warnf(logrus.Fields{"err": err}, "sending kill task request to resource provider")
+				}
 			}
 			taskPool, err := hc.state.GetTaskPoolContainingTask(taskId)
 			if err != nil {

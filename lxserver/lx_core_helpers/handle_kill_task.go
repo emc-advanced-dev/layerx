@@ -9,7 +9,7 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
-func KillTask(state *lxstate.State, tpiUrl, rpiUrl, taskProviderId, taskId string) error {
+func KillTask(state *lxstate.State, tpiUrl, taskProviderId, taskId string) error {
 	if _, err := state.GetTaskFromAnywhere(taskId); err != nil {
 		lxlog.Warnf(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}, "requested to kill a task that Layer-X has no knowledge of, replying with TASK_LOST")
 		err = sendTaskKilledStatus(state, mesosproto.TaskState_TASK_LOST, tpiUrl, taskProviderId, taskId)
@@ -36,9 +36,14 @@ func KillTask(state *lxstate.State, tpiUrl, rpiUrl, taskProviderId, taskId strin
 		return nil
 	}
 
-	err = rpi_messenger.SendKillTaskRequest(rpiUrl, taskId)
-	if err != nil {
-		return lxerrors.New("sending kill task request to rpi", err)
+	for _, rpiUrl := range state.GetRpiUrls() {
+		err = rpi_messenger.SendKillTaskRequest(rpiUrl, taskId)
+		if err != nil {
+			lxlog.Warnf(logrus.Fields{
+				"err": err,
+				"rpiUrl": rpiUrl,
+			}, "rpi did not respond to kill task request")
+		}
 	}
 	taskToKill, err := taskPool.GetTask(taskId)
 	if err != nil {

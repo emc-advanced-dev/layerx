@@ -288,7 +288,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		var registrationMessage layerx_rpi_client.RpiRegistrationMessage
+		var registrationMessage layerx_rpi_client.RpiInfo
 		err = json.Unmarshal(body, &registrationMessage)
 		if err != nil {
 			lxlog.Errorf(logrus.Fields{

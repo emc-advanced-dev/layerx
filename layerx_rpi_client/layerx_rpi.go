@@ -11,6 +11,7 @@ import (
 
 type LayerXRpi struct {
 	CoreURL string
+	RpiName string
 }
 
 const (
@@ -22,8 +23,11 @@ const (
 
 //call this method to register the RPI
 //with layerx
-func (rpi *LayerXRpi) RegisterRpi(rpiUrl string) error {
-	reg := RpiRegistrationMessage{RpiUrl: rpiUrl}
+func (rpi *LayerXRpi) RegisterRpi(name, rpiUrl string) error {
+	reg := RpiInfo{
+		Name: name,
+		Url: rpiUrl,
+	}
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, RegisterRpi, nil, reg)
 	if err != nil {
 		return lxerrors.New("POSTing registration request to LayerX core server", err)
@@ -38,6 +42,7 @@ func (rpi *LayerXRpi) RegisterRpi(rpiUrl string) error {
 //call this method when submitting
 // a new resource from the rpi
 func (rpi *LayerXRpi) SubmitResource(resource *lxtypes.Resource) error {
+	resource.RpiName = rpi.RpiName
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, SubmitResource, nil, resource)
 	if err != nil {
 		return lxerrors.New("POSTing resource to LayerX core server", err)

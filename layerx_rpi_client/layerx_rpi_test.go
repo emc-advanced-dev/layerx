@@ -22,7 +22,7 @@ var _ = Describe("LayerxRpi", func() {
 
 	Describe("RegisterRpi", func() {
 		It("registers the Rpi URL to the LX Server", func() {
-			err := lxRpi.RegisterRpi("fake.rpi.ip:1234")
+			err := lxRpi.RegisterRpi("fake-mesos-rpi", "fake.rpi.ip:1234")
 			Expect(err).To(BeNil())
 		})
 	})

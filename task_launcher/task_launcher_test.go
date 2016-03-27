@@ -46,7 +46,14 @@ var _ = Describe("TaskLauncher", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			driverErrc := make(chan error)
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
+
+			err = state.SetTpi( "127.0.0.1:2288")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:2299",
+			})
 
 			go func() {
 				for {
@@ -66,9 +73,16 @@ var _ = Describe("TaskLauncher", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
+			err := state.SetTpi( "127.0.0.1:2288")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:2299",
+			})
 			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+			fakeResource1.RpiName = "fake-rpi"
 			fakeNode1 := lxtypes.NewNode(fakeResource1.NodeId)
-			err := fakeNode1.AddResource(fakeResource1)
+			err = fakeNode1.AddResource(fakeResource1)
 			Expect(err).To(BeNil())
 			err = state.NodePool.AddNode(fakeNode1)
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
@@ -94,7 +108,7 @@ var _ = Describe("TaskLauncher", func() {
 			err = state.StagingTaskPool.AddTask(fakeTask3)
 			Expect(err).To(BeNil())
 
-			taskLauncher := NewTaskLauncher("127.0.0.1:2299", state)
+			taskLauncher := NewTaskLauncher(state)
 			err = taskLauncher.LaunchStagedTasks()
 			Expect(err).To(BeNil())
 

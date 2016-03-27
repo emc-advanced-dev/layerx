@@ -16,11 +16,11 @@ import (
 var mainLoopLock = &sync.Mutex{}
 
 //run as goroutine
-func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, state *lxstate.State, tpiUrl, rpiUrl string, driverErrc chan error) {
+func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, state *lxstate.State, driverErrc chan error) {
 	for {
 		errc := make(chan error)
 		go func () {
-			result := singleExeuction(state, taskLauncher, healthChecker, tpiUrl, rpiUrl)
+			result := singleExeuction(state, taskLauncher, healthChecker)
 			errc <- result
 		}()
 		err := <- errc
@@ -31,7 +31,7 @@ func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_c
 	}
 }
 
-func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, tpiUrl, rpiUrl string) error {
+func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker) error {
 	mainLoopLock.Lock()
 	defer mainLoopLock.Unlock()
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
@@ -42,14 +42,16 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	for _, taskProvider := range taskProviderMap {
 		taskProviders = append(taskProviders, taskProvider)
 	}
-	tpiErr := tpi_messenger.SendTaskCollectionMessage(tpiUrl, taskProviders)
+	tpiErr := tpi_messenger.SendTaskCollectionMessage(state.GetTpiUrl(), taskProviders)
 	if tpiErr != nil {
 		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending task collection message to tpi. Is Tpi connected?")
 	}
-
-	rpiErr := rpi_messenger.SendResourceCollectionRequest(rpiUrl)
-	if rpiErr != nil {
-		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending resource collection request to rpi. Is Rpi connected?")
+	var rpiErr error
+	for _, rpiUrl := range state.GetRpiUrls() {
+		rpiErr = rpi_messenger.SendResourceCollectionRequest(rpiUrl)
+		if rpiErr != nil {
+			lxlog.Warnf(logrus.Fields{"error": err}, "failed sending resource collection request to rpi. Is Rpi connected?")
+		}
 	}
 
 	if tpiErr != nil || rpiErr != nil {

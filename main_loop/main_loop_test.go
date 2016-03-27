@@ -16,6 +16,7 @@ import (
 	"time"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
+	"github.com/layer-x/layerx-core_v2/health_checker"
 )
 
 func PurgeState() {
@@ -42,9 +43,16 @@ var _ = Describe("MainLoop", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			taskLauncher = task_launcher.NewTaskLauncher("127.0.0.1:2299", state)
+			err = state.SetTpi( "127.0.0.1:2288")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:2299",
+			})
+
+			taskLauncher = task_launcher.NewTaskLauncher(state)
 
 			go func() {
 				for {
@@ -65,7 +73,14 @@ var _ = Describe("MainLoop", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			go MainLoop(taskLauncher, state, "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
+			err := state.SetTpi( "127.0.0.1:2288")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:2299",
+			})
+			healthChecker := health_checker.NewHealthChecker(state)
+			go MainLoop(taskLauncher, healthChecker, state, driverErrc)
 			time.Sleep(1000 * time.Millisecond)
 			Expect(serverErr).To(BeNil())
 		})

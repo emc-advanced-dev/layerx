@@ -13,6 +13,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 "github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 )
 
 func PurgeState() {
@@ -29,7 +30,14 @@ var _ = Describe("RpiMessenger", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			driverErrc := make(chan error)
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:9955", "127.0.0.1:9966", driverErrc)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
+
+			err = state.SetTpi( "127.0.0.1:9955")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:9966",
+			})
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":5566"))
@@ -56,9 +64,15 @@ var _ = Describe("RpiMessenger", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
+			err := state.SetTpi( "127.0.0.1:9955")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:9966",
+			})
 			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 			fakeNode1 := lxtypes.NewNode(fakeResource1.NodeId)
-			err := fakeNode1.AddResource(fakeResource1)
+			err = fakeNode1.AddResource(fakeResource1)
 			Expect(err).To(BeNil())
 			err = state.NodePool.AddNode(fakeNode1)
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")

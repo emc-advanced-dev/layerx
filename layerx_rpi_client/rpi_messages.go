@@ -1,8 +1,9 @@
 package layerx_rpi_client
 import "github.com/layer-x/layerx-core_v2/lxtypes"
 
-type RpiRegistrationMessage struct {
-	RpiUrl string `json:"rpi_url"`
+type RpiInfo struct {
+	Name string `json:"name"`
+	Url string `json:"rpi_url"`
 }
 
 type LaunchTasksMessage struct {

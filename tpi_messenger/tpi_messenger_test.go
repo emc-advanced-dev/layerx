@@ -14,6 +14,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 )
 
 func PurgeState() {
@@ -31,7 +32,14 @@ var _ = Describe("TpiMessenger", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			driverErrc := make(chan error)
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:8866", "127.0.0.1:8855", driverErrc)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
+
+			err = state.SetTpi( "127.0.0.1:8866")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:8855",
+			})
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":7766"))

@@ -14,6 +14,7 @@ type Resource struct {
 	Mem   float64           `json:"mem"`
 	Disk  float64           `json:"disk"`
 	Ports []PortRange       `json:"ports"`
+	RpiName string			`json:"rpi_name"`
 }
 
 func NewResourceFromMesos(offer *mesosproto.Offer) *Resource {

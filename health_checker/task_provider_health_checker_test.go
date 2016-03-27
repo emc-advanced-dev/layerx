@@ -46,7 +46,14 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
 			driverErrc := make(chan error)
-			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:2288", "127.0.0.1:2299", driverErrc)
+			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
+
+			err = state.SetTpi( "127.0.0.1:3388")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:3399",
+			})
 
 			go func() {
 				for {
@@ -67,8 +74,14 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 				PurgeState()
 				err2 := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err2).To(BeNil())
+				err := state.SetTpi( "127.0.0.1:3388")
+				Expect(err).To(BeNil())
+				err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+					Name: "fake-rpi",
+					Url: "127.0.0.1:3399",
+				})
 				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1", "ff@fakeip1:fakeport")
-				err := state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
+				err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
 				Expect(err).To(BeNil())
 				fakePendingTask := fakes.FakeLXTask("fake__pending_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 				fakePendingTask.TaskProvider = fakeTaskProvider1
@@ -87,7 +100,7 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 				fakeNodeTask1.TaskProvider = fakeTaskProvider1
 				err = nodeTaskPool.AddTask(fakeNodeTask1)
 				Expect(err).To(BeNil())
-				healthChecker := NewHealthChecker("127.0.0.1:3388", "127.0.0.1:3399", state)
+				healthChecker := NewHealthChecker(state)
 				err = healthChecker.FailDisconnectedTaskProviders()
 				Expect(err).To(BeNil())
 				taskProviders, err := state.TaskProviderPool.GetTaskProviders()
@@ -110,9 +123,15 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 					PurgeState()
 					err2 := state.InitializeState("http://127.0.0.1:4001")
 					Expect(err2).To(BeNil())
+					err := state.SetTpi( "127.0.0.1:3388")
+					Expect(err).To(BeNil())
+					err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+						Name: "fake-rpi",
+						Url: "127.0.0.1:3399",
+					})
 					//triggers failure
 					fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
-					err := state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
+					err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
 					Expect(err).To(BeNil())
 					fakePendingTask := fakes.FakeLXTask("fake__pending_task_id", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
 					fakePendingTask.TaskProvider = fakeTaskProvider1
@@ -131,7 +150,7 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 					fakeNodeTask1.TaskProvider = fakeTaskProvider1
 					err = nodeTaskPool.AddTask(fakeNodeTask1)
 					Expect(err).To(BeNil())
-					healthChecker := NewHealthChecker("127.0.0.1:3388", "127.0.0.1:3399", state)
+					healthChecker := NewHealthChecker(state)
 					err = healthChecker.FailDisconnectedTaskProviders()
 					Expect(err).To(BeNil())
 					taskProviders, err := state.TaskProviderPool.GetTaskProviders()
@@ -156,10 +175,16 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 					PurgeState()
 					err2 := state.InitializeState("http://127.0.0.1:4001")
 					Expect(err2).To(BeNil())
+					err := state.SetTpi( "127.0.0.1:3388")
+					Expect(err).To(BeNil())
+					err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+						Name: "fake-rpi",
+						Url: "127.0.0.1:3399",
+					})
 					//triggers failure
 					fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
 					fakeTaskProvider1.FailoverTimeout = 1
-					err := state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
+					err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
 					Expect(err).To(BeNil())
 					//for expectations, set failover timeout here
 					fakeTaskProvider1.TimeFailed = float64(time.Now().Unix())
@@ -180,7 +205,7 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 					fakeNodeTask1.TaskProvider = fakeTaskProvider1
 					err = nodeTaskPool.AddTask(fakeNodeTask1)
 					Expect(err).To(BeNil())
-					healthChecker := NewHealthChecker("127.0.0.1:3388", "127.0.0.1:3399", state)
+					healthChecker := NewHealthChecker(state)
 					err = healthChecker.FailDisconnectedTaskProviders()
 					Expect(err).To(BeNil())
 					taskProviders, err := state.TaskProviderPool.GetTaskProviders()
@@ -207,10 +232,16 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
+			err := state.SetTpi( "127.0.0.1:3388")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:3399",
+			})
 			//triggers failure
 			fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
 			fakeTaskProvider1.FailoverTimeout = 1
-			err := state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
+			err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
 			Expect(err).To(BeNil())
 			//for expectations, set failover timeout here
 			fakeTaskProvider1.TimeFailed = float64(time.Now().Unix())
@@ -231,7 +262,7 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			fakeNodeTask1.TaskProvider = fakeTaskProvider1
 			err = nodeTaskPool.AddTask(fakeNodeTask1)
 			Expect(err).To(BeNil())
-			healthChecker := NewHealthChecker("127.0.0.1:3388", "127.0.0.1:3399", state)
+			healthChecker := NewHealthChecker(state)
 			err = healthChecker.FailDisconnectedTaskProviders()
 			Expect(err).To(BeNil())
 			taskProviders, err := state.TaskProviderPool.GetTaskProviders()

@@ -53,7 +53,15 @@ var _ = Describe("Lxserver", func() {
 				}
 			}()
 
-			coreServerWrapper := NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), "127.0.0.1:6688", "127.0.0.1:6699", driverErrc)
+			coreServerWrapper := NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
+
+			err = state.SetTpi( "127.0.0.1:6688")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:6699",
+			})
+
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
@@ -76,11 +84,14 @@ var _ = Describe("Lxserver", func() {
 	Describe("RegisterRpi", func() {
 		It("adds the Rpi URL to the LX state", func() {
 			PurgeState()
-			err := lxRpiClient.RegisterRpi("127.0.0.1:6699")
+			err := lxRpiClient.RegisterRpi("fake-rpi", "127.0.0.1:6699")
 			Expect(err).To(BeNil())
-			rpiUrl, err := state.GetRpi()
+			rpis, err := state.RpiPool.GetRpis()
 			Expect(err).To(BeNil())
-			Expect(rpiUrl).To(Equal("127.0.0.1:6699"))
+			fakeRpi := rpis["fake-rpi"]
+			Expect(fakeRpi).NotTo(BeNil())
+			Expect(fakeRpi.Name).To(Equal("fake-rpi"))
+			Expect(fakeRpi.Url).To(Equal("127.0.0.1:6699"))
 		})
 	})
 
@@ -340,6 +351,12 @@ var _ = Describe("Lxserver", func() {
 				PurgeState()
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
+				err = state.SetTpi( "127.0.0.1:6688")
+				Expect(err).To(BeNil())
+				err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+					Name: "fake-rpi",
+					Url: "127.0.0.1:6699",
+				})
 				fakeTaskProvider := fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
 				err = lxTpiClient.RegisterTaskProvider(fakeTaskProvider)
 				Expect(err).To(BeNil())
@@ -351,6 +368,12 @@ var _ = Describe("Lxserver", func() {
 			It("deletes the task from staging or pending pool and sends TASK_KILLED status to tpi", func() {
 				PurgeState()
 				err := state.InitializeState("http://127.0.0.1:4001")
+				err = state.SetTpi( "127.0.0.1:6688")
+				Expect(err).To(BeNil())
+				err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+					Name: "fake-rpi",
+					Url: "127.0.0.1:6699",
+				})
 				Expect(err).To(BeNil())
 				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 				err = lxRpiClient.SubmitResource(fakeResource1)
@@ -376,6 +399,12 @@ var _ = Describe("Lxserver", func() {
 				PurgeState()
 				err := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err).To(BeNil())
+				err = state.SetTpi( "127.0.0.1:6688")
+				Expect(err).To(BeNil())
+				err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+					Name: "fake-rpi",
+					Url: "127.0.0.1:6699",
+				})
 				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 				err = lxRpiClient.SubmitResource(fakeResource1)
 				Expect(err).To(BeNil())
@@ -451,9 +480,15 @@ var _ = Describe("Lxserver", func() {
 			PurgeState()
 			purgeErr := state.InitializeState("http://127.0.0.1:4001")
 			Expect(purgeErr).To(BeNil())
+			err := state.SetTpi( "127.0.0.1:6688")
+			Expect(err).To(BeNil())
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:6699",
+			})
 			fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
 			fakeTask1.TaskProvider = fakes.FakeTaskProvider("fake_task_provider_id", "tp@fakeip:fakeport")
-			err := state.StagingTaskPool.AddTask(fakeTask1)
+			err = state.StagingTaskPool.AddTask(fakeTask1)
 			Expect(err).To(BeNil())
 			fakeStatus1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_KILLED)
 			err = lxRpiClient.SubmitStatusUpdate(fakeStatus1)

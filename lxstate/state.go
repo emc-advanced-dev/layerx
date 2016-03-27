@@ -4,6 +4,9 @@ import (
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
+"github.com/layer-x/layerx-commons/lxlog"
+"github.com/Sirupsen/logrus"
+"time"
 )
 
 const (
@@ -230,6 +233,49 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 		}
 	}
 	return nil, lxerrors.New("task pool not found that contains task "+taskId, nil)
+}
+
+func (state *State) GetTpiUrl() string {
+	for {
+		tpiUrl, err := state.GetTpi()
+		if err != nil {
+			lxlog.Warnf(logrus.Fields{"err": err},
+				"Failed to retrieve rpis from state")
+		} else {
+			return tpiUrl
+		}
+		if tpiUrl != "" {
+			lxlog.Infof(logrus.Fields{
+				"tpiUrl": tpiUrl,
+			}, "TPI registered...")
+			return tpiUrl
+		} else {
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+}
+
+func (state *State) GetRpiUrls() []string {
+	rpiUrls := []string{}
+	for {
+		rpis, err := state.RpiPool.GetRpis()
+		if err != nil {
+			lxlog.Warnf(logrus.Fields{"err": err},
+				"Failed to retrieve rpis from state")
+		} else {
+			for _, rpi := range rpis {
+				rpiUrls = append(rpiUrls, rpi.Url)
+			}
+		}
+		if len(rpiUrls) > 0 {
+			lxlog.Infof(logrus.Fields{
+				"rpiUrls": rpiUrls,
+			}, "at least one RPI registered...")
+			return rpiUrls
+		} else {
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
 }
 
 func containsString(strArray []string, target string) bool {
