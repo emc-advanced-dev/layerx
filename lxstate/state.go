@@ -268,11 +268,10 @@ func (state *State) GetRpiUrls() []string {
 			}
 		}
 		if len(rpiUrls) > 0 {
-			lxlog.Infof(logrus.Fields{
-				"rpiUrls": rpiUrls,
-			}, "at least one RPI registered...")
 			return rpiUrls
 		} else {
+			lxlog.Warnf(logrus.Fields{
+			}, "no RPIs registered...")
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
