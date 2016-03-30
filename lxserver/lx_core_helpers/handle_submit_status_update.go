@@ -5,6 +5,8 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-core_v2/tpi_messenger"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/layer-x/layerx-commons/lxlog"
+"github.com/Sirupsen/logrus"
 )
 
 func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto.TaskStatus) error {
@@ -25,6 +27,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 	}
 	if taskPool == state.StagingTaskPool && status.GetState() == mesosproto.TaskState_TASK_RUNNING {
 		nodeId := task.NodeId
+		task.Checkpointed = false
 		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
 		if err != nil {
 			return lxerrors.New("retrieving node pool for node "+nodeId, err)
@@ -34,9 +37,13 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 			return lxerrors.New("migrating task from staging task pool to node "+nodeId+" task pook", err)
 		}
 	}
-	err = tpi_messenger.SendStatusUpdate(tpiUrl, task.TaskProvider, status)
-	if err != nil {
-		return lxerrors.New("sending status update to tpi", err)
+	if !task.Checkpointed {
+		err = tpi_messenger.SendStatusUpdate(tpiUrl, task.TaskProvider, status)
+		if err != nil {
+			return lxerrors.New("sending status update to tpi", err)
+		}
+	} else {
+		lxlog.Warnf(logrus.Fields{"task": task, "status": status}, "task is checkpointed, not bubbling status update")
 	}
 	err = state.StatusPool.AddStatus(status)
 	if err != nil {

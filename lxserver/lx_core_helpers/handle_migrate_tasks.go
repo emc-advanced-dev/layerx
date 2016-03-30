@@ -34,6 +34,18 @@ func migrateTask(state *lxstate.State, nodeId, taskId string) error {
 	if err != nil {
 		return lxerrors.New("getting task for task "+taskId, err)
 	}
+
+	task.Checkpointed = true
+	err = sourceTaskPool.ModifyTask(taskId, task)
+	if err != nil {
+		return lxerrors.New("setting task checkpointed to TRUE", err)
+	}
+
+	err = KillTask(state, state.GetTpiUrl(), task.TaskProvider.Id, taskId)
+	if err != nil {
+		return lxerrors.New("killing task "+taskId, err)
+	}
+
 	err = sourceTaskPool.DeleteTask(taskId)
 	if err != nil {
 		return lxerrors.New("deleting source task "+taskId, err)

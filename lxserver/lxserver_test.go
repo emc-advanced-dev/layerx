@@ -62,6 +62,7 @@ var _ = Describe("Lxserver", func() {
 				Name: "fake-rpi",
 				Url: "127.0.0.1:6699",
 			})
+			Expect(err).To(BeNil())
 
 			m := coreServerWrapper.WrapServer()
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
@@ -618,14 +619,21 @@ var _ = Describe("Lxserver", func() {
 		})
 	})
 	Describe("MigrateTasks", func(){
-		It("moves a list of runnning tasks on various nodes back to the staging pool, gives them the SlaveId of the target Node", func(){
+		It("moves a list of runnning tasks on various nodes back to the staging pool, gives them the SlaveId of the target Node, and sets Checkpointed=true", func(){
 			PurgeState()
 			purgeErr := state.InitializeState("http://127.0.0.1:4001")
 			Expect(purgeErr).To(BeNil())
-			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
-			err := lxRpiClient.SubmitResource(fakeResource1)
+			err := state.SetTpi( "127.0.0.1:6688")
 			Expect(err).To(BeNil())
-			fakeResource2 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_2", "fake_slave_id_2"))
+			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
+				Name: "fake-rpi",
+				Url: "127.0.0.1:6699",
+			})
+			Expect(err).To(BeNil())
+			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_node_id_1"))
+			err = lxRpiClient.SubmitResource(fakeResource1)
+			Expect(err).To(BeNil())
+			fakeResource2 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_2", "fake_node_id_2"))
 			err = lxRpiClient.SubmitResource(fakeResource2)
 			Expect(err).To(BeNil())
 			nodeTaskPool1, err := state.NodePool.GetNodeTaskPool(fakeResource1.NodeId)
@@ -655,7 +663,9 @@ var _ = Describe("Lxserver", func() {
 			tasks, err = state.StagingTaskPool.GetTasks()
 			Expect(tasks).NotTo(ContainElement(fakeTask1))
 			fakeTask1.NodeId = fakeResource2.NodeId
+			fakeTask1.Checkpointed = true
 			fakeTask2.NodeId = fakeResource2.NodeId
+			fakeTask2.Checkpointed = true
 			Expect(tasks).To(ContainElement(fakeTask1))
 			Expect(tasks).To(ContainElement(fakeTask2))
 			Expect(tasks).NotTo(ContainElement(fakeTask3))
