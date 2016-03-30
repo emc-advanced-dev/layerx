@@ -19,7 +19,7 @@ type Task struct {
 	KillRequested bool                     `json:"kill_requested"`
 	Name          string                   `json:"name,omitempty"`
 	TaskId        string                   `json:"task_id,omitempty"`
-	SlaveId       string                   `json:"slave_id,omitempty"`
+	NodeId string                   `json:"slave_id,omitempty"`
 	Cpus          float64                  `json:cpus`
 	Mem           float64                  `json:mem`
 	Disk          float64                  `json:disk`
@@ -115,7 +115,7 @@ func (t *Task) ToMesos() *mesosproto.TaskInfo {
 			Value: proto.String(t.TaskId),
 		},
 		SlaveId: &mesosproto.SlaveID{
-			Value: proto.String(t.SlaveId),
+			Value: proto.String(t.NodeId),
 		},
 		Resources: []*mesosproto.Resource{
 			&mesosproto.Resource{
@@ -194,7 +194,7 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 		Checkpointed:      checkpointed,
 		Name:          taskInfo.GetName(),
 		TaskId:        taskInfo.GetTaskId().GetValue(),
-		SlaveId:       taskInfo.GetSlaveId().GetValue(),
+		NodeId:       taskInfo.GetSlaveId().GetValue(),
 		Cpus:          getResourceScalar(taskInfo.GetResources(), "cpus"),
 		Mem:           getResourceScalar(taskInfo.GetResources(), "mem"),
 		Disk:          getResourceScalar(taskInfo.GetResources(), "disk"),

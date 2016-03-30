@@ -156,9 +156,9 @@ var _ = Describe("LayerxBrainClient", func() {
 			Expect(err).To(BeNil())
 			tasks, err := brainClient.GetStagingTasks()
 			Expect(err).To(BeNil())
-			fakeTask1.SlaveId = fakeNode.Id
-			fakeTask2.SlaveId = fakeNode.Id
-			fakeTask3.SlaveId = fakeNode.Id
+			fakeTask1.NodeId = fakeNode.Id
+			fakeTask2.NodeId = fakeNode.Id
+			fakeTask3.NodeId = fakeNode.Id
 			Expect(tasks).To(ContainElement(fakeTask1))
 			Expect(tasks).To(ContainElement(fakeTask2))
 			Expect(tasks).To(ContainElement(fakeTask3))

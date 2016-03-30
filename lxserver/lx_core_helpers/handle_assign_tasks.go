@@ -29,7 +29,7 @@ func assignTask(state *lxstate.State, nodeId, taskId string) error {
 	if err != nil {
 		return lxerrors.New("deleting task "+taskId+" from pending task pool", err)
 	}
-	task.SlaveId = nodeId
+	task.NodeId = nodeId
 	err = state.StagingTaskPool.AddTask(task)
 	if err != nil {
 		return lxerrors.New("moving task "+taskId+" from pending task pool to staging task pool", err)

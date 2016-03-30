@@ -14,13 +14,13 @@ func KillTask(state *lxstate.State, tpiUrl, taskProviderId, taskId string) error
 		lxlog.Warnf(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}, "requested to kill a task that Layer-X has no knowledge of, replying with TASK_LOST")
 		err = sendTaskKilledStatus(state, mesosproto.TaskState_TASK_LOST, tpiUrl, taskProviderId, taskId)
 		if err != nil {
-			return lxerrors.New("sending TASK_KILLED status to task provider"+taskProviderId, err)
+			return lxerrors.New("sending TASK_KILLED status to task provider" + taskProviderId, err)
 		}
 		return nil
 	}
 	taskPool, err := state.GetTaskPoolContainingTask(taskId)
 	if err != nil {
-		return lxerrors.New("could not find task pool containing task "+taskId, err)
+		return lxerrors.New("could not find task pool containing task " + taskId, err)
 	}
 	//if task is staging or pending, just delete it and say we did
 	if taskPool == state.PendingTaskPool || taskPool == state.StagingTaskPool {
@@ -31,24 +31,30 @@ func KillTask(state *lxstate.State, tpiUrl, taskProviderId, taskId string) error
 		}
 		err = sendTaskKilledStatus(state, mesosproto.TaskState_TASK_KILLED, tpiUrl, taskProviderId, taskId)
 		if err != nil {
-			return lxerrors.New("sending TASK_KILLED status to task provider"+taskProviderId, err)
+			return lxerrors.New("sending TASK_KILLED status to task provider" + taskProviderId, err)
 		}
 		return nil
 	}
 
-	for _, rpiUrl := range state.GetRpiUrls() {
-		err = rpi_messenger.SendKillTaskRequest(rpiUrl, taskId)
-		if err != nil {
-			lxlog.Warnf(logrus.Fields{
-				"err": err,
-				"rpiUrl": rpiUrl,
-			}, "rpi did not respond to kill task request")
-		}
-	}
 	taskToKill, err := taskPool.GetTask(taskId)
 	if err != nil {
-		return lxerrors.New("could not find task pool containing task "+taskId, err)
+		return lxerrors.New("could not find task pool containing task " + taskId, err)
 	}
+
+	node, err := state.NodePool.GetNode(taskToKill.NodeId)
+	if err != nil {
+		return lxerrors.New("getting node for task " + taskId, err)
+	}
+
+	rpi, err := state.RpiPool.GetRpi(node.GetRpiName())
+	if err != nil {
+		return lxerrors.New("getting rpi " + node.GetRpiName(), err)
+	}
+	err = rpi_messenger.SendKillTaskRequest(rpi.Url, taskId)
+	if err != nil {
+		return lxerrors.New("rpi did not respond to kill task request", err)
+	}
+
 	taskToKill.KillRequested = true
 	err = taskPool.ModifyTask(taskId, taskToKill)
 	if err != nil {

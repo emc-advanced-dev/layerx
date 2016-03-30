@@ -471,7 +471,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				}, "invalid task id")
 				res.WriteHeader(400)
 			}
-			task.SlaveId = brainAssignmentMessage.NodeId
+			task.NodeId = brainAssignmentMessage.NodeId
 			stagingTasks[taskId] = task
 			delete(tasks, taskId)
 			lxlog.Infof(logrus.Fields{"stagingTasks": stagingTasks}, "current staging tasks pool")
@@ -540,7 +540,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				res.WriteHeader(400)
 				return
 			}
-			task.SlaveId = migrateMessage.DestinationNodeId
+			task.NodeId = migrateMessage.DestinationNodeId
 			err = sourceNode.RemoveTask(taskId)
 			if err != nil {
 				lxlog.Errorf(logrus.Fields{"task_id": taskId, "node": sourceNode}, "could not remove task from node")
@@ -554,7 +554,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				err = targetNode.AddTask(task)
 				if err != nil {
 					lxlog.Errorf(logrus.Fields{
-						"node_id": task.SlaveId,
+						"node_id": task.NodeId,
 					}, "could not add task to node")
 					res.WriteHeader(400)
 					return

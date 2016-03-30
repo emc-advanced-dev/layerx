@@ -24,7 +24,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 		}
 	}
 	if taskPool == state.StagingTaskPool && status.GetState() == mesosproto.TaskState_TASK_RUNNING {
-		nodeId := task.SlaveId
+		nodeId := task.NodeId
 		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
 		if err != nil {
 			return lxerrors.New("retrieving node pool for node "+nodeId, err)

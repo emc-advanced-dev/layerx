@@ -38,7 +38,7 @@ func migrateTask(state *lxstate.State, nodeId, taskId string) error {
 	if err != nil {
 		return lxerrors.New("deleting source task "+taskId, err)
 	}
-	task.SlaveId = nodeId
+	task.NodeId = nodeId
 	err = state.StagingTaskPool.AddTask(task)
 	if err != nil {
 		return lxerrors.New("moving task "+taskId+" from source to staging pool with new node "+nodeId, err)

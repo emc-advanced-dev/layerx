@@ -90,13 +90,13 @@ var _ = Describe("TaskLauncher", func() {
 				Id:     "fake_task_provider_id_1",
 				Source: "taskprovider1@tphost:port",
 			}
-			fakeTask1.SlaveId = fakeNode1.Id
+			fakeTask1.NodeId = fakeNode1.Id
 			fakeTask1.TaskProvider = fakeTaskProvider
 			fakeTask2 := fakes.FakeLXTask("fake_task_id_2", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
-			fakeTask2.SlaveId = fakeNode1.Id
+			fakeTask2.NodeId = fakeNode1.Id
 			fakeTask2.TaskProvider = fakeTaskProvider
 			fakeTask3 := fakes.FakeLXTask("fake_task_id_3", "fake_task_name", "fake_slave_id", "echo FAKE_COMMAND")
-			fakeTask3.SlaveId = fakeNode1.Id
+			fakeTask3.NodeId = fakeNode1.Id
 			fakeTask3.TaskProvider = fakeTaskProvider
 
 			err = state.StagingTaskPool.AddTask(fakeTask1)

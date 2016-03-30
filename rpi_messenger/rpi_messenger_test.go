@@ -80,7 +80,7 @@ var _ = Describe("RpiMessenger", func() {
 				Id:     "fake_task_provider_id_1",
 				Source: "taskprovider1@tphost:port",
 			}
-			fakeTask1.SlaveId = fakeNode1.Id
+			fakeTask1.NodeId = fakeNode1.Id
 			fakeTask1.TaskProvider = fakeTaskProvider
 			fakeTasks := []*lxtypes.Task{fakeTask1}
 			fakeResources := []*lxtypes.Resource{fakeResource1}

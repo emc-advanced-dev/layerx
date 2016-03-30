@@ -27,7 +27,7 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 
 	nodeTaskMap := make(map[string][]*lxtypes.Task)
 	for _, task := range stagingTasks {
-		nodeId := task.SlaveId
+		nodeId := task.NodeId
 		_, ok := nodeTaskMap[nodeId]
 		if !ok {
 			nodeTaskMap[nodeId] = []*lxtypes.Task{}

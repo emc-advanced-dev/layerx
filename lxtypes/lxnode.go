@@ -38,6 +38,13 @@ func (n *Node) GetResources() []*Resource {
 	return resources
 }
 
+func (n *Node) GetRpiName() string {
+	for _, resource := range n.Resources {
+		return resource.RpiName
+	}
+	return ""
+}
+
 func (n *Node) FlushResources() {
 	n.Resources = make(map[string]*Resource)
 }

@@ -17,7 +17,7 @@ var _ = Describe("Lxtask", func() {
 			Expect(task.Container).To(Equal(mesosTask.Container))
 			Expect(task.Name).To(Equal(mesosTask.GetName()))
 			Expect(task.TaskId).To(Equal(mesosTask.GetTaskId().GetValue()))
-			Expect(task.SlaveId).To(Equal(mesosTask.GetSlaveId().GetValue()))
+			Expect(task.NodeId).To(Equal(mesosTask.GetSlaveId().GetValue()))
 		})
 	})
 	Describe("ToMesos()", func() {

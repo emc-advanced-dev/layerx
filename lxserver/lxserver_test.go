@@ -34,6 +34,7 @@ var _ = Describe("Lxserver", func() {
 		It("sets up for the tests", func() {
 			lxRpiClient = &layerx_rpi_client.LayerXRpi{
 				CoreURL: "127.0.0.1:6677",
+				RpiName: "fake-rpi",
 			}
 			lxTpiClient = &layerx_tpi_client.LayerXTpi{
 				CoreURL: "127.0.0.1:6677",
@@ -405,7 +406,7 @@ var _ = Describe("Lxserver", func() {
 					Name: "fake-rpi",
 					Url: "127.0.0.1:6699",
 				})
-				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
+				fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_node_id_1"))
 				err = lxRpiClient.SubmitResource(fakeResource1)
 				Expect(err).To(BeNil())
 				fakeTask1 := fakes.FakeLXTask("fake_task_id_1", "fake_task1", "fake_node_id_1", "echo FAKECOMMAND")
@@ -608,9 +609,9 @@ var _ = Describe("Lxserver", func() {
 			Expect(tasks).To(BeEmpty())
 			tasks, err = state.StagingTaskPool.GetTasks()
 			Expect(tasks).NotTo(ContainElement(fakeTask1))
-			fakeTask1.SlaveId = fakeResource1.NodeId
-			fakeTask2.SlaveId = fakeResource1.NodeId
-			fakeTask3.SlaveId = fakeResource1.NodeId
+			fakeTask1.NodeId = fakeResource1.NodeId
+			fakeTask2.NodeId = fakeResource1.NodeId
+			fakeTask3.NodeId = fakeResource1.NodeId
 			Expect(tasks).To(ContainElement(fakeTask1))
 			Expect(tasks).To(ContainElement(fakeTask2))
 			Expect(tasks).To(ContainElement(fakeTask3))
@@ -653,8 +654,8 @@ var _ = Describe("Lxserver", func() {
 			Expect(tasks).To(BeEmpty())
 			tasks, err = state.StagingTaskPool.GetTasks()
 			Expect(tasks).NotTo(ContainElement(fakeTask1))
-			fakeTask1.SlaveId = fakeResource2.NodeId
-			fakeTask2.SlaveId = fakeResource2.NodeId
+			fakeTask1.NodeId = fakeResource2.NodeId
+			fakeTask2.NodeId = fakeResource2.NodeId
 			Expect(tasks).To(ContainElement(fakeTask1))
 			Expect(tasks).To(ContainElement(fakeTask2))
 			Expect(tasks).NotTo(ContainElement(fakeTask3))
