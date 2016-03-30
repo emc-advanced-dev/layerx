@@ -102,7 +102,7 @@ func main() {
 	for {
 		err = <-errc
 		if err != nil {
-			lxlog.Fatalf(logrus.Fields{"error": err}, "LayerX Mesos RPI Failed!")
+			lxlog.Errorf(logrus.Fields{"error": err}, "LayerX Mesos RPI Failed!")
 		}
 	}
 }
