@@ -56,7 +56,7 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 	go func(){
 		err := framework_api_handlers.HandleResourceOffers(s.lxRpi, offers)
 		if err != nil {
-			lxlog.Fatalf(logrus.Fields{
+			lxlog.Errorf(logrus.Fields{
 				"error": err,
 			}, "handling resource offers from mesos master")
 		}
@@ -68,7 +68,7 @@ func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, statu
 	go func(){
 		err := framework_api_handlers.HandleStatusUpdate(s.lxRpi, status)
 		if err != nil {
-			lxlog.Fatalf(logrus.Fields{
+			lxlog.Errorf(logrus.Fields{
 				"error": err,
 			}, "handling task status update from mesos master")
 		}

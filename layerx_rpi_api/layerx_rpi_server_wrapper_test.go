@@ -95,9 +95,9 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			fakeTask1 := fakes.FakeTask("fake_task_id_1")
 			fakeTask2 := fakes.FakeTask("fake_task_id_2")
 			fakeTask3 := fakes.FakeTask("fake_task_id_3")
-			fakeTask1.SlaveId = realResources[0].NodeId
-			fakeTask2.SlaveId = realResources[0].NodeId
-			fakeTask3.SlaveId = realResources[0].NodeId
+			fakeTask1.NodeId = realResources[0].NodeId
+			fakeTask2.NodeId = realResources[0].NodeId
+			fakeTask3.NodeId = realResources[0].NodeId
 			fakeTasks := []*lxtypes.Task{fakeTask1, fakeTask2, fakeTask3}
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
 				TasksToLaunch: fakeTasks,
