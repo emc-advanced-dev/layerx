@@ -19,7 +19,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 	if err != nil {
 		return lxerrors.New("fetching task for task_id "+taskId, err)
 	}
-	if isTerminal(status) {
+	if isTerminal(status) && !task.Checkpointed {
 		err = taskPool.DeleteTask(taskId)
 		if err != nil {
 			return lxerrors.New("deleting terminal task "+taskId+" with status "+status.GetState().String(), err)
