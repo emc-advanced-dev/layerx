@@ -1,22 +1,23 @@
 package main
+
 import (
 	"flag"
-	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/layer-x/layerx-commons/lxutils"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/mesos/mesos-go/scheduler"
-	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-mesos-rpi_v2/mesos_framework_api"
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-mesos-rpi_v2/layerx_rpi_api"
-	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"net"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/layer-x/layerx-commons/lxutils"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/layer-x/layerx-mesos-rpi_v2/layerx_rpi_api"
+	"github.com/layer-x/layerx-mesos-rpi_v2/mesos_framework_api"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/mesos/mesos-go/scheduler"
 )
 
-const rpi_name="Mesos-RPI-0.0.0"
+const rpi_name = "Mesos-RPI-0.0.0"
 
 func main() {
 	port := flag.Int("port", 4040, "listening port for mesos rpi, default: 2999")
@@ -28,8 +29,8 @@ func main() {
 	flag.Parse()
 
 	if *debug == "true" {
-		lxlog.ActiveDebugMode()
-		lxlog.Debugf(logrus.Fields{}, "debugging activated")
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debugf("debugging activated")
 	}
 
 	localip := net.ParseIP(*localIpStr)
@@ -37,9 +38,9 @@ func main() {
 		var err error
 		localip, err = lxutils.GetLocalIp()
 		if err != nil {
-			lxlog.Fatalf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "retrieving local ip")
+			}).Fatalf( "retrieving local ip")
 		}
 	}
 
@@ -49,16 +50,16 @@ func main() {
 		RpiName: *rpiName,
 	}
 
-	lxlog.Infof(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
-	}, "registering to layerx")
+	}).Infof("registering to layerx")
 
 	err := rpiClient.RegisterRpi(*rpiName, fmt.Sprintf("%s:%v", localip.String(), *port))
 	if err != nil {
-		lxlog.Errorf(logrus.Fields{
-			"error": err.Error(),
+		logrus.WithFields(logrus.Fields{
+			"error":      err.Error(),
 			"layerx_url": *layerX,
-		}, "registering to layerx")
+		}).Errorf( "registering to layerx")
 	}
 
 	rpiScheduler := mesos_framework_api.NewRpiMesosScheduler(rpiClient)
@@ -74,18 +75,18 @@ func main() {
 		driver, err := scheduler.NewMesosSchedulerDriver(config)
 		if err != nil {
 			err = lxerrors.New("initializing mesos schedulerdriver", err)
-			lxlog.Fatalf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,
-			}, "error initializing mesos schedulerdriver")
+			}).Fatalf( "error initializing mesos schedulerdriver")
 		}
 		status, err := driver.Run()
 		if err != nil {
-			err = lxerrors.New("Framework stopped with status " + status.String(), err)
-			lxlog.Fatalf(logrus.Fields{
+			err = lxerrors.New("Framework stopped with status "+status.String(), err)
+			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,
-			}, "error running mesos schedulerdriver")
+			}).Fatalf( "error running mesos schedulerdriver")
 			return
 		}
 	}()
@@ -95,14 +96,14 @@ func main() {
 	m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), errc)
 	go m.RunOnAddr(fmt.Sprintf(":%v", *port))
 
-	lxlog.Infof(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"config": config,
-	}, "Layer-X Mesos RPI Initialized...")
+	}).Infof("Layer-X Mesos RPI Initialized...")
 
 	for {
 		err = <-errc
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{"error": err}, "LayerX Mesos RPI Failed!")
+			logrus.WithFields(logrus.Fields{"error": err}).Errorf( "LayerX Mesos RPI Failed!")
 		}
 	}
 }
@@ -110,11 +111,11 @@ func main() {
 func prepareFrameworkInfo(layerxUrl string) *mesosproto.FrameworkInfo {
 	return &mesosproto.FrameworkInfo{
 		User: proto.String(""),
-//		Id: &mesosproto.FrameworkID{
-//			Value: proto.String("lx_mesos_rpi_framework_3"),
-//		},
+		//		Id: &mesosproto.FrameworkID{
+		//			Value: proto.String("lx_mesos_rpi_framework_3"),
+		//		},
 		FailoverTimeout: proto.Float64(0),
-		Name: proto.String("Layer-X Mesos RPI Framework"),
+		Name:            proto.String("Layer-X Mesos RPI Framework"),
 		WebuiUrl:        proto.String(layerxUrl),
 	}
 }

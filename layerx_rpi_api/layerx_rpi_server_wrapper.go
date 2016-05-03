@@ -1,35 +1,35 @@
 package layerx_rpi_api
+
 import (
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/go-martini/martini"
-"net/http"
-"io/ioutil"
-	"github.com/layer-x/layerx-commons/lxerrors"
-"github.com/mesos/mesos-go/scheduler"
-	"github.com/Sirupsen/logrus"
-"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/layer-x/layerx-mesos-rpi_v2/layerx_rpi_api/rpi_api_helpers"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/layer-x/layerx-mesos-rpi_v2/layerx_rpi_api/rpi_api_helpers"
+	"github.com/mesos/mesos-go/scheduler"
 )
 
 const (
 	COLLECT_RESOURCES = "/collect_resources"
-	LAUNCH_TASKS = "/launch_tasks"
-	KILL_TASK = "/kill_task"
+	LAUNCH_TASKS      = "/launch_tasks"
+	KILL_TASK         = "/kill_task"
 )
 
 var empty = []byte{}
 
 type rpiApiServerWrapper struct {
-	rpi              *layerx_rpi_client.LayerXRpi
+	rpi                  *layerx_rpi_client.LayerXRpi
 	mesosSchedulerDriver scheduler.SchedulerDriver
 }
-
 
 func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
 	return &rpiApiServerWrapper{
 		mesosSchedulerDriver: mesosSchedulerDriver,
-		rpi: rpi,
+		rpi:                  rpi,
 	}
 }
 
@@ -38,9 +38,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 		collectResourcesFn := func() ([]byte, int, error) {
 			err := rpi_api_helpers.CollectResources(wrapper.mesosSchedulerDriver)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle collect resources request")
+				}).Errorf("could not handle collect resources request")
 				return empty, 500, lxerrors.New("could not handle collect resources request", err)
 			}
 			return empty, 202, nil
@@ -48,9 +48,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 		_, statusCode, err := wrapper.queueOperation(collectResourcesFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing collect resources message")
+			}).Errorf("processing collect resources message")
 			driverErrc <- err
 			return
 		}
@@ -72,9 +72,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 			}
 			err = rpi_api_helpers.LaunchTasks(wrapper.mesosSchedulerDriver, launchTasksMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle launch tasks request")
+				}).Errorf("could not handle launch tasks request")
 				return empty, 500, lxerrors.New("could not handle launch tasks request", err)
 			}
 			return empty, 202, nil
@@ -82,9 +82,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 		_, statusCode, err := wrapper.queueOperation(launchTasksFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing launch tasks message")
+			}).Errorf("processing launch tasks message")
 			driverErrc <- err
 			return
 		}
@@ -95,9 +95,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 			taskId := params["task_id"]
 			err := rpi_api_helpers.KillTask(wrapper.mesosSchedulerDriver, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle kill task request")
+				}).Errorf("could not handle kill task request")
 				return empty, 500, lxerrors.New("could not handle kill task request", err)
 			}
 			return empty, 202, nil
@@ -105,9 +105,9 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 		_, statusCode, err := wrapper.queueOperation(killTaskFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing kill task message")
+			}).Errorf("processing kill task message")
 			driverErrc <- err
 			return
 		}

@@ -8,7 +8,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
-	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 	"github.com/gogo/protobuf/proto"
 	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
@@ -16,7 +16,6 @@ import (
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/scheduler"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/Sirupsen/logrus"
 	"os"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-mesos-rpi_v2/fakes"
@@ -52,10 +51,10 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			driver, err := scheduler.NewMesosSchedulerDriver(config)
 			if err != nil {
 				err = lxerrors.New("initializing mesos schedulerdriver", err)
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error":     err,
 					"mesos_url": mesosUrl,
-				}, "error initializing mesos schedulerdriver")
+				}).Errorf( "error initializing mesos schedulerdriver")
 			}
 			Expect(err).To(BeNil())
 
@@ -63,10 +62,10 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 				status, err := driver.Run()
 				if err != nil {
 					err = lxerrors.New("Framework stopped with status " + status.String(), err)
-					lxlog.Errorf(logrus.Fields{
+					logrus.WithFields(logrus.Fields{
 						"error":     err,
 						"mesos_url": mesosUrl,
-					}, "error running mesos schedulerdriver")
+					}).Errorf( "error running mesos schedulerdriver")
 					panic(err)
 				}
 			}()
@@ -76,7 +75,7 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), make(chan error))
 			go core_fakes.RunFakeLayerXServer(nil, 34446)
 			go m.RunOnAddr(fmt.Sprintf(":3033"))
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
 	Describe("POST " + COLLECT_RESOURCES, func() {
