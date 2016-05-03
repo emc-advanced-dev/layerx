@@ -10,7 +10,7 @@ import (
 "github.com/layer-x/layerx-core_v2/lxserver"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
-"github.com/layer-x/layerx-commons/lxlog"
+"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-commons/lxdatabase"
@@ -45,7 +45,7 @@ var _ = Describe("TpiMessenger", func() {
 			go m.RunOnAddr(fmt.Sprintf(":7766"))
 			go fakes.RunFakeTpiServer("127.0.0.1:7766", 8866, driverErrc)
 			go fakes.RunFakeRpiServer("127.0.0.1:7766", 8855, driverErrc)
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 
 			go func(){
 				for {

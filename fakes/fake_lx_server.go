@@ -3,41 +3,41 @@ package fakes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/mesos/mesos-go/mesosproto"
 	"io/ioutil"
 	"net/http"
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
 	"github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
 	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
-	"time"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 const (
-//tpi
-	RegisterTpi = "/RegisterTpi"
-	RegisterTaskProvider = "/RegisterTaskProvider"
+	//tpi
+	RegisterTpi            = "/RegisterTpi"
+	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
-	GetTaskProviders = "/GetTaskProviders"
-	GetStatusUpdates = "/GetStatusUpdates"
-	GetStatusUpdate = "/GetStatusUpdate"
-	SubmitTask = "/SubmitTask"
-	KillTask = "/KillTask"
-	PurgeTask = "/PurgeTask"
-//rpi
-	RegisterRpi = "/RegisterRpi"
-	SubmitResource = "/SubmitResource"
+	GetTaskProviders       = "/GetTaskProviders"
+	GetStatusUpdates       = "/GetStatusUpdates"
+	GetStatusUpdate        = "/GetStatusUpdate"
+	SubmitTask             = "/SubmitTask"
+	KillTask               = "/KillTask"
+	PurgeTask              = "/PurgeTask"
+	//rpi
+	RegisterRpi        = "/RegisterRpi"
+	SubmitResource     = "/SubmitResource"
 	SubmitStatusUpdate = "/SubmitStatusUpdate"
 	//brain
-	GetNodes = "/GetNodes"
+	GetNodes        = "/GetNodes"
 	GetPendingTasks = "/GetPendingTasks"
 	GetStagingTasks = "/GetStagingTasks"
-	AssignTasks = "/AssignTasks"
-	MigrateTasks = "/MigrateTasks"
+	AssignTasks     = "/AssignTasks"
+	MigrateTasks    = "/MigrateTasks"
 
 	//for testing
 	Purge = "/Purge"
@@ -63,20 +63,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var registrationMessage layerx_tpi_client.TpiRegistrationMessage
 		err = json.Unmarshal(body, &registrationMessage)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into resource")
+			}).Errorf("could parse json into resource")
 			res.WriteHeader(500)
 			return
 		}
@@ -89,32 +89,32 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var tp lxtypes.TaskProvider
 		err = json.Unmarshal(body, &tp)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into tp")
+			}).Errorf("could parse json into tp")
 			res.WriteHeader(500)
 			return
 		}
 		taskProviders[tp.Id] = &tp
 		res.WriteHeader(202)
 	})
-	m.Post(DeregisterTaskProvider + "/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(DeregisterTaskProvider+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
 		if _, ok := taskProviders[tpid]; !ok {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"tpid": tpid,
-			}, "task provider was not registered")
+			}).Errorf("task provider was not registered")
 			res.WriteHeader(400)
 			return
 		}
@@ -128,10 +128,10 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		}
 		data, err := json.Marshal(tps)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(data),
-			}, "could parse tps into json")
+			}).Errorf("could parse tps into json")
 			res.WriteHeader(500)
 			return
 		}
@@ -144,9 +144,9 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			taskId := status.GetTaskId().GetValue()
 			task, ok := tasks[taskId]
 			if !ok {
-				lxlog.Errorf(logrus.Fields{
-					"task_id":  taskId,
-				}, "could not find task for the id in the status")
+				logrus.WithFields(logrus.Fields{
+					"task_id": taskId,
+				}).Errorf("could not find task for the id in the status")
 				res.WriteHeader(500)
 			}
 			if task.TaskProvider.Id == tpid {
@@ -155,10 +155,10 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		}
 		data, err := json.Marshal(statuses)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(data),
-			}, "could parse statuses into json")
+			}).Errorf("could parse statuses into json")
 			res.WriteHeader(500)
 			return
 		}
@@ -170,53 +170,53 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			taskId := status.GetTaskId().GetValue()
 			_, ok := tasks[taskId]
 			if !ok {
-				lxlog.Errorf(logrus.Fields{
-					"task_id":  taskId,
-				}, "could not find task for the id in the status")
+				logrus.WithFields(logrus.Fields{
+					"task_id": taskId,
+				}).Errorf("could not find task for the id in the status")
 				res.WriteHeader(500)
 			}
 			statuses = append(statuses, status)
 		}
 		data, err := json.Marshal(statuses)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(data),
-			}, "could parse statuses into json")
+			}).Errorf("could parse statuses into json")
 			res.WriteHeader(500)
 			return
 		}
 		res.Write(data)
 	})
 
-	m.Get(GetStatusUpdate + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Get(GetStatusUpdate+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskId := params["task_id"]
 		status, ok := statusUpdates[taskId]
 		if !ok {
-			lxlog.Errorf(logrus.Fields{
-				"task_id":  taskId,
-			}, "could not find status for the id in the status")
+			logrus.WithFields(logrus.Fields{
+				"task_id": taskId,
+			}).Errorf("could not find status for the id in the status")
 			res.WriteHeader(500)
 		}
 		data, err := json.Marshal(status)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(data),
-			}, "could parse status into json")
+			}).Errorf("could parse status into json")
 			res.WriteHeader(500)
 			return
 		}
 		res.Write(data)
 	})
 
-	m.Post(SubmitTask + "/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
 		tp, ok := taskProviders[tpid]
 		if !ok {
-			lxlog.Errorf(logrus.Fields{
-				"tp_id":  tpid,
-			}, "task provider not found for tpid")
+			logrus.WithFields(logrus.Fields{
+				"tp_id": tpid,
+			}).Errorf("task provider not found for tpid")
 			res.WriteHeader(500)
 		}
 		body, err := ioutil.ReadAll(req.Body)
@@ -224,20 +224,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var task lxtypes.Task
 		err = json.Unmarshal(body, &task)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into task")
+			}).Errorf("could parse json into task")
 			res.WriteHeader(500)
 			return
 		}
@@ -246,14 +246,14 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(KillTask + "/:tpid/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(KillTask+"/:tpid/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
 		tpid := params["framework_id"]
 		if _, ok := tasks[taskid]; !ok {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"taskid": taskid,
-				"tpid": tpid,
-			}, "task was not submitted")
+				"tpid":   tpid,
+			}).Errorf("task was not submitted")
 			res.WriteHeader(400)
 			return
 		}
@@ -261,12 +261,12 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(PurgeTask + "/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	m.Post(PurgeTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
 		if _, ok := tasks[taskid]; !ok {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"tpid": taskid,
-			}, "task was not submitted")
+			}).Errorf("task was not submitted")
 			res.WriteHeader(400)
 			return
 		}
@@ -281,20 +281,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var registrationMessage layerx_rpi_client.RpiInfo
 		err = json.Unmarshal(body, &registrationMessage)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into resource")
+			}).Errorf("could parse json into resource")
 			res.WriteHeader(500)
 			return
 		}
@@ -307,20 +307,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var resource lxtypes.Resource
 		err = json.Unmarshal(body, &resource)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into resource")
+			}).Errorf("could parse json into resource")
 			res.WriteHeader(500)
 			return
 		}
@@ -328,11 +328,11 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		if knownNode, ok := nodes[nodeId]; ok {
 			err = knownNode.AddResource(&resource)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
-					"error": err,
-					"node":  knownNode,
-					"resource":  resource,
-				}, "could not add resource to node")
+				logrus.WithFields(logrus.Fields{
+					"error":    err,
+					"node":     knownNode,
+					"resource": resource,
+				}).Errorf("could not add resource to node")
 				res.WriteHeader(500)
 				return
 			}
@@ -341,11 +341,11 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			newNode := lxtypes.NewNode(nodeId)
 			err = newNode.AddResource(&resource)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
-					"error": err,
-					"node":  newNode,
-					"resource":  resource,
-				}, "could not add resource to node")
+				logrus.WithFields(logrus.Fields{
+					"error":    err,
+					"node":     newNode,
+					"resource": resource,
+				}).Errorf("could not add resource to node")
 				res.WriteHeader(500)
 			}
 			nodes[nodeId] = newNode
@@ -359,20 +359,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var status mesosproto.TaskStatus
 		err = proto.Unmarshal(body, &status)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse proto into resource")
+			}).Errorf("could parse proto into resource")
 			res.WriteHeader(500)
 			return
 		}
@@ -388,10 +388,10 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		}
 		data, err := json.Marshal(nodeArr)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}, "could marshal nodes to json")
+			}).Errorf("could marshal nodes to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -405,10 +405,10 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		}
 		data, err := json.Marshal(taskArr)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}, "could marshal tasks to json")
+			}).Errorf("could marshal tasks to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -417,16 +417,16 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 
 	m.Get(GetStagingTasks, func(res http.ResponseWriter) {
 		taskArr := []*lxtypes.Task{}
-		lxlog.Infof(logrus.Fields{"stagingTasks": stagingTasks}, "GETSTAGINGTASKS current staging tasks pool")
+		logrus.WithFields(logrus.Fields{"stagingTasks": stagingTasks}).Infof("GETSTAGINGTASKS current staging tasks pool")
 		for _, task := range stagingTasks {
 			taskArr = append(taskArr, task)
 		}
 		data, err := json.Marshal(taskArr)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}, "could marshal tasks to json")
+			}).Errorf("could marshal tasks to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -439,51 +439,51 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var brainAssignmentMessage layerx_brain_client.BrainAssignTasksMessage
 		err = json.Unmarshal(body, &brainAssignmentMessage)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into brainAssignmentMessage")
+			}).Errorf("could parse json into brainAssignmentMessage")
 			res.WriteHeader(500)
 			return
 		}
 		node, ok := nodes[brainAssignmentMessage.NodeId]
 		if !ok {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"node_id": brainAssignmentMessage.NodeId,
-			}, "invalid node id")
+			}).Errorf("invalid node id")
 			res.WriteHeader(400)
 		}
 		for _, taskId := range brainAssignmentMessage.TaskIds {
 			task, ok := tasks[taskId]
 			if !ok {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"task_id": taskId,
-				}, "invalid task id")
+				}).Errorf("invalid task id")
 				res.WriteHeader(400)
 			}
 			task.NodeId = brainAssignmentMessage.NodeId
 			stagingTasks[taskId] = task
 			delete(tasks, taskId)
-			lxlog.Infof(logrus.Fields{"stagingTasks": stagingTasks}, "current staging tasks pool")
+			logrus.WithFields(logrus.Fields{"stagingTasks": stagingTasks}).Infof("current staging tasks pool")
 			err = node.AddTask(task)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"node_id": brainAssignmentMessage.NodeId,
-				}, "could not add task to node")
+				}).Errorf("could not add task to node")
 				res.WriteHeader(400)
 			} else {
-				lxlog.Infof(logrus.Fields{"task": task, "node": node}, "added task to node")
-				go func(){
+				logrus.WithFields(logrus.Fields{"task": task, "node": node}).Infof("added task to node")
+				go func() {
 					//delay this for testing
 					time.Sleep(3 * time.Second)
 					delete(stagingTasks, taskId)
@@ -499,28 +499,28 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			defer req.Body.Close()
 		}
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could not read  request body")
+			}).Errorf("could not read  request body")
 			res.WriteHeader(500)
 			return
 		}
 		var migrateMessage layerx_brain_client.MigrateTaskMessage
 		err = json.Unmarshal(body, &migrateMessage)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"body":  string(body),
-			}, "could parse json into brainAssignmentMessage")
+			}).Errorf("could parse json into brainAssignmentMessage")
 			res.WriteHeader(500)
 			return
 		}
 		targetNode, ok := nodes[migrateMessage.DestinationNodeId]
 		if !ok {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"node_id": migrateMessage.DestinationNodeId,
-			}, "invalid destinationNodeId node id")
+			}).Errorf("invalid destinationNodeId node id")
 			res.WriteHeader(400)
 			return
 		}
@@ -528,7 +528,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			var task *lxtypes.Task
 			var sourceNode *lxtypes.Node
 			for _, node := range nodes {
-				lxlog.Infof(logrus.Fields{"task_id": taskId, "node": node}, "searching node for task")
+				logrus.WithFields(logrus.Fields{"task_id": taskId, "node": node}).Infof("searching node for task")
 				task = node.GetTask(taskId)
 				sourceNode = node
 				if task != nil {
@@ -536,26 +536,26 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				}
 			}
 			if task == nil {
-				lxlog.Errorf(logrus.Fields{"task_id": taskId, "nodes": nodes}, "invalid task id")
+				logrus.WithFields(logrus.Fields{"task_id": taskId, "nodes": nodes}).Errorf("invalid task id")
 				res.WriteHeader(400)
 				return
 			}
 			task.NodeId = migrateMessage.DestinationNodeId
 			err = sourceNode.RemoveTask(taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{"task_id": taskId, "node": sourceNode}, "could not remove task from node")
+				logrus.WithFields(logrus.Fields{"task_id": taskId, "node": sourceNode}).Errorf("could not remove task from node")
 				res.WriteHeader(400)
 				return
 			}
 			stagingTasks[taskId] = task
-			go func(){
-				lxlog.Debugf(logrus.Fields{}, "in 3 seconds, moving from staging to running on the node")
+			go func() {
+				logrus.Debugf("in 3 seconds, moving from staging to running on the node")
 				time.Sleep(1 * time.Second)
 				err = targetNode.AddTask(task)
 				if err != nil {
-					lxlog.Errorf(logrus.Fields{
+					logrus.WithFields(logrus.Fields{
 						"node_id": task.NodeId,
-					}, "could not add task to node")
+					}).Errorf("could not add task to node")
 					res.WriteHeader(400)
 					return
 				} else {
@@ -567,7 +567,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		res.WriteHeader(202)
 	})
 
-	m.Post(Purge, func(){
+	m.Post(Purge, func() {
 		taskProviders = make(map[string]*lxtypes.TaskProvider)
 		tasks = make(map[string]*lxtypes.Task)
 		stagingTasks = make(map[string]*lxtypes.Task)

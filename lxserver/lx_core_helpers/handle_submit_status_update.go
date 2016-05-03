@@ -5,8 +5,7 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-core_v2/tpi_messenger"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/layer-x/layerx-commons/lxlog"
-"github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 )
 
 func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto.TaskStatus) error {
@@ -43,7 +42,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 			return lxerrors.New("sending status update to tpi", err)
 		}
 	} else {
-		lxlog.Warnf(logrus.Fields{"task": task, "status": status}, "task is checkpointed, not bubbling status update")
+		logrus.WithFields(logrus.Fields{"task": task, "status": status}).Warnf( "task is checkpointed, not bubbling status update")
 	}
 	err = state.StatusPool.AddStatus(status)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-core_v2/fakes"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
@@ -43,7 +43,7 @@ var _ = Describe("RpiMessenger", func() {
 			go m.RunOnAddr(fmt.Sprintf(":5566"))
 			go fakes.RunFakeTpiServer("127.0.0.1:5566", 9955, driverErrc)
 			go fakes.RunFakeRpiServer("127.0.0.1:5566", 9966, driverErrc)
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 
 			go func() {
 				for {

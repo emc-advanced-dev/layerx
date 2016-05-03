@@ -1,29 +1,30 @@
 package main_loop
+
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"sync"
 	"time"
-	"github.com/layer-x/layerx-core_v2/tpi_messenger"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/health_checker"
+	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-core_v2/rpi_messenger"
 	"github.com/layer-x/layerx-core_v2/task_launcher"
-	"sync"
-"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-core_v2/health_checker"
+	"github.com/layer-x/layerx-core_v2/tpi_messenger"
 )
 
 var mainLoopLock = &sync.Mutex{}
 
 //run as goroutine
-func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker, state *lxstate.State, driverErrc chan error) {
+func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker *health_checker.HealthChecker, state *lxstate.State, driverErrc chan error) {
 	for {
 		errc := make(chan error)
-		go func () {
+		go func() {
 			result := singleExeuction(state, taskLauncher, healthChecker)
 			errc <- result
 		}()
-		err := <- errc
+		err := <-errc
 		if err != nil {
 			driverErrc <- lxerrors.New("main loop failed while running", err)
 		}
@@ -31,7 +32,7 @@ func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_c
 	}
 }
 
-func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, healthChecker  *health_checker.HealthChecker) error {
+func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLauncher, healthChecker *health_checker.HealthChecker) error {
 	mainLoopLock.Lock()
 	defer mainLoopLock.Unlock()
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
@@ -44,13 +45,13 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	}
 	tpiErr := tpi_messenger.SendTaskCollectionMessage(state.GetTpiUrl(), taskProviders)
 	if tpiErr != nil {
-		lxlog.Warnf(logrus.Fields{"error": err}, "failed sending task collection message to tpi. Is Tpi connected?")
+		logrus.WithFields(logrus.Fields{"error": err}).Warnf("failed sending task collection message to tpi. Is Tpi connected?")
 	}
 	var rpiErr error
 	for _, rpiUrl := range state.GetRpiUrls() {
 		rpiErr = rpi_messenger.SendResourceCollectionRequest(rpiUrl)
 		if rpiErr != nil {
-			lxlog.Warnf(logrus.Fields{"error": err}, "failed sending resource collection request to rpi. Is Rpi connected?")
+			logrus.WithFields(logrus.Fields{"error": err}).Warnf("failed sending resource collection request to rpi. Is Rpi connected?")
 		}
 	}
 

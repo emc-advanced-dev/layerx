@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-"github.com/layer-x/layerx-commons/lxlog"
-"github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/Sirupsen/logrus"
+	"github.com/layer-x/layerx-core_v2/fakes"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
 "github.com/layer-x/layerx-core_v2/lxserver"
@@ -64,7 +64,7 @@ var _ = Describe("MainLoop", func() {
 			go m.RunOnAddr(fmt.Sprintf(":2277"))
 			go fakes.RunFakeTpiServer("127.0.0.1:2277", 2288, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:2277", 2299, make(chan error))
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
 

@@ -1,19 +1,21 @@
 package tpi_messenger
+
 import (
+	"fmt"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"fmt"
-	"github.com/Sirupsen/logrus"
-"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
+
 	"net/http"
 )
 
 const (
-	COLLECT_TASKS = "/collect_tasks"
-	UPDATE_TASK_STATUS = "/update_task_status"
+	COLLECT_TASKS              = "/collect_tasks"
+	UPDATE_TASK_STATUS         = "/update_task_status"
 	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
 )
 
@@ -27,7 +29,7 @@ func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvi
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing CollectTasksMessage to TPI server; status code was %v, expected 202", resp.StatusCode)
-		lxlog.Warnf(logrus.Fields{"response":resp}, "error: "+msg)
+		logrus.WithFields(logrus.Fields{"response": resp}).Warnf("error: " + msg)
 	}
 	return nil
 }
@@ -35,7 +37,7 @@ func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvi
 func SendStatusUpdate(tpiUrl string, taskProvider *lxtypes.TaskProvider, status *mesosproto.TaskStatus) error {
 	updateTaskStatusMessage := &layerx_tpi_client.UpdateTaskStatusMessage{
 		TaskProvider: taskProvider,
-		TaskStatus: status,
+		TaskStatus:   status,
 	}
 	resp, _, err := lxhttpclient.Post(tpiUrl, UPDATE_TASK_STATUS, nil, updateTaskStatusMessage)
 	if err != nil {

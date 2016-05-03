@@ -1,12 +1,13 @@
 package task_launcher
+
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
+	"fmt"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/layer-x/layerx-core_v2/rpi_messenger"
-	"fmt"
-	"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/Sirupsen/logrus"
 )
 
 type TaskLauncher struct {
@@ -47,44 +48,44 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 		for _, resource := range resourcesToUseMap {
 			resourceRpiMap[resource.RpiName] = append(resourceRpiMap[resource.RpiName], resource)
 		}
-		lxlog.Debugf(logrus.Fields{
-			"tasks": fmt.Sprintf("%v",tasksToLaunch),
-			"resources": fmt.Sprintf("%v", resourcesToUseMap),
+		logrus.WithFields(logrus.Fields{
+			"tasks":            fmt.Sprintf("%v", tasksToLaunch),
+			"resources":        fmt.Sprintf("%v", resourcesToUseMap),
 			"resources_by_rpi": fmt.Sprintf("%v", resourceRpiMap),
-			"node_id": fmt.Sprintf("%s",nodeId),
-			"rpi_urls": fmt.Sprintf("%s", tl.state.GetRpiUrls()),
-		}, "attempting to launch tasks on rpi")
+			"node_id":          fmt.Sprintf("%s", nodeId),
+			"rpi_urls":         fmt.Sprintf("%s", tl.state.GetRpiUrls()),
+		}).Debugf("attempting to launch tasks on rpi")
 
 		for rpiName, resourcesToUse := range resourceRpiMap {
 			rpi, err := tl.state.RpiPool.GetRpi(rpiName)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
-					"tasks": fmt.Sprintf("%v", tasksToLaunch),
+				logrus.WithFields(logrus.Fields{
+					"tasks":     fmt.Sprintf("%v", tasksToLaunch),
 					"resources": fmt.Sprintf("%v", resourcesToUseMap),
-					"node_id": fmt.Sprintf("%s", nodeId),
-					"rpi": rpiName,
-				}, "retreiving rpi for name ")
+					"node_id":   fmt.Sprintf("%s", nodeId),
+					"rpi":       rpiName,
+				}).Errorf("retreiving rpi for name ")
 				return lxerrors.New("retreiving rpi for name", err)
 			}
 			err = rpi_messenger.SendLaunchTasksMessage(rpi.Url, tasksToLaunch, resourcesToUse)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
-					"tasks": fmt.Sprintf("%v", tasksToLaunch),
+				logrus.WithFields(logrus.Fields{
+					"tasks":     fmt.Sprintf("%v", tasksToLaunch),
 					"resources": fmt.Sprintf("%v", resourcesToUseMap),
-					"node_id": fmt.Sprintf("%s", nodeId),
-					"rpi_url": rpi.Url,
-				}, "trying to launch tasks on rpi")
+					"node_id":   fmt.Sprintf("%s", nodeId),
+					"rpi_url":   rpi.Url,
+				}).Errorf("trying to launch tasks on rpi")
 				return lxerrors.New("sending launch task message to rpi", err)
 			}
 			//flush resources from node
 			for resourceId, resource := range resourcesToUseMap {
 				err := nodeResourcePool.DeleteResource(resourceId)
 				if err != nil {
-					lxlog.Errorf(logrus.Fields{
+					logrus.WithFields(logrus.Fields{
 						"resource": fmt.Sprintf("%v", resource),
-						"node_id": fmt.Sprintf("%s", nodeId),
-					}, "flushing resource " + resourceId + " from node " + nodeId)
-					return lxerrors.New("flushing resource " + resourceId + " from node " + nodeId, err)
+						"node_id":  fmt.Sprintf("%s", nodeId),
+					}).Errorf("flushing resource " + resourceId + " from node " + nodeId)
+					return lxerrors.New("flushing resource "+resourceId+" from node "+nodeId, err)
 				}
 			}
 		}

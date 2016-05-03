@@ -3,22 +3,22 @@ package fakes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxlog"
 	"io/ioutil"
 	"net/http"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"strings"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 )
 
 const (
-	COLLECT_TASKS = "/collect_tasks"
-	UPDATE_TASK_STATUS = "/update_task_status"
+	COLLECT_TASKS              = "/collect_tasks"
+	UPDATE_TASK_STATUS         = "/update_task_status"
 	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
 
-	FAIL_ON_PURPOSE="failonpurpose"
+	FAIL_ON_PURPOSE = "failonpurpose"
 )
 
 var empty = []byte{}
@@ -43,9 +43,9 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 			}
 			err = fakeCollectTasks(layerxUrl, collectTasksMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle collect tasks request")
+				}).Errorf("could not handle collect tasks request")
 				return empty, 500, lxerrors.New("could not handle collect tasks request", err)
 			}
 			return empty, 202, nil
@@ -53,9 +53,9 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := collectTasksFn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing collect tasks message")
+			}).Errorf("processing collect tasks message")
 			driverErrc <- err
 			return
 		}
@@ -77,9 +77,9 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 			}
 			err = fakeUpdateTaskStatus(updateTaskStatusMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle collect tasks request")
+				}).Errorf("could not handle collect tasks request")
 				return empty, 500, lxerrors.New("could not handle update task status request", err)
 			}
 			return empty, 202, nil
@@ -87,9 +87,9 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := updateTaskStatusFn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing update task status message")
+			}).Errorf("processing update task status message")
 			driverErrc <- err
 			return
 		}
@@ -119,9 +119,9 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := fn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing update task status message")
+			}).Errorf("processing update task status message")
 			driverErrc <- err
 			return
 		}
@@ -137,13 +137,13 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 
 func fakeCollectTasks(layerXUrl string, collectTasksMessage layerx_tpi_client.CollectTasksMessage) error {
 	msg := fmt.Sprintf("accepted fake collect tasks message: %v", collectTasksMessage)
-	lxlog.Debugf(logrus.Fields{}, msg)
+	logrus.Debugf(msg)
 	tpiClient := layerx_tpi_client.LayerXTpi{
 		CoreURL: layerXUrl,
 	}
 	for _, taskProvider := range collectTasksMessage.TaskProviders {
-		fakeTaskName := "fake_task_for_"+taskProvider.Id
-		fakeTaskId := fakeTaskName+"_id"
+		fakeTaskName := "fake_task_for_" + taskProvider.Id
+		fakeTaskId := fakeTaskName + "_id"
 		fakeSlaveId := "fake_slave_id"
 		fakeCommand := `i=0; while true; do echo $i; i=$(expr $i + 1); sleep 1; done`
 		fakeTaskForProvider := FakeLXTask(fakeTaskId, fakeTaskName, fakeSlaveId, fakeCommand)
@@ -156,6 +156,6 @@ func fakeCollectTasks(layerXUrl string, collectTasksMessage layerx_tpi_client.Co
 }
 func fakeUpdateTaskStatus(updateTaskStatusMessage layerx_tpi_client.UpdateTaskStatusMessage) error {
 	msg := fmt.Sprintf("accepted fake task status update: %v", updateTaskStatusMessage)
-	lxlog.Debugf(logrus.Fields{}, msg)
+	logrus.Debugf(msg)
 	return nil
 }

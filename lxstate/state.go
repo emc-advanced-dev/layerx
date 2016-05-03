@@ -1,34 +1,35 @@
 package lxstate
+
 import (
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"time"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-core_v2/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
-"github.com/layer-x/layerx-commons/lxlog"
-"github.com/Sirupsen/logrus"
-"time"
 )
 
 const (
-	state_root = "/state"
-	nodes = state_root + "/nodes"
-	pending_tasks = state_root + "/pending_tasks"
-	staging_tasks = state_root + "/staging_tasks"
-	task_providers = state_root + "/task_providers"
+	state_root            = "/state"
+	nodes                 = state_root + "/nodes"
+	pending_tasks         = state_root + "/pending_tasks"
+	staging_tasks         = state_root + "/staging_tasks"
+	task_providers        = state_root + "/task_providers"
 	failed_task_providers = state_root + "/failed_task_providers"
-	statuses = state_root + "/statuses"
-	tpi_url_key = state_root + "/tpi_url"
-	rpis = state_root + "/rpis"
+	statuses              = state_root + "/statuses"
+	tpi_url_key           = state_root + "/tpi_url"
+	rpis                  = state_root + "/rpis"
 )
 
 type State struct {
-	PendingTaskPool *TaskPool
-	StagingTaskPool *TaskPool
-	NodePool	*NodePool
-	TaskProviderPool *TaskProviderPool
+	PendingTaskPool        *TaskPool
+	StagingTaskPool        *TaskPool
+	NodePool               *NodePool
+	TaskProviderPool       *TaskProviderPool
 	FailedTaskProviderPool *TaskProviderPool
-	StatusPool *StatusPool
-	RpiPool *RpiPool
+	StatusPool             *StatusPool
+	RpiPool                *RpiPool
 }
 
 func NewState() *State {
@@ -239,15 +240,14 @@ func (state *State) GetTpiUrl() string {
 	for {
 		tpiUrl, err := state.GetTpi()
 		if err != nil {
-			lxlog.Warnf(logrus.Fields{"err": err},
-				"Failed to retrieve rpis from state")
+			logrus.WithFields(logrus.Fields{"err": err}).Errorf("Failed to retrieve rpis from state")
 		} else {
 			return tpiUrl
 		}
 		if tpiUrl != "" {
-			lxlog.Infof(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"tpiUrl": tpiUrl,
-			}, "TPI registered...")
+			}).Infof("TPI registered...")
 			return tpiUrl
 		} else {
 			time.Sleep(500 * time.Millisecond)
@@ -260,8 +260,7 @@ func (state *State) GetRpiUrls() []string {
 	for {
 		rpis, err := state.RpiPool.GetRpis()
 		if err != nil {
-			lxlog.Warnf(logrus.Fields{"err": err},
-				"Failed to retrieve rpis from state")
+			logrus.WithError(err).Warnf("Failed to retrieve rpis from state")
 		} else {
 			for _, rpi := range rpis {
 				rpiUrls = append(rpiUrls, rpi.Url)
@@ -270,8 +269,7 @@ func (state *State) GetRpiUrls() []string {
 		if len(rpiUrls) > 0 {
 			return rpiUrls
 		} else {
-			lxlog.Warnf(logrus.Fields{
-			}, "no RPIs registered...")
+			logrus.Warnf("no RPIs registered...")
 			time.Sleep(500 * time.Millisecond)
 		}
 	}

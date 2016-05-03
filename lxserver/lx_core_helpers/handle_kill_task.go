@@ -1,54 +1,54 @@
 package lx_core_helpers
+
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/rpi_messenger"
-	"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/lxstate"
+	"github.com/layer-x/layerx-core_v2/rpi_messenger"
 	"github.com/layer-x/layerx-core_v2/tpi_messenger"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
 func KillTask(state *lxstate.State, tpiUrl, taskProviderId, taskId string) error {
 	if _, err := state.GetTaskFromAnywhere(taskId); err != nil {
-		lxlog.Warnf(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}, "requested to kill a task that Layer-X has no knowledge of, replying with TASK_LOST")
+		logrus.WithFields(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}).Warnf("requested to kill a task that Layer-X has no knowledge of, replying with TASK_LOST")
 		err = sendTaskKilledStatus(state, mesosproto.TaskState_TASK_LOST, tpiUrl, taskProviderId, taskId)
 		if err != nil {
-			return lxerrors.New("sending TASK_KILLED status to task provider" + taskProviderId, err)
+			return lxerrors.New("sending TASK_KILLED status to task provider"+taskProviderId, err)
 		}
 		return nil
 	}
 	taskPool, err := state.GetTaskPoolContainingTask(taskId)
 	if err != nil {
-		return lxerrors.New("could not find task pool containing task " + taskId, err)
+		return lxerrors.New("could not find task pool containing task "+taskId, err)
 	}
 	//if task is staging or pending, just delete it and say we did
 	if taskPool == state.PendingTaskPool || taskPool == state.StagingTaskPool {
-		lxlog.Warnf(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}, "requested to kill a task before task staging was complete, deleting from pool")
+		logrus.WithFields(logrus.Fields{"task_id": taskId, "task_provider": taskProviderId}).Warnf("requested to kill a task before task staging was complete, deleting from pool")
 		err = taskPool.DeleteTask(taskId)
 		if err != nil {
 			return lxerrors.New("deleting task from staging or pending pool after kill was requested", err)
 		}
 		err = sendTaskKilledStatus(state, mesosproto.TaskState_TASK_KILLED, tpiUrl, taskProviderId, taskId)
 		if err != nil {
-			return lxerrors.New("sending TASK_KILLED status to task provider" + taskProviderId, err)
+			return lxerrors.New("sending TASK_KILLED status to task provider"+taskProviderId, err)
 		}
 		return nil
 	}
 
 	taskToKill, err := taskPool.GetTask(taskId)
 	if err != nil {
-		return lxerrors.New("could not find task pool containing task " + taskId, err)
+		return lxerrors.New("could not find task pool containing task "+taskId, err)
 	}
 
 	node, err := state.NodePool.GetNode(taskToKill.NodeId)
 	if err != nil {
-		return lxerrors.New("getting node for task " + taskId, err)
+		return lxerrors.New("getting node for task "+taskId, err)
 	}
 
 	rpi, err := state.RpiPool.GetRpi(node.GetRpiName())
 	if err != nil {
-		return lxerrors.New("getting rpi " + node.GetRpiName(), err)
+		return lxerrors.New("getting rpi "+node.GetRpiName(), err)
 	}
 	err = rpi_messenger.SendKillTaskRequest(rpi.Url, taskId)
 	if err != nil {

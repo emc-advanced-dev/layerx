@@ -1,58 +1,58 @@
 package lxserver
 
 import (
-	"github.com/go-martini/martini"
-	"net/http"
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/Sirupsen/logrus"
-"github.com/layer-x/layerx-commons/lxlog"
 	"encoding/json"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-"io/ioutil"
-	"github.com/layer-x/layerx-core_v2/lxserver/lx_core_helpers"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/mesos/mesos-go/mesosproto"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
+	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"github.com/layer-x/layerx-core_v2/lxserver/lx_core_helpers"
+	"github.com/layer-x/layerx-core_v2/lxstate"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 const (
-//tpi
-	RegisterTpi             = "/RegisterTpi"
+	//tpi
+	RegisterTpi            = "/RegisterTpi"
 	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
 	GetStatusUpdates       = "/GetStatusUpdates"
-	GetStatusUpdate       = "/GetStatusUpdate"
+	GetStatusUpdate        = "/GetStatusUpdate"
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"
-//rpi
-	RegisterRpi             = "/RegisterRpi"
-	SubmitResource             = "/SubmitResource"
-	SubmitStatusUpdate         = "/SubmitStatusUpdate"
-//brain
+	//rpi
+	RegisterRpi        = "/RegisterRpi"
+	SubmitResource     = "/SubmitResource"
+	SubmitStatusUpdate = "/SubmitStatusUpdate"
+	//brain
 	GetPendingTasks = "/GetPendingTasks"
 	GetStagingTasks = "/GetStagingTasks"
-	GetNodes         = "/GetNodes"
-	AssignTasks = "/AssignTasks"
-	MigrateTasks = "/MigrateTasks"
+	GetNodes        = "/GetNodes"
+	AssignTasks     = "/AssignTasks"
+	MigrateTasks    = "/MigrateTasks"
 )
 
 var empty = []byte{}
 
 type layerxCoreServerWrapper struct {
-	state			*lxstate.State
-	m *martini.ClassicMartini
+	state      *lxstate.State
+	m          *martini.ClassicMartini
 	driverErrc chan error
 }
 
 func NewLayerXCoreServerWrapper(state *lxstate.State, m *martini.ClassicMartini, driverErrc chan error) *layerxCoreServerWrapper {
 	return &layerxCoreServerWrapper{
-		state: state,
-		m: m,
+		state:      state,
+		m:          m,
 		driverErrc: driverErrc,
 	}
 }
@@ -74,20 +74,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.RegisterTpi(wrapper.state, tpiRegistrationMessage.TpiUrl)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle register tpi request")
+				}).Errorf("could not handle register tpi request")
 				return empty, 500, lxerrors.New("could not handle register tpi request", err)
 			}
-			lxlog.Infof(logrus.Fields{"tpi_url": tpiRegistrationMessage.TpiUrl}, "Registered TPI to LayerX")
+			logrus.WithFields(logrus.Fields{"tpi_url": tpiRegistrationMessage.TpiUrl}).Infof("Registered TPI to LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing register tpi message")
+			}).Errorf("processing register tpi message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -110,20 +110,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.RegisterRpi(wrapper.state, rpiRegistrationMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle register rpi request")
+				}).Errorf("could not handle register rpi request")
 				return empty, 500, lxerrors.New("could not handle register rpi request", err)
 			}
-			lxlog.Infof(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}, "Registered TPI to LayerX")
+			logrus.WithFields(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}).Infof("Registered TPI to LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing register rpi message")
+			}).Errorf("processing register rpi message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -146,20 +146,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.RegisterTaskProvider(wrapper.state, &taskProvider)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle register TaskProvider request")
+				}).Errorf("could not handle register TaskProvider request")
 				return empty, 500, lxerrors.New("could not handle register TaskProvider request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_provider": taskProvider}, "Added new TaskProvider to LayerX")
+			logrus.WithFields(logrus.Fields{"task_provider": taskProvider}).Infof("Added new TaskProvider to LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing register TaskProvider message")
+			}).Errorf("processing register TaskProvider message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -171,20 +171,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			tpId := params["task_provider_id"]
 			err := lx_core_helpers.DeregisterTaskProvider(wrapper.state, tpId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle deregister TaskProvider request")
+				}).Errorf("could not handle deregister TaskProvider request")
 				return empty, 500, lxerrors.New("could not handle deregister TaskProvider request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_provider_id": tpId}, "removed task provider from LayerX")
+			logrus.WithFields(logrus.Fields{"task_provider_id": tpId}).Infof("removed task provider from LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing deregister TaskProvider message")
+			}).Errorf("processing deregister TaskProvider message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -195,25 +195,25 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		fn := func() ([]byte, int, error) {
 			taskProviders, err := lx_core_helpers.GetTaskProviders(wrapper.state)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get TaskProviders request")
+				}).Errorf("could not handle Get TaskProviders request")
 				return empty, 500, lxerrors.New("could not handle Get TaskProviders request", err)
 			}
 			data, err := json.Marshal(taskProviders)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal task providers to json")
+				logrus.Errorf("could not marshal task providers to json")
 				return empty, 500, lxerrors.New("marshalling taskProviders to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"task_providers": taskProviders}, "Added new TaskProvider to LayerX")
+			logrus.WithFields(logrus.Fields{"task_providers": taskProviders}).Debugf("Added new TaskProvider to LayerX")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get TaskProviders message")
+			}).Errorf("processing Get TaskProviders message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -225,25 +225,25 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			tpId := params["task_provider_id"]
 			statuses, err := lx_core_helpers.GetStatusUpdates(wrapper.state, tpId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get Status Updates request")
+				}).Errorf("could not handle Get Status Updates request")
 				return empty, 500, lxerrors.New("could not handle Get Status Updates request", err)
 			}
 			data, err := json.Marshal(statuses)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal Status Updates to json")
+				logrus.Errorf("could not marshal Status Updates to json")
 				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"statuses": statuses}, "Replying with Statuses")
+			logrus.WithFields(logrus.Fields{"statuses": statuses}).Debugf("Replying with Statuses")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Status Updates message")
+			}).Errorf("processing Get Status Updates message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -255,14 +255,14 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			taskId := params["task_id"]
 			status, err := lx_core_helpers.GetStatusUpdate(wrapper.state, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get Status Update request")
+				}).Errorf("could not handle Get Status Update request")
 				return empty, 500, lxerrors.New("could not handle Get Status Update request", err)
 			}
 			data, err := json.Marshal(status)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal Status Update to json")
+				logrus.Errorf("could not marshal Status Update to json")
 				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
 			}
 			return data, 200, nil
@@ -270,9 +270,9 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Status Update message")
+			}).Errorf("processing Get Status Update message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -296,20 +296,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.SubmitTask(wrapper.state, tpId, &task)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get SubmitTask request")
+				}).Errorf("could not handle Get SubmitTask request")
 				return empty, 500, lxerrors.New("could not handle SubmitTask request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_provider_id": tpId, "task": task}, "accepted task from task provider")
+			logrus.WithFields(logrus.Fields{"task_provider_id": tpId, "task": task}).Infof("accepted task from task provider")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Status Updates message")
+			}).Errorf("processing Get Status Updates message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -322,20 +322,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			taskProviderId := params["task_provider_id"]
 			err := lx_core_helpers.KillTask(wrapper.state, wrapper.state.GetTpiUrl(), taskProviderId, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle kill task request")
+				}).Errorf("could not handle kill task request")
 				return empty, 500, lxerrors.New("could not handle kill task request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_id": taskId, "task_provider_id": taskProviderId}, "killed task")
+			logrus.WithFields(logrus.Fields{"task_id": taskId, "task_provider_id": taskProviderId}).Infof("killed task")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "killing task")
+			}).Errorf("killing task")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -347,20 +347,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			taskId := params["task_id"]
 			err := lx_core_helpers.PurgeTask(wrapper.state, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle purge task request")
+				}).Errorf("could not handle purge task request")
 				return empty, 500, lxerrors.New("could not handle purge task request", err)
 			}
-			lxlog.Infof(logrus.Fields{"task_id": taskId}, "removed task from LayerX")
+			logrus.WithFields(logrus.Fields{"task_id": taskId}).Infof("removed task from LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "purging task")
+			}).Errorf("purging task")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -383,20 +383,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.SubmitResource(wrapper.state, &resource)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Submit Resource request")
+				}).Errorf("could not handle Submit Resource request")
 				return empty, 500, lxerrors.New("could not handle SubmitResource request", err)
 			}
-			lxlog.Infof(logrus.Fields{"resource": resource}, "accepted resource from rpi")
+			logrus.WithFields(logrus.Fields{"resource": resource}).Infof("accepted resource from rpi")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Submit Resource request")
+			}).Errorf("processing Submit Resource request")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -419,20 +419,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, wrapper.state.GetTpiUrl(), &status)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Submit status request")
+				}).Errorf("could not handle Submit status request")
 				return empty, 500, lxerrors.New("could not handle submit status request", err)
 			}
-			lxlog.Infof(logrus.Fields{"status": status, "message": status.GetMessage()}, "accepted status update from rpi")
+			logrus.WithFields(logrus.Fields{"status": status, "message": status.GetMessage()}).Infof("accepted status update from rpi")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing submit status request")
+			}).Errorf("processing submit status request")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -443,25 +443,25 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		fn := func() ([]byte, int, error) {
 			nodes, err := lx_core_helpers.GetNodes(wrapper.state)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get Nodes request")
+				}).Errorf("could not handle Get Nodes request")
 				return empty, 500, lxerrors.New("could not handle Get Nodes request", err)
 			}
 			data, err := json.Marshal(nodes)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal nodes to json")
+				logrus.Errorf("could not marshal nodes to json")
 				return empty, 500, lxerrors.New("marshalling nodes to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"nodes": nodes}, "Replying with Nodes")
+			logrus.WithFields(logrus.Fields{"nodes": nodes}).Debugf("Replying with Nodes")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Nodes message")
+			}).Errorf("processing Get Nodes message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -472,55 +472,54 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		fn := func() ([]byte, int, error) {
 			tasks, err := lx_core_helpers.GetPendingTasks(wrapper.state)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get Pending Tasks request")
+				}).Errorf("could not handle Get Pending Tasks request")
 				return empty, 500, lxerrors.New("could not handle Get Pending Tasks request", err)
 			}
 			data, err := json.Marshal(tasks)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal tasks to json")
+				logrus.Errorf("could not marshal tasks to json")
 				return empty, 500, lxerrors.New("marshalling tasks to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"tasks": tasks}, "Replying with Pending Tasks")
+			logrus.WithFields(logrus.Fields{"tasks": tasks}).Debugf("Replying with Pending Tasks")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Pending Tasks message")
+			}).Errorf("processing Get Pending Tasks message")
 			wrapper.driverErrc <- err
 			return
 		}
 		res.Write(data)
 	}
 
-
 	getStagingTasksHandler := func(res http.ResponseWriter, req *http.Request) {
 		fn := func() ([]byte, int, error) {
 			tasks, err := lx_core_helpers.GetStagingTasks(wrapper.state)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle Get Staging Tasks request")
+				}).Errorf("could not handle Get Staging Tasks request")
 				return empty, 500, lxerrors.New("could not handle Get Staging Tasks request", err)
 			}
 			data, err := json.Marshal(tasks)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{}, "could not marshal tasks to json")
+				logrus.Errorf("could not marshal tasks to json")
 				return empty, 500, lxerrors.New("marshalling tasks to json", err)
 			}
-			lxlog.Debugf(logrus.Fields{"tasks": tasks}, "Replying with Staging Tasks")
+			logrus.WithFields(logrus.Fields{"tasks": tasks}).Debugf("Replying with Staging Tasks")
 			return data, 200, nil
 		}
 		data, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing Get Staging Tasks message")
+			}).Errorf("processing Get Staging Tasks message")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -543,21 +542,21 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.AssignTasks(wrapper.state, assignTasksMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-					"data": string(data),
-				}, "could not handle assign tasks request")
+					"data":  string(data),
+				}).Errorf("could not handle assign tasks request")
 				return empty, 500, lxerrors.New("could not handle assign tasks message", err)
 			}
-			lxlog.Infof(logrus.Fields{"assignTasksMessage": assignTasksMessage}, "accepted assign tasks message from brain")
+			logrus.WithFields(logrus.Fields{"assignTasksMessage": assignTasksMessage}).Infof("accepted assign tasks message from brain")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing assign tasks request")
+			}).Errorf("processing assign tasks request")
 			wrapper.driverErrc <- err
 			return
 		}
@@ -580,20 +579,20 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 			}
 			err = lx_core_helpers.MigrateTasks(wrapper.state, migrateTasksMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle migrate tasks request")
+				}).Errorf("could not handle migrate tasks request")
 				return empty, 500, lxerrors.New("could not handle migrate tasks message", err)
 			}
-			lxlog.Infof(logrus.Fields{"migrateTasksMessage": migrateTasksMessage}, "accepted migrate tasks message from brain")
+			logrus.WithFields(logrus.Fields{"migrateTasksMessage": migrateTasksMessage}).Infof("accepted migrate tasks message from brain")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing migrate tasks request")
+			}).Errorf("processing migrate tasks request")
 			wrapper.driverErrc <- err
 			return
 		}

@@ -3,7 +3,6 @@ import (
 	"github.com/layer-x/layerx-core_v2/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
-	"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
 )
 
@@ -35,6 +34,6 @@ func assignTask(state *lxstate.State, nodeId, taskId string) error {
 		return lxerrors.New("moving task "+taskId+" from pending task pool to staging task pool", err)
 	}
 	tasks, _ := state.StagingTaskPool.GetTasks()
-	lxlog.Debugf(logrus.Fields{"staging_tasks": tasks, "task": task, "nodeId": nodeId}, "moved task into staging task pool")
+	logrus.WithFields(logrus.Fields{"staging_tasks": tasks, "task": task, "nodeId": nodeId}).Debugf( "moved task into staging task pool")
 	return nil
 }

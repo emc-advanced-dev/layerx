@@ -3,23 +3,23 @@ package fakes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxlog"
 	"io/ioutil"
 	"net/http"
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/layer-x/layerx-commons/lxerrors"
-"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/mesos/mesos-go/mesosproto"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
-"github.com/pborman/uuid"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/pborman/uuid"
 )
 
 const (
 	COLLECT_RESOURCES = "/collect_resources"
-	LAUNCH_TASKS = "/launch_tasks"
-	KILL_TASK = "/kill_task"
+	LAUNCH_TASKS      = "/launch_tasks"
+	KILL_TASK         = "/kill_task"
 )
 
 func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
@@ -30,9 +30,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 		collectResourcesFn := func() ([]byte, int, error) {
 			err := fakeCollectResources(layerxUrl)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle collect resources request")
+				}).Errorf("could not handle collect resources request")
 				return empty, 500, lxerrors.New("could not handle collect resources request", err)
 			}
 			return empty, 202, nil
@@ -40,9 +40,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := collectResourcesFn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing collect resources message")
+			}).Errorf("processing collect resources message")
 			driverErrc <- err
 			return
 		}
@@ -64,9 +64,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 			}
 			err = fakeLaunchTasks(layerxUrl, launchTaskMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle collect resources request")
+				}).Errorf("could not handle collect resources request")
 				return empty, 500, lxerrors.New("could not handle update launch task request", err)
 			}
 			return empty, 202, nil
@@ -74,9 +74,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := launchTaskFn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing update launch task message")
+			}).Errorf("processing update launch task message")
 			driverErrc <- err
 			return
 		}
@@ -87,9 +87,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 			taskId := params["task_id"]
 			err := fakeKillTask(layerxUrl, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not kill task")
+				}).Errorf("could not kill task")
 				return empty, 500, lxerrors.New("could not kill task", err)
 			}
 			return empty, 202, nil
@@ -97,9 +97,9 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 		_, statusCode, err := killTaskFn()
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "processing update kill task message")
+			}).Errorf("processing update kill task message")
 			driverErrc <- err
 			return
 		}
@@ -115,13 +115,13 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 
 func fakeCollectResources(layerXUrl string) error {
 	msg := fmt.Sprintf("accepted fake collect resources message")
-	lxlog.Debugf(logrus.Fields{}, msg)
+	logrus.Debugf(msg)
 	rpiClient := layerx_rpi_client.LayerXRpi{
 		CoreURL: layerXUrl,
 	}
-	fakeResourceId1 := "fake_offer_id_"+uuid.New()
-	fakeResourceId2 := "fake_offer_id_"+uuid.New()
-	fakeResourceId3 := "fake_offer_id_"+uuid.New()
+	fakeResourceId1 := "fake_offer_id_" + uuid.New()
+	fakeResourceId2 := "fake_offer_id_" + uuid.New()
+	fakeResourceId3 := "fake_offer_id_" + uuid.New()
 	fakeResource1 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId1, "fake_slave_id_1"))
 	fakeResource2 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId2, "fake_slave_id_2"))
 	fakeResource3 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId3, "fake_slave_id_3"))
@@ -146,7 +146,7 @@ func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.Launc
 	}
 	nodeId := launchTaskMessage.ResourcesToUse[0].NodeId
 	for _, task := range launchTaskMessage.TasksToLaunch {
-		lxlog.Debugf(logrus.Fields{"task": task}, "fake rpi launching fake task")
+		logrus.WithFields(logrus.Fields{"task": task}).Debugf("fake rpi launching fake task")
 		rpiClient := layerx_rpi_client.LayerXRpi{
 			CoreURL: layerXUrl,
 		}
@@ -160,15 +160,15 @@ func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.Launc
 		}
 	}
 	for _, task := range launchTaskMessage.TasksToLaunch {
-		lxlog.Debugf(logrus.Fields{"task": task}, "fake rpi launching fake tasks")
+		logrus.WithFields(logrus.Fields{"task": task}).Debugf("fake rpi launching fake tasks")
 	}
 	for _, resource := range launchTaskMessage.ResourcesToUse {
-		lxlog.Debugf(logrus.Fields{"resource": resource}, "fake rpi launching fake tasks on resource")
+		logrus.WithFields(logrus.Fields{"resource": resource}).Debugf("fake rpi launching fake tasks on resource")
 	}
 	return nil
 }
 
 func fakeKillTask(layerXUrl string, taskId string) error {
-	lxlog.Debugf(logrus.Fields{"task_id": taskId}, "fake rpi killing fake task")
+	logrus.WithFields(logrus.Fields{"task_id": taskId}).Debugf("fake rpi killing fake task")
 	return nil
 }

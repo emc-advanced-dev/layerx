@@ -9,7 +9,7 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-core_v2/fakes"
@@ -68,7 +68,7 @@ var _ = Describe("Lxserver", func() {
 			go m.RunOnAddr(fmt.Sprintf(":6677"))
 			go fakes.RunFakeTpiServer("127.0.0.1:6677", 6688, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:6677", 6699, make(chan error))
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
 

@@ -13,7 +13,7 @@ import (
 "github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 "github.com/layer-x/layerx-core_v2/fakes"
-"github.com/layer-x/layerx-commons/lxlog"
+"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"time"
 )
@@ -65,7 +65,7 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			go m.RunOnAddr(fmt.Sprintf(":2299"))
 			go fakes.RunFakeTpiServer("127.0.0.1:2299", 3388, make(chan error))
 			go fakes.RunFakeRpiServer("127.0.0.1:2299", 3399, make(chan error))
-			lxlog.ActiveDebugMode()
+			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
 	Describe("CheckTaskProviderHealth", func(){
