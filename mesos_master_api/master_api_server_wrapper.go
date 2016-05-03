@@ -1,30 +1,31 @@
 package mesos_master_api
+
 import (
-	"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/Sirupsen/logrus"
 	"net/http"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_api_helpers"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/go-martini/martini"
+	"github.com/gogo/protobuf/proto"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_api_helpers"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 const (
-	GET_MASTER_STATE = "/master/state.json"
-	GET_MASTER_STATE_DEPRECATED = "/state.json"
-	MESOS_SCHEDULER_CALL = "/master/mesos.scheduler.Call"
-	REGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.RegisterFrameworkMessage"
-	REREGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.ReregisterFrameworkMessage"
-	UNREGISTER_FRAMEWORK_MESSAGE = "/master/mesos.internal.UnregisterFrameworkMessage"
-	LAUNCH_TASKS_MESSAGE = "/master/mesos.internal.LaunchTasksMessage"
-	RECONCILE_TASKS_MESSAGE = "/master/mesos.internal.ReconcileTasksMessage"
-	KILL_TASK_MESSAGE = "/master/mesos.internal.KillTaskMessage"
+	GET_MASTER_STATE                      = "/master/state.json"
+	GET_MASTER_STATE_DEPRECATED           = "/state.json"
+	MESOS_SCHEDULER_CALL                  = "/master/mesos.scheduler.Call"
+	REGISTER_FRAMEWORK_MESSAGE            = "/master/mesos.internal.RegisterFrameworkMessage"
+	REREGISTER_FRAMEWORK_MESSAGE          = "/master/mesos.internal.ReregisterFrameworkMessage"
+	UNREGISTER_FRAMEWORK_MESSAGE          = "/master/mesos.internal.UnregisterFrameworkMessage"
+	LAUNCH_TASKS_MESSAGE                  = "/master/mesos.internal.LaunchTasksMessage"
+	RECONCILE_TASKS_MESSAGE               = "/master/mesos.internal.ReconcileTasksMessage"
+	KILL_TASK_MESSAGE                     = "/master/mesos.internal.KillTaskMessage"
 	STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE = "/master/mesos.internal.StatusUpdateAcknowledgementMessage"
-	REVIVE_OFFERS_MESSAGE = "/master/mesos.internal.ReviveOffersMessage"
+	REVIVE_OFFERS_MESSAGE                 = "/master/mesos.internal.ReviveOffersMessage"
 )
 
 var empty = []byte{}
@@ -37,7 +38,7 @@ type mesosApiServerWrapper struct {
 func NewMesosApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager) *mesosApiServerWrapper {
 	return &mesosApiServerWrapper{
 		frameworkManager: frameworkManager,
-		tpi: tpi,
+		tpi:              tpi,
 	}
 }
 
@@ -53,9 +54,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		data, statusCode, err := wrapper.queueOperation(getStateFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"request_sent_by": masterUpidString,
-			}, "Retreiving master state")
+			}).Errorf("Retreiving master state")
 			driverErrc <- err
 			return
 		}
@@ -69,9 +70,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = wrapper.processMesosCall(data, upid)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not read process scheduler call request")
+				}).Errorf("could not read process scheduler call request")
 				return empty, 500, lxerrors.New("could not read process scheduler call request", err)
 			}
 			return empty, 202, nil
@@ -79,10 +80,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing mesos call message")
+			}).Errorf("processing mesos call message")
 			driverErrc <- err
 			return
 		}
@@ -101,9 +102,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle register framework request")
+				}).Errorf("could not handle register framework request")
 				return empty, 500, lxerrors.New("could not handle register framework request", err)
 			}
 			return empty, 202, nil
@@ -111,10 +112,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(registerFrameworkFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing register framework message")
+			}).Errorf("processing register framework message")
 			driverErrc <- err
 			return
 		}
@@ -133,9 +134,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, reregisterRequest.GetFramework())
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle reregister framework request")
+				}).Errorf("could not handle reregister framework request")
 				return empty, 500, lxerrors.New("could not handle reregister framework request", err)
 			}
 			return empty, 202, nil
@@ -143,10 +144,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(reregisterFrameworkFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing reregister framework message")
+			}).Errorf("processing reregister framework message")
 			driverErrc <- err
 			return
 		}
@@ -165,9 +166,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.HandleRemoveFramework(wrapper.tpi, unregisterRequest.GetFrameworkId().GetValue())
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle register framework request")
+				}).Errorf("could not handle register framework request")
 				return empty, 500, lxerrors.New("could not handle unregister framework request", err)
 			}
 			return empty, 202, nil
@@ -175,10 +176,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(unregisterFrameworkFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing unregister framework message")
+			}).Errorf("processing unregister framework message")
 			driverErrc <- err
 			return
 		}
@@ -199,9 +200,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			mesosTasks := launchTasksMessage.GetTasks()
 			err = mesos_api_helpers.HandleLaunchTasksRequest(wrapper.tpi, frameworkId, mesosTasks)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle launch tasks request")
+				}).Errorf("could not handle launch tasks request")
 				return empty, 500, lxerrors.New("could not handle launchTasks request", err)
 			}
 			return empty, 202, nil
@@ -209,10 +210,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(reregisterFrameworkFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing launchTasks message")
+			}).Errorf("processing launchTasks message")
 			driverErrc <- err
 			return
 		}
@@ -236,9 +237,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, frameworkId, taskIds)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle reconcile tasks request")
+				}).Errorf("could not handle reconcile tasks request")
 				return empty, 500, lxerrors.New("could not handle reconcile tasks request", err)
 			}
 			return empty, 202, nil
@@ -246,10 +247,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(reconcileTasksFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing reconcileTasks message")
+			}).Errorf("processing reconcileTasks message")
 			driverErrc <- err
 			return
 		}
@@ -270,9 +271,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			taskId := killTaskMessage.GetTaskId().GetValue()
 			err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, frameworkId, taskId)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not handle kill task request")
+				}).Errorf("could not handle kill task request")
 				return empty, 500, lxerrors.New("could not handle kill task request", err)
 			}
 			return empty, 202, nil
@@ -280,10 +281,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(reconcileTasksFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "processing kill task message")
+			}).Errorf("processing kill task message")
 			driverErrc <- err
 			return
 		}
@@ -302,9 +303,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.LogStatusUpdateAck(statusUpdateAck)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not log status update ack")
+				}).Errorf("could not log status update ack")
 				return empty, 500, lxerrors.New("calling log status update ack handler", err)
 			}
 			return empty, 202, nil
@@ -312,10 +313,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(logStatusUpdateAckFn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "logging status update ack")
+			}).Errorf("logging status update ack")
 			driverErrc <- err
 			return
 		}
@@ -334,9 +335,9 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 			}
 			err = mesos_api_helpers.LogReviveOffersMessage(reviveOffersMessage)
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{
+				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}, "could not log status update ack")
+				}).Errorf("could not log status update ack")
 				return empty, 500, lxerrors.New("calling log reviveOffersMessage handler", err)
 			}
 			return empty, 202, nil
@@ -344,10 +345,10 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		_, statusCode, err := wrapper.queueOperation(fn)
 		if err != nil {
 			res.WriteHeader(statusCode)
-			lxlog.Errorf(logrus.Fields{
-				"error": err.Error(),
+			logrus.WithFields(logrus.Fields{
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}, "logging reviveOffersMessage")
+			}).Errorf("logging reviveOffersMessage")
 			driverErrc <- err
 			return
 		}
@@ -389,11 +390,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	}
 	callType := call.GetType()
 	frameworkId := call.GetFrameworkId().GetValue()
-	lxlog.Infof(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"call_type":     callType.String(),
 		"framework_pid": upid.String(),
 		"whole call":    call.String(),
-	}, "Received scheduler.Call")
+	}).Infof("Received scheduler.Call")
 
 	switch callType {
 	case mesosproto.Call_SUBSCRIBE:
@@ -405,7 +406,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		break
 	case mesosproto.Call_DECLINE:
 		decline := call.Decline
-		lxlog.Debugf(logrus.Fields{"declined-offers": decline.OfferIds, "framework-id": frameworkId}, "you declined my offers! see if i care...")
+		logrus.WithFields(logrus.Fields{"declined-offers": decline.OfferIds, "framework-id": frameworkId}).Debugf("you declined my offers! see if i care...")
 		break
 	case mesosproto.Call_RECONCILE:
 		reconcile := call.Reconcile
@@ -419,9 +420,9 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		}
 		break
 	case mesosproto.Call_REVIVE:
-		lxlog.Debugf(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"framework_id": frameworkId,
-		}, "framework %s requested to revive offers", frameworkId)
+		}).Debugf("framework %s requested to revive offers", frameworkId)
 		break
 	case mesosproto.Call_ACCEPT:
 		accept := call.Accept
@@ -439,7 +440,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		}
 		break
 	default:
-		return lxerrors.New("processing unknown call type: " + callType.String(), nil)
+		return lxerrors.New("processing unknown call type: "+callType.String(), nil)
 	}
 
 	return nil
@@ -448,11 +449,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, accept *mesosproto.Call_Accept) error {
 	for _, operation := range accept.GetOperations() {
 		operationType := operation.GetType()
-		lxlog.Debugf(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"operation_type":  operationType.String(),
-			"whole operation":    operation.String(),
+			"whole operation": operation.String(),
 			"framework-dd":    frameworkId,
-		}, "processing ACCEPT_OFFERS_OPERATION for framework")
+		}).Debugf("processing ACCEPT_OFFERS_OPERATION for framework")
 		switch operationType {
 		case mesosproto.Offer_Operation_LAUNCH:
 			launchOperation := operation.GetLaunch()
@@ -462,7 +463,7 @@ func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, acce
 				return lxerrors.New("processing launch tasks operation", err)
 			}
 		default:
-			return lxerrors.New("processing unknown operation type: " + operationType.String(), nil)
+			return lxerrors.New("processing unknown operation type: "+operationType.String(), nil)
 		}
 	}
 	return nil

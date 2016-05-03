@@ -5,7 +5,6 @@ import (
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
 )
 
@@ -23,12 +22,12 @@ func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkMana
 	for _, status := range statusUpdates {
 		err := frameworkManager.SendStatusUpdate(frameworkId, frameworkUpid, status)
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"framework_id": frameworkId,
 				"framework_upid": frameworkUpid.String(),
 				"status": status,
 				"error": err,
-			}, "failed sending status update to framework")
+			}).Errorf( "failed sending status update to framework")
 			return lxerrors.New("sending status update to framework", err)
 		}
 	}

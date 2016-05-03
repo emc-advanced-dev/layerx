@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
-	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
@@ -35,7 +35,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 	go m.RunOnAddr(fmt.Sprintf(":3032"))
 	go fakes.RunFakeFrameworkServer("fakeframework", 3002)
 	go core_fakes.RunFakeLayerXServer(nil, 34445)
-	lxlog.ActiveDebugMode()
+	logrus.SetLevel(logrus.DebugLevel)
 
 	Describe("POST {collect_tasks_message} " + COLLECT_TASKS, func() {
 		It("sends collect_task_message to the framework", func() {

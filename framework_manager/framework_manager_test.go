@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"time"
-"github.com/layer-x/layerx-commons/lxlog"
+"github.com/Sirupsen/logrus"
 "github.com/layer-x/layerx-mesos-tpi_v2/fakes"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/mesos/mesos-go/mesosproto"
@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("FrameworkManager", func() {
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
-	lxlog.ActiveDebugMode()
+	logrus.SetLevel(logrus.DebugLevel)
 	time.Sleep(3 * time.Second)
 
 

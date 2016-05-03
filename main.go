@@ -1,20 +1,21 @@
 package main
+
 import (
 	"flag"
-	"github.com/Sirupsen/logrus"
-"github.com/layer-x/layerx-commons/lxlog"
-"github.com/layer-x/layerx-commons/lxutils"
 	"fmt"
-	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"net"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/layer-x/layerx-commons/lxutils"
+	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/layerx_tpi_api"
-"net"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
+	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 )
 
-func main () {
+func main() {
 	port := flag.Int("port", 3030, "listening port for mesos tpi, default: 3000")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
@@ -23,13 +24,12 @@ func main () {
 	flag.Parse()
 
 	if *debug == "true" {
-		lxlog.ActiveDebugMode()
-		lxlog.Debugf(logrus.Fields{}, "debugging activated")
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debugf("debugging activated")
 	}
 
 	if *layerX == "" {
-		lxlog.Fatalf(logrus.Fields{
-		}, "-layerx flag not set")
+		logrus.WithFields(logrus.Fields{}).Fatalf("-layerx flag not set")
 	}
 
 	localip := net.ParseIP(*localIpStr)
@@ -37,18 +37,18 @@ func main () {
 		var err error
 		localip, err = lxutils.GetLocalIp()
 		if err != nil {
-			lxlog.Fatalf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "retrieving local ip")
+			}).Fatalf("retrieving local ip")
 		}
 	}
 	masterUpidString := fmt.Sprintf("master@%s:%v", localip.String(), *port)
 	masterUpid, err := mesos_data.UPIDFromString(masterUpidString)
 	if err != nil {
-		lxlog.Fatalf(logrus.Fields{
-			"error": err.Error(),
+		logrus.WithFields(logrus.Fields{
+			"error":            err.Error(),
 			"masterUpidString": masterUpidString,
-		}, "generating master upid")
+		}).Fatalf("generating master upid")
 	}
 
 	frameworkManager := framework_manager.NewFrameworkManager(masterUpid)
@@ -63,28 +63,28 @@ func main () {
 	tpiServer = masterServerWrapper.WrapWithMesos(tpiServer, masterUpidString, errc)
 	tpiServer = tpiServerWrapper.WrapWithTpi(tpiServer, masterUpidString, errc)
 
-	go tpiServer.RunOnAddr(fmt.Sprintf(":%v",*port))
+	go tpiServer.RunOnAddr(fmt.Sprintf(":%v", *port))
 
-	err = tpi.RegisterTpi(fmt.Sprintf("%s:%v",localip, *port))
+	err = tpi.RegisterTpi(fmt.Sprintf("%s:%v", localip, *port))
 	if err != nil {
-		lxlog.Errorf(logrus.Fields{
-			"error": err.Error(),
+		logrus.WithFields(logrus.Fields{
+			"error":      err.Error(),
 			"layerx_url": *layerX,
-		}, "registering to layerx")
+		}).Errorf("registering to layerx")
 	}
 
-	lxlog.Infof(logrus.Fields{
-		"port":          *port,
-		"layer-x-url":   *layerX,
-		"upid":            masterUpidString,
-	}, "Layerx Mesos TPI initialized...")
+	logrus.WithFields(logrus.Fields{
+		"port":        *port,
+		"layer-x-url": *layerX,
+		"upid":        masterUpidString,
+	}).Infof("Layerx Mesos TPI initialized...")
 
 	for {
-		err = <- errc
+		err = <-errc
 		if err != nil {
-			lxlog.Errorf(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}, "Mesos tpi experienced a failure!")
+			}).Errorf("Mesos tpi experienced a failure!")
 		}
 	}
 

@@ -1,17 +1,18 @@
 package framework_manager
+
 import (
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"strings"
-	"net/http"
-	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
 	"github.com/mesos/mesos-go/mesosproto"
-	"fmt"
-	"time"
-"github.com/pborman/uuid"
-"github.com/layer-x/layerx-commons/lxlog"
-	"github.com/Sirupsen/logrus"
+	"github.com/pborman/uuid"
 )
 
 type FrameworkManager interface {
@@ -25,7 +26,7 @@ type frameworkManager struct {
 	masterUpid *mesos_data.UPID
 }
 
-func NewFrameworkManager(masterUpid *mesos_data.UPID) *frameworkManager{
+func NewFrameworkManager(masterUpid *mesos_data.UPID) *frameworkManager {
 	return &frameworkManager{
 		masterUpid: masterUpid,
 	}
@@ -39,7 +40,7 @@ func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, framew
 
 	masterState := &mesos_data.MesosState{
 		Version: mesos_data.MESOS_VERSION,
-		Leader: manager.masterUpid.String(),
+		Leader:  manager.masterUpid.String(),
 	}
 	masterInfo, err := masterState.ToMasterInfo()
 	if err != nil {
@@ -79,8 +80,8 @@ func (manager *frameworkManager) SendStatusUpdate(frameworkId string, frameworkU
 			FrameworkId: &mesosproto.FrameworkID{
 				Value: proto.String(frameworkId),
 			},
-			ExecutorId: executorId,
-			SlaveId: slaveId,
+			ExecutorId:  executorId,
+			SlaveId:     slaveId,
 			Status:      status,
 			Timestamp:   proto.Float64(float64(time.Now().Unix())),
 			LatestState: status.State,
@@ -99,9 +100,9 @@ func (manager *frameworkManager) SendStatusUpdate(frameworkId string, frameworkU
 }
 
 func (manager *frameworkManager) SendTaskCollectionOffer(frameworkId, phonyOfferId, phonySlaveId, phonySlavePid string, frameworkUpid *mesos_data.UPID) error {
-	lxlog.Debugf(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"frameworkid": frameworkId,
-	}, "sending task collection (phony) offer to framework")
+	}).Debugf("sending task collection (phony) offer to framework")
 
 	taskCollectionOffer := newPhonyOffer(frameworkId, phonyOfferId, phonySlaveId)
 	offerMessage := &mesosproto.ResourceOffersMessage{
@@ -120,10 +121,10 @@ func (manager *frameworkManager) SendTaskCollectionOffer(frameworkId, phonyOffer
 }
 
 func (manager *frameworkManager) HealthCheckFramework(frameworkId string, frameworkUpid *mesos_data.UPID) (bool, error) {
-	lxlog.Debugf(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"frameworkid": frameworkId,
-	}, "checking health of framework")
-	url := frameworkUpid.Host+":"+frameworkUpid.Port
+	}).Debugf("checking health of framework")
+	url := frameworkUpid.Host + ":" + frameworkUpid.Port
 	_, _, err := lxhttpclient.Get(url, "/", nil)
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
@@ -134,12 +135,11 @@ func (manager *frameworkManager) HealthCheckFramework(frameworkId string, framew
 	return true, nil
 }
 
-
 func (manager *frameworkManager) sendMessage(destination *mesos_data.UPID, message proto.Message, path string) (*http.Response, []byte, error) {
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
-	url := destination.Host +":"+ destination.Port
+	url := destination.Host + ":" + destination.Port
 	path = "/" + destination.ID + path
 	headers := map[string]string{
 		"Libprocess-From": manager.masterUpid.String(),

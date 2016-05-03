@@ -1,8 +1,8 @@
 package mesos_api_helpers
+
 import (
-"github.com/mesos/mesos-go/mesosproto"
-"github.com/layer-x/layerx-commons/lxlog"
 	"github.com/Sirupsen/logrus"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 func LogStatusUpdateAck(statusUpdateAck mesosproto.StatusUpdateAcknowledgementMessage) error {
@@ -10,11 +10,11 @@ func LogStatusUpdateAck(statusUpdateAck mesosproto.StatusUpdateAcknowledgementMe
 	slaveId := statusUpdateAck.GetSlaveId().GetValue()
 	taskId := statusUpdateAck.GetTaskId().GetValue()
 	msgUuid := statusUpdateAck.GetUuid()
-	lxlog.Debugf(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"framework_id": frameworkId,
 		"slave_id":     slaveId,
 		"task_id":      taskId,
 		"msg_uuid":     string(msgUuid),
-	}, "received status update acknowledgement from framework %s", frameworkId)
+	}).Debugf("received status update acknowledgement from framework %s", frameworkId)
 	return nil
 }

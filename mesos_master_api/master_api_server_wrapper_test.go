@@ -10,13 +10,12 @@ import (
 	"encoding/json"
 	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
 	"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
-	"github.com/layer-x/layerx-commons/lxlog"
+	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
 	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"github.com/mesos/mesos-go/mesosproto"
-"github.com/Sirupsen/logrus"
 )
 
 var _ = Describe("MasterApiServer", func() {
@@ -43,11 +42,11 @@ var _ = Describe("MasterApiServer", func() {
 		for {
 			err := <- driverErrc
 			if err != nil {
-				lxlog.Errorf(logrus.Fields{"err": err},"SHOULD BE TESTING THIS ERROR!")
+				logrus.WithFields(logrus.Fields{"err": err}).Errorf("SHOULD BE TESTING THIS ERROR!")
 			}
 		}
 	}()
-	lxlog.ActiveDebugMode()
+	logrus.SetLevel(logrus.DebugLevel)
 
 	Describe("GET " + GET_MASTER_STATE, func() {
 		It("returns state of the faux master", func() {
