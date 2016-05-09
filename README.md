@@ -1,2 +1,2 @@
-# layerx-mesos-rpi_v2
+# layerx-mesos-rpi
 Stateless rewrite of Mesos RPI

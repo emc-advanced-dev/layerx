@@ -2,7 +2,7 @@ package fakes
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
 )
 
 const fake_task_command = `i=0; while true; do echo $i; i=$(expr $i + 1); sleep 1; done`
