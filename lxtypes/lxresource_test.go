@@ -1,11 +1,11 @@
 package lxtypes_test
 
 import (
-	. "github.com/layer-x/layerx-core_v2/lxtypes"
+	. "github.com/emc-advanced-dev/layerx-core/lxtypes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/emc-advanced-dev/layerx-core/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/mesosutil"
 )

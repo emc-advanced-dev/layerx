@@ -6,12 +6,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/health_checker"
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/layer-x/layerx-core_v2/rpi_messenger"
-	"github.com/layer-x/layerx-core_v2/task_launcher"
-	"github.com/layer-x/layerx-core_v2/tpi_messenger"
+	"github.com/emc-advanced-dev/layerx-core/health_checker"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/rpi_messenger"
+	"github.com/emc-advanced-dev/layerx-core/task_launcher"
+	"github.com/emc-advanced-dev/layerx-core/tpi_messenger"
 )
 
 var mainLoopLock = &sync.Mutex{}

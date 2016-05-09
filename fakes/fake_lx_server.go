@@ -10,10 +10,10 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/go-martini/martini"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
