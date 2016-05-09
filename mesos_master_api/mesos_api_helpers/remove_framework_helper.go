@@ -3,7 +3,7 @@ package mesos_api_helpers
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
 )
 
 func HandleRemoveFramework(tpi *layerx_tpi_client.LayerXTpi, frameworkId string) error {

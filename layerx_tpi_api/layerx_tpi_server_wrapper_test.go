@@ -1,21 +1,21 @@
 package layerx_tpi_api_test
 
 import (
-	. "github.com/layer-x/layerx-mesos-tpi_v2/layerx_tpi_api"
+	. "github.com/emc-advanced-dev/layerx-mesos-tpi/layerx_tpi_api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/fakes"
 	"github.com/Sirupsen/logrus"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
-	core_fakes "github.com/layer-x/layerx-core_v2/fakes"
+	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	core_fakes "github.com/emc-advanced-dev/layerx-core/fakes"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api"
 	"github.com/mesos/mesos-go/mesosproto"
 	"net/http"
 )

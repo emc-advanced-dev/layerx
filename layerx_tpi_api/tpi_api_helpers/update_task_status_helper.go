@@ -1,8 +1,8 @@
 package tpi_api_helpers
 import (
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxerrors"
 )
 

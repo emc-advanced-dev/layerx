@@ -1,14 +1,14 @@
 package framework_manager_test
 
 import (
-	. "github.com/layer-x/layerx-mesos-tpi_v2/framework_manager"
+	. "github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"time"
 "github.com/Sirupsen/logrus"
-"github.com/layer-x/layerx-mesos-tpi_v2/fakes"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+"github.com/emc-advanced-dev/layerx-mesos-tpi/fakes"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

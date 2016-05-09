@@ -9,7 +9,7 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"io/ioutil"
 	"net/http"
-	"github.com/layer-x/layerx-mesos-tpi_v2/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 )
 
