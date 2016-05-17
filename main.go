@@ -8,11 +8,11 @@ import (
 	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-core_v2/health_checker"
-	"github.com/layer-x/layerx-core_v2/lxserver"
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-core_v2/main_loop"
-	"github.com/layer-x/layerx-core_v2/task_launcher"
+	"github.com/emc-advanced-dev/layerx-core/health_checker"
+	"github.com/emc-advanced-dev/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/main_loop"
+	"github.com/emc-advanced-dev/layerx-core/task_launcher"
 )
 
 func purgeState() error {

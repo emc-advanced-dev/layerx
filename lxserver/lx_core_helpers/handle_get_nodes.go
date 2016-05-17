@@ -1,8 +1,8 @@
 package lx_core_helpers
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
 )
 
 func  GetNodes(state *lxstate.State) ([]*lxtypes.Node, error) {

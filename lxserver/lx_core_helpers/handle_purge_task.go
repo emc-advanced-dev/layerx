@@ -1,6 +1,6 @@
 package lx_core_helpers
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
 )
 

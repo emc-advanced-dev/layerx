@@ -1,5 +1,5 @@
 package fakes
-import "github.com/layer-x/layerx-core_v2/lxtypes"
+import "github.com/emc-advanced-dev/layerx-core/lxtypes"
 
 func FakeNode(resourceId string, nodeId string) *lxtypes.Node {
 	fakeResource := lxtypes.NewResourceFromMesos(FakeOffer(resourceId, nodeId))

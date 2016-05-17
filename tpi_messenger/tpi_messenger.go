@@ -6,8 +6,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/layer-x/layerx-core_v2/layerx_tpi_client"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 
 	"net/http"

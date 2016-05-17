@@ -1,5 +1,5 @@
 package layerx_rpi_client
-import "github.com/layer-x/layerx-core_v2/lxtypes"
+import "github.com/emc-advanced-dev/layerx-core/lxtypes"
 
 type RpiInfo struct {
 	Name string `json:"name"`

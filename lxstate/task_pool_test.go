@@ -1,13 +1,13 @@
 package lxstate_test
 
 import (
-	. "github.com/layer-x/layerx-core_v2/lxstate"
+	. "github.com/emc-advanced-dev/layerx-core/lxstate"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
-"github.com/layer-x/layerx-core_v2/fakes"
+"github.com/emc-advanced-dev/layerx-core/fakes"
 )
 
 var _ = Describe("TaskPool", func() {

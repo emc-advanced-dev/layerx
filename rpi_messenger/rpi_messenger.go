@@ -1,10 +1,10 @@
 package rpi_messenger
 import (
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"fmt"
-	"github.com/layer-x/layerx-core_v2/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
 )
 
 const (

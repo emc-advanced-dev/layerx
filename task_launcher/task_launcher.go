@@ -5,9 +5,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/lxstate"
-	"github.com/layer-x/layerx-core_v2/lxtypes"
-	"github.com/layer-x/layerx-core_v2/rpi_messenger"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx-core/rpi_messenger"
 )
 
 type TaskLauncher struct {

@@ -1,8 +1,8 @@
 package lx_core_helpers
 import (
-	"github.com/layer-x/layerx-core_v2/lxstate"
+	"github.com/emc-advanced-dev/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-core_v2/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx-core/layerx_brain_client"
 )
 
 func MigrateTasks(state *lxstate.State, migrateTasksMessage layerx_brain_client.MigrateTaskMessage) error {
