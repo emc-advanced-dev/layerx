@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MESOS_VERSION = "0.25.0"
+	MESOS_VERSION = "0.22.1"
 )
 
 type MesosState struct {
