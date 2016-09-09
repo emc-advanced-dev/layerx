@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 3030, "listening port for mesos tpi, default: 3000")
+	port := flag.Int("port", 3000, "listening port for mesos tpi")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
-	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
+	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:5000\"")
 	localIpStr := flag.String("localip", "", "binding address for the rpi")
 
 	flag.Parse()

@@ -20,7 +20,7 @@ import (
 const rpi_name = "Mesos-RPI-0.0.0"
 
 func main() {
-	port := flag.Int("port", 4040, "listening port for mesos rpi, default: 2999")
+	port := flag.Int("port", 4000, "listening port for mesos rpi")
 	master := flag.String("master", "127.0.0.1:5050", "url of mesos master")
 	debug := flag.String("debug", "false", "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")

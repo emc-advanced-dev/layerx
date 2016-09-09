@@ -20,7 +20,7 @@ func purgeState() error {
 }
 
 func main() {
-	portPtr := flag.Int("port", 5555, "port to run core on")
+	portPtr := flag.Int("port", 5000, "port to run core on")
 	etcdUrlPtr := flag.String("etcd", "127.0.0.1:4001", "url of etcd cluster")
 	purgePtr := flag.Bool("purge", false, "purge ETCD state on boot")
 	debugPtr := flag.Bool("debug", false, "verbose logging")
