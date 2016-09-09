@@ -146,7 +146,3 @@ _testmain.go
 *.test
 *.prof
 
-# Created by .ignore support plugin (hsz.mobi)
-layerx-core
-layerx-mesos-tpi
-layerx-mesos-rpi
