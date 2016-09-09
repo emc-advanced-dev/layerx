@@ -1,14 +1,14 @@
 package layerx_tpi_api
 import (
-"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
+"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/go-martini/martini"
 "net/http"
 "github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"io/ioutil"
 	"encoding/json"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/layerx_tpi_api/tpi_api_helpers"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api/tpi_api_helpers"
 )
 
 const (

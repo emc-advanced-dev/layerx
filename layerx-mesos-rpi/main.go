@@ -10,9 +10,9 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-commons/lxutils"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/layerx_rpi_api"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/mesos_framework_api"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
 )

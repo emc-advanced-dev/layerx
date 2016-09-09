@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

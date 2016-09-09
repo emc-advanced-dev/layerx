@@ -2,13 +2,13 @@ package mesos_api_helpers
 
 import (
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxerrors"
 "github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/pborman/uuid"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 )
 
 

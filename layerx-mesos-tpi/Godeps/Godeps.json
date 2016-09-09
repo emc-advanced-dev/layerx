@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/emc-advanced-dev/layerx-mesos-tpi",
+	"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-mesos-tpi",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v63",
 	"Packages": [
@@ -17,23 +17,23 @@
 			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
 		},
 		{
-			"ImportPath": "github.com/emc-advanced-dev/layerx-core/fakes",
+			"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core/fakes",
 			"Rev": "50851556ddaddb2f82b2d511ec08b424ad072af5"
 		},
 		{
-			"ImportPath": "github.com/emc-advanced-dev/layerx-core/layerx_brain_client",
+			"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client",
 			"Rev": "50851556ddaddb2f82b2d511ec08b424ad072af5"
 		},
 		{
-			"ImportPath": "github.com/emc-advanced-dev/layerx-core/layerx_rpi_client",
+			"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client",
 			"Rev": "50851556ddaddb2f82b2d511ec08b424ad072af5"
 		},
 		{
-			"ImportPath": "github.com/emc-advanced-dev/layerx-core/layerx_tpi_client",
+			"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client",
 			"Rev": "50851556ddaddb2f82b2d511ec08b424ad072af5"
 		},
 		{
-			"ImportPath": "github.com/emc-advanced-dev/layerx-core/lxtypes",
+			"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core/lxtypes",
 			"Rev": "50851556ddaddb2f82b2d511ec08b424ad072af5"
 		},
 		{

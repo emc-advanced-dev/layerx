@@ -1,18 +1,18 @@
 package mesos_master_api_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api"
+	. "github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"encoding/json"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
 	"github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	core_fakes "github.com/emc-advanced-dev/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"github.com/mesos/mesos-go/mesosproto"

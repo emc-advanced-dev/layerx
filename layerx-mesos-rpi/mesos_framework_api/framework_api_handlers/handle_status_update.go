@@ -1,7 +1,7 @@
 package framework_api_handlers
 import (
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/layer-x/layerx-commons/lxerrors"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 )
 
 const (

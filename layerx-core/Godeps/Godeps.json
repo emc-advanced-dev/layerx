@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/emc-advanced-dev/layerx-core",
+	"ImportPath": "github.com/emc-advanced-dev/layerx/layerx-core",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v63",
 	"Packages": [

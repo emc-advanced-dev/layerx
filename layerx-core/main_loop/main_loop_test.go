@@ -1,22 +1,22 @@
 package main_loop_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/main_loop"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/main_loop"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"fmt"
 	"github.com/layer-x/layerx-commons/lxmartini"
-"github.com/emc-advanced-dev/layerx-core/lxserver"
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"time"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/emc-advanced-dev/layerx-core/task_launcher"
-	"github.com/emc-advanced-dev/layerx-core/health_checker"
+	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
+	"github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 )
 
 func PurgeState() {

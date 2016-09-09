@@ -1,9 +1,9 @@
 package lxtypes_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/lxtypes"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 
-	"github.com/emc-advanced-dev/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

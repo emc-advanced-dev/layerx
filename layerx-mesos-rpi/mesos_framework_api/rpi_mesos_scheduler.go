@@ -2,8 +2,8 @@ package mesos_framework_api
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
 )

@@ -1,18 +1,18 @@
 package health_checker_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/health_checker"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_brain_client"
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
-"github.com/emc-advanced-dev/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 "github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
-"github.com/emc-advanced-dev/layerx-core/fakes"
+"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 "github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"time"

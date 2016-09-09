@@ -1,24 +1,24 @@
 package layerx_rpi_api_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-mesos-rpi/layerx_rpi_api"
+	. "github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/gogo/protobuf/proto"
-	core_fakes "github.com/emc-advanced-dev/layerx-core/fakes"
+	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/mesos_framework_api"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/scheduler"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"os"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/fakes"
 	"time"
 )
 

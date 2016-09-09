@@ -1,12 +1,12 @@
 package lxstate_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/lxstate"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx-core/fakes"
+"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

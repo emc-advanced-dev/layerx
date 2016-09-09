@@ -1,12 +1,12 @@
 package health_checker
 
 import (
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 "github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-core/tpi_messenger"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 "github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/rpi_messenger"
+	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"time"
 )
 

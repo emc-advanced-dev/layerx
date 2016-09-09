@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/pborman/uuid"
 )

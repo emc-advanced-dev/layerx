@@ -1,9 +1,9 @@
 package tpi_api_helpers
 import (
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 )
 
 func HealthCheck(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager, healthCheckMessage layerx_tpi_client.HealthCheckTaskProviderMessage) (bool, error) {

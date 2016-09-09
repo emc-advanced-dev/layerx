@@ -1,13 +1,13 @@
 package framework_api_handlers_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
+	. "github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/mesos/mesos-go/mesosproto"
-core_fakes "github.com/emc-advanced-dev/layerx-core/fakes"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 )
 
 var _ = Describe("HandleResourceOffers", func() {

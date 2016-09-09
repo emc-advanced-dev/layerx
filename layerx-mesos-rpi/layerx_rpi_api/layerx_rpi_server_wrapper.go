@@ -8,8 +8,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-mesos-rpi/layerx_rpi_api/rpi_api_helpers"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api/rpi_api_helpers"
 	"github.com/mesos/mesos-go/scheduler"
 )
 

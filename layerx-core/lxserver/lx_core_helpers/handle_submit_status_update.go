@@ -1,10 +1,10 @@
 package lx_core_helpers
 import (
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx-core/tpi_messenger"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/Sirupsen/logrus"
 )
 

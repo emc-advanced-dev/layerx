@@ -3,7 +3,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 )
 
 type RpiPool struct {

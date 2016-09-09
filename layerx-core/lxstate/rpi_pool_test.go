@@ -1,11 +1,11 @@
 package lxstate_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/lxstate"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"encoding/json"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 )

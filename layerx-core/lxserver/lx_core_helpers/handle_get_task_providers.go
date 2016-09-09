@@ -1,8 +1,8 @@
 package lx_core_helpers
 import (
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 func  GetTaskProviders(state *lxstate.State) ([]*lxtypes.TaskProvider, error) {

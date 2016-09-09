@@ -1,10 +1,10 @@
 package layerx_tpi_client_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 
-	"github.com/emc-advanced-dev/layerx-core/fakes"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

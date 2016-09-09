@@ -1,20 +1,20 @@
 package tpi_messenger_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/tpi_messenger"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx-core/fakes"
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
-"github.com/emc-advanced-dev/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
 "github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 )
 
 func PurgeState() {

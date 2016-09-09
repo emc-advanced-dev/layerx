@@ -9,12 +9,12 @@ import (
 	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx-core/layerx_brain_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx-core/lxserver/lx_core_helpers"
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
-	"github.com/emc-advanced-dev/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver/lx_core_helpers"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

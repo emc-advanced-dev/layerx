@@ -1,21 +1,21 @@
 package task_launcher_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx-core/task_launcher"
+	. "github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx-core/layerx_brain_client"
-	"github.com/emc-advanced-dev/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"fmt"
-"github.com/emc-advanced-dev/layerx-core/fakes"
+"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 "github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx-core/lxtypes"
+"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 func PurgeState() {
