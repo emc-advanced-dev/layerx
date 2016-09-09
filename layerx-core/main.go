@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/main_loop"
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
+	"github.com/go-martini/martini"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxmartini"
 )
 
 func purgeState() error {

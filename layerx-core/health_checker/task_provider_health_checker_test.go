@@ -3,21 +3,20 @@ package health_checker_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
-"github.com/layer-x/layerx-commons/lxmartini"
-	"fmt"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"time"
 )
-
 
 func PurgeState() {
 	lxdatabase.Rmdir("/state", true)
@@ -48,11 +47,11 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			driverErrc := make(chan error)
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			err = state.SetTpi( "127.0.0.1:3388")
+			err = state.SetTpi("127.0.0.1:3388")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:3399",
+				Url:  "127.0.0.1:3399",
 			})
 
 			go func() {
@@ -68,17 +67,17 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
-	Describe("CheckTaskProviderHealth", func(){
-		Context("a connected task provider is healthy", func(){
-			It("does no-op", func(){
+	Describe("CheckTaskProviderHealth", func() {
+		Context("a connected task provider is healthy", func() {
+			It("does no-op", func() {
 				PurgeState()
 				err2 := state.InitializeState("http://127.0.0.1:4001")
 				Expect(err2).To(BeNil())
-				err := state.SetTpi( "127.0.0.1:3388")
+				err := state.SetTpi("127.0.0.1:3388")
 				Expect(err).To(BeNil())
 				err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 					Name: "fake-rpi",
-					Url: "127.0.0.1:3399",
+					Url:  "127.0.0.1:3399",
 				})
 				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1", "ff@fakeip1:fakeport")
 				err = state.TaskProviderPool.AddTaskProvider(fakeTaskProvider1)
@@ -117,17 +116,17 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 				Expect(nodeTasks).To(ContainElement(fakeNodeTask1))
 			})
 		})
-		Context("a connected task provider is not responding", func(){
-			Context("the task provider does not support failover", func(){
-				It("deletes the task provider from the task provider pool and kills all of its running tasks", func(){
+		Context("a connected task provider is not responding", func() {
+			Context("the task provider does not support failover", func() {
+				It("deletes the task provider from the task provider pool and kills all of its running tasks", func() {
 					PurgeState()
 					err2 := state.InitializeState("http://127.0.0.1:4001")
 					Expect(err2).To(BeNil())
-					err := state.SetTpi( "127.0.0.1:3388")
+					err := state.SetTpi("127.0.0.1:3388")
 					Expect(err).To(BeNil())
 					err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 						Name: "fake-rpi",
-						Url: "127.0.0.1:3399",
+						Url:  "127.0.0.1:3399",
 					})
 					//triggers failure
 					fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
@@ -170,16 +169,16 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 					Expect(nodeTasks).NotTo(ContainElement(fakeNodeTask1))
 				})
 			})
-			Context("the task provider supports failover", func(){
-				It("moves the task provider to the failed pool and marks the time of failure but leaves the tasks running", func(){
+			Context("the task provider supports failover", func() {
+				It("moves the task provider to the failed pool and marks the time of failure but leaves the tasks running", func() {
 					PurgeState()
 					err2 := state.InitializeState("http://127.0.0.1:4001")
 					Expect(err2).To(BeNil())
-					err := state.SetTpi( "127.0.0.1:3388")
+					err := state.SetTpi("127.0.0.1:3388")
 					Expect(err).To(BeNil())
 					err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 						Name: "fake-rpi",
-						Url: "127.0.0.1:3399",
+						Url:  "127.0.0.1:3399",
 					})
 					//triggers failure
 					fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
@@ -227,16 +226,16 @@ var _ = Describe("TaskProviderHealthChecker", func() {
 			})
 		})
 	})
-	Describe("ExpireTimedOutTaskProviders", func(){
-		It("deletes all failed over task providers (and their tasks) whose failover timeout has expired", func(){
+	Describe("ExpireTimedOutTaskProviders", func() {
+		It("deletes all failed over task providers (and their tasks) whose failover timeout has expired", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			err := state.SetTpi( "127.0.0.1:3388")
+			err := state.SetTpi("127.0.0.1:3388")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:3399",
+				Url:  "127.0.0.1:3399",
 			})
 			//triggers failure
 			fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")

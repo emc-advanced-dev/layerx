@@ -3,16 +3,16 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
+	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-	"encoding/json"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 )
 
 var _ = Describe("TaskPool", func() {
-	Describe("GetTask(taskId)", func(){
-		It("returns the task if it exists, else returns err", func(){
+	Describe("GetTask(taskId)", func() {
+		It("returns the task if it exists, else returns err", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -31,9 +31,9 @@ var _ = Describe("TaskPool", func() {
 			Expect(task).To(Equal(fakeTask))
 		})
 	})
-	Describe("AddTask", func(){
-		Context("the task is new", func(){
-			It("adds the task to etcd state", func(){
+	Describe("AddTask", func() {
+		Context("the task is new", func() {
+			It("adds the task to etcd state", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -47,13 +47,13 @@ var _ = Describe("TaskPool", func() {
 				expectedTaskJsonBytes, err := json.Marshal(fakeTask)
 				Expect(err).To(BeNil())
 				expectedTaskJson := string(expectedTaskJsonBytes)
-				actualTaskJson, err := lxdatabase.Get(state.PendingTaskPool.GetKey() + "/"+fakeTask.TaskId)
+				actualTaskJson, err := lxdatabase.Get(state.PendingTaskPool.GetKey() + "/" + fakeTask.TaskId)
 				Expect(err).To(BeNil())
 				Expect(actualTaskJson).To(Equal(expectedTaskJson))
 			})
 		})
-		Context("the task is not new", func(){
-			It("returns an error", func(){
+		Context("the task is not new", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -69,9 +69,9 @@ var _ = Describe("TaskPool", func() {
 			})
 		})
 	})
-	Describe("ModifyTask", func(){
-		Context("the exists", func(){
-			It("modifies the task", func(){
+	Describe("ModifyTask", func() {
+		Context("the exists", func() {
+			It("modifies the task", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -90,13 +90,13 @@ var _ = Describe("TaskPool", func() {
 				expectedTaskJsonBytes, err := json.Marshal(fakeTask)
 				Expect(err).To(BeNil())
 				expectedTaskJson := string(expectedTaskJsonBytes)
-				actualTaskJson, err := lxdatabase.Get(state.PendingTaskPool.GetKey() + "/"+fakeTask.TaskId)
+				actualTaskJson, err := lxdatabase.Get(state.PendingTaskPool.GetKey() + "/" + fakeTask.TaskId)
 				Expect(err).To(BeNil())
 				Expect(actualTaskJson).To(Equal(expectedTaskJson))
 			})
 		})
-		Context("the task doest exist", func(){
-			It("returns an error", func(){
+		Context("the task doest exist", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -110,8 +110,8 @@ var _ = Describe("TaskPool", func() {
 			})
 		})
 	})
-	Describe("GetTasks()", func(){
-		It("returns all known tasks in the pool", func(){
+	Describe("GetTasks()", func() {
+		It("returns all known tasks in the pool", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -137,9 +137,9 @@ var _ = Describe("TaskPool", func() {
 			Expect(tasks[fakeTask3.TaskId]).To(Equal(fakeTask3))
 		})
 	})
-	Describe("DeleteTask(taskId)", func(){
-		Context("task exists", func(){
-			It("deletes the task", func(){
+	Describe("DeleteTask(taskId)", func() {
+		Context("task exists", func() {
+			It("deletes the task", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -167,8 +167,8 @@ var _ = Describe("TaskPool", func() {
 				Expect(tasks[fakeTask3.TaskId]).To(Equal(fakeTask3))
 			})
 		})
-		Context("task does not exist", func(){
-			It("throws error", func(){
+		Context("task does not exist", func() {
+			It("throws error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()

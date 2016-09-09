@@ -3,17 +3,17 @@ package rpi_messenger_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"fmt"
-	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func PurgeState() {
@@ -32,11 +32,11 @@ var _ = Describe("RpiMessenger", func() {
 			driverErrc := make(chan error)
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			err = state.SetTpi( "127.0.0.1:9955")
+			err = state.SetTpi("127.0.0.1:9955")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:9966",
+				Url:  "127.0.0.1:9966",
 			})
 
 			m := coreServerWrapper.WrapServer()
@@ -60,15 +60,15 @@ var _ = Describe("RpiMessenger", func() {
 		})
 	})
 	Describe("SendLaunchTasksMessage", func() {
-		It("sends a message containing a list of tasks and resources to the rpi server", func(){
+		It("sends a message containing a list of tasks and resources to the rpi server", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			err := state.SetTpi( "127.0.0.1:9955")
+			err := state.SetTpi("127.0.0.1:9955")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:9966",
+				Url:  "127.0.0.1:9966",
 			})
 			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 			fakeNode1 := lxtypes.NewNode(fakeResource1.NodeId)

@@ -1,19 +1,20 @@
 package lx_core_helpers_test
+
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxserver/lx_core_helpers"
 
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-"github.com/Sirupsen/logrus"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"fmt"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 )
 
 func PurgeState() {
@@ -31,11 +32,11 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 			state = lxstate.NewState()
 			err := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err).To(BeNil())
-			err = state.SetTpi( "127.0.0.1:4499")
+			err = state.SetTpi("127.0.0.1:4499")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:5599",
+				Url:  "127.0.0.1:5599",
 			})
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), make(chan error))
 
@@ -47,11 +48,9 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 		})
 	})
 
-
-
-	Describe("ProcessStatusUpdate", func(){
-		Context("status update is terminal", func(){
-			It("deletes the task from the state", func(){
+	Describe("ProcessStatusUpdate", func() {
+		Context("status update is terminal", func() {
+			It("deletes the task from the state", func() {
 				PurgeState()
 				purgeErr := state.InitializeState("http://127.0.0.1:4001")
 				Expect(purgeErr).To(BeNil())
@@ -76,8 +75,8 @@ var _ = Describe("HandleSubmitStatusUpdate", func() {
 				Expect(err).NotTo(BeNil())
 			})
 		})
-		Context("status update is running, and the task was staging", func(){
-			It("moves the task from the staging pool to the node pool", func(){
+		Context("status update is running, and the task was staging", func() {
+			It("moves the task from the staging pool to the node pool", func() {
 				PurgeState()
 				purgeErr := state.InitializeState("http://127.0.0.1:4001")
 				Expect(purgeErr).To(BeNil())

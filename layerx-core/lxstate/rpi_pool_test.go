@@ -3,17 +3,17 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
+	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/layer-x/layerx-commons/lxdatabase"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"encoding/json"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 )
 
 func fakeLXRpi(name, url string) *layerx_rpi_client.RpiInfo {
 	return &layerx_rpi_client.RpiInfo{
 		Name: name,
-		Url: url,
+		Url:  url,
 	}
 }
 
@@ -130,4 +130,3 @@ var _ = Describe("RpiPool", func() {
 		})
 	})
 })
-

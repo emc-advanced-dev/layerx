@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

@@ -1,13 +1,13 @@
 package martini
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
 	"sync"
-	"errors"
 )
 
 // Params is a map of name/value pairs for named routes. An instance of martini.Params is available to be injected into any route handler.
@@ -123,7 +123,7 @@ func (r *router) RemoveRoute(pattern string) error {
 			return nil
 		}
 	}
-	return errors.New("unknown route "+pattern)
+	return errors.New("unknown route " + pattern)
 }
 
 func (r *router) Handle(res http.ResponseWriter, req *http.Request, context Context) {

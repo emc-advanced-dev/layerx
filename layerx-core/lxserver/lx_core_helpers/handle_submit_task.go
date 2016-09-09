@@ -1,8 +1,9 @@
 package lx_core_helpers
+
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 func SubmitTask(state *lxstate.State, tpId string, task *lxtypes.Task) error {

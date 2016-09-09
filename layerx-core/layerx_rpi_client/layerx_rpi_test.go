@@ -3,11 +3,11 @@ package layerx_rpi_client_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 var _ = Describe("LayerxRpi", func() {
@@ -47,8 +47,8 @@ var _ = Describe("LayerxRpi", func() {
 		})
 	})
 
-	Describe("GetNodes", func(){
-		It("returns the list of known nodes", func(){
+	Describe("GetNodes", func() {
+		It("returns the list of known nodes", func() {
 			fakeOffer1 := fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1")
 			fakeOffer2 := fakes.FakeOffer("fake_offer_id_2", "fake_slave_id_1")
 			fakeOffer3 := fakes.FakeOffer("fake_offer_id_3", "fake_slave_id_2")

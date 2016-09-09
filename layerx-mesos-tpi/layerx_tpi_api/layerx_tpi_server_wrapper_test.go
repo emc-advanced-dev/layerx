@@ -3,20 +3,20 @@ package layerx_tpi_api_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api"
 
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
-	"github.com/Sirupsen/logrus"
-	"fmt"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api"
-	"github.com/mesos/mesos-go/mesosproto"
 	"net/http"
 )
 
@@ -37,7 +37,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 	go core_fakes.RunFakeLayerXServer(nil, 34445)
 	logrus.SetLevel(logrus.DebugLevel)
 
-	Describe("POST {collect_tasks_message} " + COLLECT_TASKS, func() {
+	Describe("POST {collect_tasks_message} "+COLLECT_TASKS, func() {
 		It("sends collect_task_message to the framework", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -50,7 +50,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 			fakeCollectTasksMsg := &layerx_tpi_client.CollectTasksMessage{
 				TaskProviders: []*lxtypes.TaskProvider{
 					&lxtypes.TaskProvider{
-						Id: "fake_task_provider_id",
+						Id:     "fake_task_provider_id",
 						Source: "fakeframework@127.0.0.1:3002",
 					},
 				},
@@ -61,11 +61,11 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 		})
 	})
 
-	Describe("POST {UpdateTaskStatusMessage} " + UPDATE_TASK_STATUS, func() {
+	Describe("POST {UpdateTaskStatusMessage} "+UPDATE_TASK_STATUS, func() {
 		It("sends status update to the framework", func() {
 			fakeUpdateTaskStatusMessage := &layerx_tpi_client.UpdateTaskStatusMessage{
 				TaskProvider: &lxtypes.TaskProvider{
-					Id: "fake_task_provider_id",
+					Id:     "fake_task_provider_id",
 					Source: "fakeframework@127.0.0.1:3002",
 				},
 				TaskStatus: fakes.FakeTaskStatus("fake_task_1", mesosproto.TaskState_TASK_RUNNING),
@@ -76,12 +76,12 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 		})
 	})
 
-	Describe("POST {HealthCheckTaskProviderMessage} " + HEALTH_CHECK_TASK_PROVIDER, func() {
-		Context("the framework is not connected", func(){
+	Describe("POST {HealthCheckTaskProviderMessage} "+HEALTH_CHECK_TASK_PROVIDER, func() {
+		Context("the framework is not connected", func() {
 			It("performs a health check on the target framework and responds with 410", func() {
 				fakeHealthCheckTaskProviderMessage := &layerx_tpi_client.HealthCheckTaskProviderMessage{
 					TaskProvider: &lxtypes.TaskProvider{
-						Id: "fakedisconnectedframework",
+						Id:     "fakedisconnectedframework",
 						Source: "fakedisconnectedframework@127.0.0.1:1987",
 					},
 				}
@@ -90,11 +90,11 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 				Expect(resp.StatusCode).To(Equal(http.StatusGone))
 			})
 		})
-		Context("the framework is connected", func(){
+		Context("the framework is connected", func() {
 			It("performs a health check on the target framework and responds with 200", func() {
 				fakeHealthCheckTaskProviderMessage := &layerx_tpi_client.HealthCheckTaskProviderMessage{
 					TaskProvider: &lxtypes.TaskProvider{
-						Id: "fake_task_provider_id",
+						Id:     "fake_task_provider_id",
 						Source: "fakeframework@127.0.0.1:3002",
 					},
 				}

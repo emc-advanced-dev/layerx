@@ -1,31 +1,32 @@
 package lxstate
+
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 type ResourcePool struct {
-	nodeId string
+	nodeId  string
 	rootKey string
 }
 
 func TempResourcePoolFunction(rootKey, nodeId string) *ResourcePool {
 	return &ResourcePool{
 		rootKey: rootKey,
-		nodeId: nodeId,
+		nodeId:  nodeId,
 	}
 }
 
 func (resourcePool *ResourcePool) GetKey() string {
-	return resourcePool.rootKey+"_"+resourcePool.nodeId
+	return resourcePool.rootKey + "_" + resourcePool.nodeId
 }
 
 func (resourcePool *ResourcePool) Initialize() error {
 	err := lxdatabase.Mkdir(resourcePool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+resourcePool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+resourcePool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -51,7 +52,7 @@ func (resourcePool *ResourcePool) AddResource(resource *lxtypes.Resource) error 
 }
 
 func (resourcePool *ResourcePool) GetResource(resourceId string) (*lxtypes.Resource, error) {
-	resourceJson, err := lxdatabase.Get(resourcePool.GetKey()+"/"+resourceId)
+	resourceJson, err := lxdatabase.Get(resourcePool.GetKey() + "/" + resourceId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving resource "+resourceId+" from database", err)
 	}
@@ -102,7 +103,7 @@ func (resourcePool *ResourcePool) DeleteResource(resourceId string) error {
 	if err != nil {
 		return lxerrors.New("resource "+resourceId+" not found", err)
 	}
-	err = lxdatabase.Rm(resourcePool.GetKey()+"/"+resourceId)
+	err = lxdatabase.Rm(resourcePool.GetKey() + "/" + resourceId)
 	if err != nil {
 		return lxerrors.New("removing resource "+resourceId+" from database", err)
 	}

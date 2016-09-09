@@ -3,19 +3,19 @@ package mesos_master_api_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api"
 
+	"encoding/json"
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"encoding/json"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
-	"github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"fmt"
-	"github.com/mesos/mesos-go/mesosproto"
 )
 
 var _ = Describe("MasterApiServer", func() {
@@ -38,9 +38,9 @@ var _ = Describe("MasterApiServer", func() {
 	go m.RunOnAddr(fmt.Sprintf(":3031"))
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	go core_fakes.RunFakeLayerXServer(statuses, 34443)
-	go func(){
+	go func() {
 		for {
-			err := <- driverErrc
+			err := <-driverErrc
 			if err != nil {
 				logrus.WithFields(logrus.Fields{"err": err}).Errorf("SHOULD BE TESTING THIS ERROR!")
 			}
@@ -48,7 +48,7 @@ var _ = Describe("MasterApiServer", func() {
 	}()
 	logrus.SetLevel(logrus.DebugLevel)
 
-	Describe("GET " + GET_MASTER_STATE, func() {
+	Describe("GET "+GET_MASTER_STATE, func() {
 		It("returns state of the faux master", func() {
 			resp, data, err := lxhttpclient.Get("127.0.0.1:3031", GET_MASTER_STATE, nil)
 			Expect(err).To(BeNil())
@@ -60,7 +60,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(state.Leader).To(Equal("master@127.0.0.1:3031"))
 		})
 	})
-	Describe("GET " + GET_MASTER_STATE_DEPRECATED, func() {
+	Describe("GET "+GET_MASTER_STATE_DEPRECATED, func() {
 		It("returns state of the faux master", func() {
 			resp, data, err := lxhttpclient.Get("127.0.0.1:3031", GET_MASTER_STATE_DEPRECATED, nil)
 			Expect(err).To(BeNil())
@@ -72,7 +72,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(state.Leader).To(Equal("master@127.0.0.1:3031"))
 		})
 	})
-	Describe("POST {subscribe_call} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {subscribe_call} "+MESOS_SCHEDULER_CALL, func() {
 		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeSubscribe := fakes.FakeSubscribeCall()
 			headers := map[string]string{
@@ -83,7 +83,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST {decline_call} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {decline_call} "+MESOS_SCHEDULER_CALL, func() {
 		It("declines the task-collection offer(s) returns 202 to framework", func() {
 			fakeDecline := fakes.FakeDeclineOffersCall("fakeframework", "fake_offer_id")
 			headers := map[string]string{
@@ -94,7 +94,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST {reconcile_tasks} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {reconcile_tasks} "+MESOS_SCHEDULER_CALL, func() {
 		It("tells the layer-x core to bubble up status updates", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -109,7 +109,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST {REVIVE_OFFERS} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {REVIVE_OFFERS} "+MESOS_SCHEDULER_CALL, func() {
 		It("does a no op (we are re-sending offers anyway)", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -124,7 +124,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST {ACCEPT_OFFERS} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {ACCEPT_OFFERS} "+MESOS_SCHEDULER_CALL, func() {
 		It("submits tasks to layerx core", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -143,7 +143,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST {ACCEPT_OFFERS} " + MESOS_SCHEDULER_CALL, func() {
+	Describe("POST {ACCEPT_OFFERS} "+MESOS_SCHEDULER_CALL, func() {
 		It("sends a kill task request to layer-x", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -164,7 +164,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + REGISTER_FRAMEWORK_MESSAGE, func() {
+	Describe("POST "+REGISTER_FRAMEWORK_MESSAGE, func() {
 		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -175,7 +175,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + REREGISTER_FRAMEWORK_MESSAGE, func() {
+	Describe("POST "+REREGISTER_FRAMEWORK_MESSAGE, func() {
 		It("registers the framework to layer-x core, returns \"FrameworkRegisteredMessage\" to framework", func() {
 			fakeReregisterRequest := fakes.FakeReregisterFrameworkMessage()
 			headers := map[string]string{
@@ -186,7 +186,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + UNREGISTER_FRAMEWORK_MESSAGE, func() {
+	Describe("POST "+UNREGISTER_FRAMEWORK_MESSAGE, func() {
 		It("signals layer-x to delete the framework", func() {
 			fakeUnregisterRequest := fakes.FakeUnregisterFrameworkMessage()
 			headers := map[string]string{
@@ -197,7 +197,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + LAUNCH_TASKS_MESSAGE, func() {
+	Describe("POST "+LAUNCH_TASKS_MESSAGE, func() {
 		It("submits tasks to layerx core", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -213,7 +213,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + RECONCILE_TASKS_MESSAGE, func() {
+	Describe("POST "+RECONCILE_TASKS_MESSAGE, func() {
 		It("tells the layer-x core to bubble up status updates", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -234,7 +234,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + KILL_TASK_MESSAGE, func() {
+	Describe("POST "+KILL_TASK_MESSAGE, func() {
 		It("sends a kill task request to layer-x", func() {
 			fakeRegisterRequest := fakes.FakeRegisterFrameworkMessage()
 			headers := map[string]string{
@@ -255,7 +255,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE, func() {
+	Describe("POST "+STATUS_UPDATE_ACKNOWLEDGEMENT_MESSAGE, func() {
 		It("logs the request to debug (noop)", func() {
 			fakeStatusUpdateAck := fakes.FakeStatusUpdateAcknowledgementMessage("doesnt_matter_fwid", "doesntmattertaskid", "any_slave", []byte("some_bytes"))
 			headers := map[string]string{
@@ -266,7 +266,7 @@ var _ = Describe("MasterApiServer", func() {
 			Expect(resp.StatusCode).To(Equal(202))
 		})
 	})
-	Describe("POST " + REVIVE_OFFERS_MESSAGE, func() {
+	Describe("POST "+REVIVE_OFFERS_MESSAGE, func() {
 		It("logs the request to debug (noop)", func() {
 			fakeReviveOffersMsg := fakes.FakeReviveOffersMessage("doesnt_matter_fwid")
 			headers := map[string]string{

@@ -1,6 +1,7 @@
 package fakes
+
 import (
-"github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

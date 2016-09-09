@@ -3,11 +3,11 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/mesos/mesos-go/mesosproto"
 )
 
 func PurgeState() {
@@ -45,8 +45,8 @@ var _ = Describe("State", func() {
 			Expect(tpiUrl).To(Equal("fake_url"))
 		})
 	})
-	Describe("GetAllTasks", func(){
-		It("returns all known tasks from pending, staging, and node task pools", func(){
+	Describe("GetAllTasks", func() {
+		It("returns all known tasks from pending, staging, and node task pools", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -86,8 +86,8 @@ var _ = Describe("State", func() {
 			Expect(allTasks[fakeNodeTask3.TaskId]).To(Equal(fakeNodeTask3))
 		})
 	})
-	Describe("GetStatusUpdatesForTaskProvider(tpid)", func(){
-		It("returns all known status updates for the task provider", func(){
+	Describe("GetStatusUpdatesForTaskProvider(tpid)", func() {
+		It("returns all known status updates for the task provider", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -124,8 +124,8 @@ var _ = Describe("State", func() {
 			Expect(statuses).To(ContainElement(fakeStatusUpdate3))
 		})
 	})
-	Describe("GetAllStatusUpdates()", func(){
-		It("returns all known status updates", func(){
+	Describe("GetAllStatusUpdates()", func() {
+		It("returns all known status updates", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -189,8 +189,8 @@ var _ = Describe("State", func() {
 			Expect(statuses).To(ContainElement(fakeStatusUpdate6))
 		})
 	})
-	Describe("GetTaskPoolContainingTask(taskid)", func(){
-		It("returns the task pool containing the task with taskid", func(){
+	Describe("GetTaskPoolContainingTask(taskid)", func() {
+		It("returns the task pool containing the task with taskid", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -215,8 +215,8 @@ var _ = Describe("State", func() {
 			Expect(taskPool).To(Equal(state.StagingTaskPool))
 		})
 	})
-	Describe("GetTaskFromAnywhere(taskid)", func(){
-		It("returns the task regardless of where it is stored", func(){
+	Describe("GetTaskFromAnywhere(taskid)", func() {
+		It("returns the task regardless of where it is stored", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()

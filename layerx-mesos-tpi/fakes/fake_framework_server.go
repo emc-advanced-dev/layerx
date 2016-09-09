@@ -6,11 +6,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
 
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/mesosproto"
 	"io/ioutil"
 	"net/http"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
 )
 
 func RunFakeFrameworkServer(frameworkid string, port int) {
@@ -18,7 +18,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 	var offersRecieved = 0
 
 	m := martini.Classic()
-	m.Post("/" + frameworkid + "/mesos.internal.FrameworkRegisteredMessage", func(req *http.Request, res http.ResponseWriter) {
+	m.Post("/"+frameworkid+"/mesos.internal.FrameworkRegisteredMessage", func(req *http.Request, res http.ResponseWriter) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
 			defer req.Body.Close()
@@ -32,14 +32,14 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &frameworkRegistered)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data(" + string(body) + ")", err).Error())
+			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}
 		fmt.Printf("finished")
 		res.WriteHeader(202)
 	})
-	m.Post("/" + frameworkid + "/mesos.internal.ResourceOffersMessage", func(req *http.Request, res http.ResponseWriter) {
+	m.Post("/"+frameworkid+"/mesos.internal.ResourceOffersMessage", func(req *http.Request, res http.ResponseWriter) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
 			defer req.Body.Close()
@@ -53,7 +53,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &resourceOffers)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data(" + string(body) + ")", err).Error())
+			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}
@@ -83,7 +83,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		fmt.Printf("finished")
 		res.WriteHeader(202)
 	})
-	m.Post("/" + frameworkid + "/mesos.internal.StatusUpdateMessage", func(req *http.Request, res http.ResponseWriter) {
+	m.Post("/"+frameworkid+"/mesos.internal.StatusUpdateMessage", func(req *http.Request, res http.ResponseWriter) {
 		body, err := ioutil.ReadAll(req.Body)
 		if req.Body != nil {
 			defer req.Body.Close()
@@ -97,7 +97,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &statusUpdate)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data(" + string(body) + ")", err).Error())
+			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}

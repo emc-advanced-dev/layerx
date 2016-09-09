@@ -1,6 +1,6 @@
 package lxtypes
-import "github.com/mesos/mesos-go/mesosproto"
 
+import "github.com/mesos/mesos-go/mesosproto"
 
 type PortRange struct {
 	Begin uint64 `json:"begin"`
@@ -8,13 +8,13 @@ type PortRange struct {
 }
 
 type Resource struct {
-	Id    string            `json:"id"`
-	NodeId string			`json:"node_id"`
-	Cpus  float64           `json:"cpus"`
-	Mem   float64           `json:"mem"`
-	Disk  float64           `json:"disk"`
-	Ports []PortRange       `json:"ports"`
-	RpiName string			`json:"rpi_name"`
+	Id      string      `json:"id"`
+	NodeId  string      `json:"node_id"`
+	Cpus    float64     `json:"cpus"`
+	Mem     float64     `json:"mem"`
+	Disk    float64     `json:"disk"`
+	Ports   []PortRange `json:"ports"`
+	RpiName string      `json:"rpi_name"`
 }
 
 func NewResourceFromMesos(offer *mesosproto.Offer) *Resource {
@@ -43,11 +43,11 @@ func NewResourceFromMesos(offer *mesosproto.Offer) *Resource {
 	}
 
 	return &Resource{
-		Id:           id,
-		NodeId:       nodeId,
-		Cpus:         cpus,
-		Mem:          mem,
-		Disk:         disk,
-		Ports:        ports,
+		Id:     id,
+		NodeId: nodeId,
+		Cpus:   cpus,
+		Mem:    mem,
+		Disk:   disk,
+		Ports:  ports,
 	}
 }

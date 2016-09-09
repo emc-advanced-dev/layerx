@@ -1,9 +1,10 @@
 package lxstate
+
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 type TaskPool struct {
@@ -17,7 +18,7 @@ func (taskPool *TaskPool) GetKey() string {
 func (taskPool *TaskPool) Initialize() error {
 	err := lxdatabase.Mkdir(taskPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+taskPool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+taskPool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -43,7 +44,7 @@ func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
 }
 
 func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
-	taskJson, err := lxdatabase.Get(taskPool.GetKey()+"/"+taskId)
+	taskJson, err := lxdatabase.Get(taskPool.GetKey() + "/" + taskId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving task "+taskId+" from database", err)
 	}
@@ -94,7 +95,7 @@ func (taskPool *TaskPool) DeleteTask(taskId string) error {
 	if err != nil {
 		return lxerrors.New("task "+taskId+" not found", err)
 	}
-	err = lxdatabase.Rm(taskPool.GetKey()+"/"+taskId)
+	err = lxdatabase.Rm(taskPool.GetKey() + "/" + taskId)
 	if err != nil {
 		return lxerrors.New("removing task "+taskId+" from database", err)
 	}

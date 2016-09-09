@@ -3,9 +3,9 @@ package layerx_tpi_client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -14,12 +14,12 @@ type LayerXTpi struct {
 }
 
 const (
-	RegisterTpi = "/RegisterTpi"
+	RegisterTpi            = "/RegisterTpi"
 	RegisterTaskProvider   = "/RegisterTaskProvider"
 	DeregisterTaskProvider = "/DeregisterTaskProvider"
 	GetTaskProviders       = "/GetTaskProviders"
 	GetStatusUpdates       = "/GetStatusUpdates"
-	GetStatusUpdate       = "/GetStatusUpdate"
+	GetStatusUpdate        = "/GetStatusUpdate"
 	SubmitTask             = "/SubmitTask"
 	KillTask               = "/KillTask"
 	PurgeTask              = "/PurgeTask"

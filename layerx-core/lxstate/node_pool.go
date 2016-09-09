@@ -1,8 +1,9 @@
 package lxstate
+
 import (
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
 	"strings"
 )
 
@@ -17,7 +18,7 @@ func (nodePool *NodePool) GetKey() string {
 func (nodePool *NodePool) Initialize() error {
 	err := lxdatabase.Mkdir(nodePool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+nodePool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+nodePool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -36,7 +37,7 @@ func (nodePool *NodePool) AddNode(node *lxtypes.Node) error {
 }
 
 func (nodePool *NodePool) GetNode(nodeId string) (*lxtypes.Node, error) {
-	_, err := lxdatabase.GetSubdirectories(nodePool.GetKey()+"/"+nodeId)
+	_, err := lxdatabase.GetSubdirectories(nodePool.GetKey() + "/" + nodeId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving node "+nodeId+" from database", err)
 	}
@@ -65,7 +66,7 @@ func (nodePool *NodePool) GetNodes() (map[string]*lxtypes.Node, error) {
 }
 
 func (nodePool *NodePool) DeleteNode(nodeId string) error {
-	_, err := lxdatabase.GetSubdirectories(nodePool.GetKey()+"/"+nodeId)
+	_, err := lxdatabase.GetSubdirectories(nodePool.GetKey() + "/" + nodeId)
 	if err != nil {
 		return lxerrors.New("retrieving node "+nodeId+" from database", err)
 	}
@@ -81,7 +82,7 @@ func (nodePool *NodePool) GetNodeResourcePool(nodeId string) (*ResourcePool, err
 		return nil, lxerrors.New("could not find node", err)
 	}
 	return &ResourcePool{
-		nodeId: nodeId,
+		nodeId:  nodeId,
 		rootKey: nodePool.GetKey() + "/" + nodeId + "/resources",
 	}, nil
 }
@@ -97,12 +98,12 @@ func (nodePool *NodePool) GetNodeTaskPool(nodeId string) (*TaskPool, error) {
 
 func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
 	nodeId := node.Id
-	err := lxdatabase.Mkdir(nodePool.GetKey()+"/"+nodeId)
+	err := lxdatabase.Mkdir(nodePool.GetKey() + "/" + nodeId)
 	if err != nil {
-		return lxerrors.New("initializing "+nodePool.GetKey()+"/"+nodeId +" directory", err)
+		return lxerrors.New("initializing "+nodePool.GetKey()+"/"+nodeId+" directory", err)
 	}
 	nodeResourcePool := &ResourcePool{
-		nodeId: nodeId,
+		nodeId:  nodeId,
 		rootKey: nodePool.GetKey() + "/" + nodeId + "/resources",
 	}
 	nodeResourcePool.Initialize()
@@ -128,7 +129,7 @@ func (nodePool *NodePool) saveNode(node *lxtypes.Node) error {
 func (nodePool *NodePool) loadNode(nodeId string) (*lxtypes.Node, error) {
 	node := lxtypes.NewNode(nodeId)
 	nodeResourcePool := ResourcePool{
-		nodeId: nodeId,
+		nodeId:  nodeId,
 		rootKey: nodePool.GetKey() + "/" + nodeId + "/resources",
 	}
 	resources, err := nodeResourcePool.GetResources()

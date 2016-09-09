@@ -1,4 +1,5 @@
 package framework_manager
+
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"

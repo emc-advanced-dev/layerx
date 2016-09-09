@@ -1,20 +1,19 @@
 package lxstate_test
 
-
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("ResourcePool", func() {
-	Describe("GetResource(resourceId)", func(){
-		It("returns the resource if it exists, else returns err", func(){
+	Describe("GetResource(resourceId)", func() {
+		It("returns the resource if it exists, else returns err", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -32,9 +31,9 @@ var _ = Describe("ResourcePool", func() {
 			Expect(resource).To(Equal(fakeResource))
 		})
 	})
-	Describe("AddResource", func(){
-		Context("the resource is new", func(){
-			It("adds the resource to etcd state", func(){
+	Describe("AddResource", func() {
+		Context("the resource is new", func() {
+			It("adds the resource to etcd state", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -47,13 +46,13 @@ var _ = Describe("ResourcePool", func() {
 				expectedResourceJsonBytes, err := json.Marshal(fakeResource)
 				Expect(err).To(BeNil())
 				expectedResourceJson := string(expectedResourceJsonBytes)
-				actualResourceJson, err := lxdatabase.Get(fakeResourcePool.GetKey() + "/"+fakeResource.Id)
+				actualResourceJson, err := lxdatabase.Get(fakeResourcePool.GetKey() + "/" + fakeResource.Id)
 				Expect(err).To(BeNil())
 				Expect(actualResourceJson).To(Equal(expectedResourceJson))
 			})
 		})
-		Context("the resource is not new", func(){
-			It("returns an error", func(){
+		Context("the resource is not new", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -67,8 +66,8 @@ var _ = Describe("ResourcePool", func() {
 				Expect(err).NotTo(BeNil())
 			})
 		})
-		Context("the resource does not belong to the node", func(){
-			It("returns an error", func(){
+		Context("the resource does not belong to the node", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -81,9 +80,9 @@ var _ = Describe("ResourcePool", func() {
 			})
 		})
 	})
-	Describe("ModifyResource", func(){
-		Context("the exists", func(){
-			It("modifies the resource", func(){
+	Describe("ModifyResource", func() {
+		Context("the exists", func() {
+			It("modifies the resource", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -101,13 +100,13 @@ var _ = Describe("ResourcePool", func() {
 				expectedResourceJsonBytes, err := json.Marshal(fakeResource)
 				Expect(err).To(BeNil())
 				expectedResourceJson := string(expectedResourceJsonBytes)
-				actualResourceJson, err := lxdatabase.Get(fakeResourcePool.GetKey() + "/"+fakeResource.Id)
+				actualResourceJson, err := lxdatabase.Get(fakeResourcePool.GetKey() + "/" + fakeResource.Id)
 				Expect(err).To(BeNil())
 				Expect(actualResourceJson).To(Equal(expectedResourceJson))
 			})
 		})
-		Context("the resource doest exist", func(){
-			It("returns an error", func(){
+		Context("the resource doest exist", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -120,8 +119,8 @@ var _ = Describe("ResourcePool", func() {
 			})
 		})
 	})
-	Describe("GetResources()", func(){
-		It("returns all known resources in the pool", func(){
+	Describe("GetResources()", func() {
+		It("returns all known resources in the pool", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -144,9 +143,9 @@ var _ = Describe("ResourcePool", func() {
 			Expect(resources[fakeResource3.Id]).To(Equal(fakeResource3))
 		})
 	})
-	Describe("DeleteResource(resourceId)", func(){
-		Context("resource exists", func(){
-			It("deletes the resource", func(){
+	Describe("DeleteResource(resourceId)", func() {
+		Context("resource exists", func() {
+			It("deletes the resource", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -171,8 +170,8 @@ var _ = Describe("ResourcePool", func() {
 				Expect(resources[fakeResource3.Id]).To(Equal(fakeResource3))
 			})
 		})
-		Context("resource does not exist", func(){
-			It("throws error", func(){
+		Context("resource does not exist", func() {
+			It("throws error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()

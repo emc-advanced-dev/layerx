@@ -3,17 +3,17 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"encoding/json"
 	"github.com/mesos/mesos-go/mesosproto"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("StatusPool", func() {
-	Describe("GetStatus(statusId)", func(){
-		It("returns the status if it exists, else returns err", func(){
+	Describe("GetStatus(statusId)", func() {
+		It("returns the status if it exists, else returns err", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -31,9 +31,9 @@ var _ = Describe("StatusPool", func() {
 			Expect(status).To(Equal(fakeStatus))
 		})
 	})
-	Describe("AddStatus", func(){
-		Context("the status is new", func(){
-			It("adds the status to etcd state", func(){
+	Describe("AddStatus", func() {
+		Context("the status is new", func() {
+			It("adds the status to etcd state", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -46,13 +46,13 @@ var _ = Describe("StatusPool", func() {
 				expectedStatusJsonBytes, err := json.Marshal(fakeStatus)
 				Expect(err).To(BeNil())
 				expectedStatusJson := string(expectedStatusJsonBytes)
-				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/"+fakeStatus.GetTaskId().GetValue())
+				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/" + fakeStatus.GetTaskId().GetValue())
 				Expect(err).To(BeNil())
 				Expect(actualStatusJson).To(Equal(expectedStatusJson))
 			})
 		})
-		Context("the status is not new", func(){
-			It("modifies the original status", func(){
+		Context("the status is not new", func() {
+			It("modifies the original status", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -68,15 +68,15 @@ var _ = Describe("StatusPool", func() {
 				expectedStatusJsonBytes, err := json.Marshal(fakeStatus)
 				Expect(err).To(BeNil())
 				expectedStatusJson := string(expectedStatusJsonBytes)
-				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/"+fakeStatus.GetTaskId().GetValue())
+				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/" + fakeStatus.GetTaskId().GetValue())
 				Expect(err).To(BeNil())
 				Expect(actualStatusJson).To(Equal(expectedStatusJson))
 			})
 		})
 	})
-	Describe("ModifyStatus", func(){
-		Context("the exists", func(){
-			It("modifies the status", func(){
+	Describe("ModifyStatus", func() {
+		Context("the exists", func() {
+			It("modifies the status", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -93,13 +93,13 @@ var _ = Describe("StatusPool", func() {
 				expectedStatusJsonBytes, err := json.Marshal(fakeStatus)
 				Expect(err).To(BeNil())
 				expectedStatusJson := string(expectedStatusJsonBytes)
-				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/"+fakeStatus.GetTaskId().GetValue())
+				actualStatusJson, err := lxdatabase.Get(state.StatusPool.GetKey() + "/" + fakeStatus.GetTaskId().GetValue())
 				Expect(err).To(BeNil())
 				Expect(actualStatusJson).To(Equal(expectedStatusJson))
 			})
 		})
-		Context("the status doest exist", func(){
-			It("returns an error", func(){
+		Context("the status doest exist", func() {
+			It("returns an error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -112,8 +112,8 @@ var _ = Describe("StatusPool", func() {
 			})
 		})
 	})
-	Describe("GetStatuses()", func(){
-		It("returns all known statuses in the pool", func(){
+	Describe("GetStatuses()", func() {
+		It("returns all known statuses in the pool", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -136,9 +136,9 @@ var _ = Describe("StatusPool", func() {
 			Expect(statuses[fakeStatus3.GetTaskId().GetValue()]).To(Equal(fakeStatus3))
 		})
 	})
-	Describe("DeleteStatus(statusId)", func(){
-		Context("status exists", func(){
-			It("deletes the status", func(){
+	Describe("DeleteStatus(statusId)", func() {
+		Context("status exists", func() {
+			It("deletes the status", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -163,8 +163,8 @@ var _ = Describe("StatusPool", func() {
 				Expect(statuses[fakeStatus3.GetTaskId().GetValue()]).To(Equal(fakeStatus3))
 			})
 		})
-		Context("status does not exist", func(){
-			It("throws error", func(){
+		Context("status does not exist", func() {
+			It("throws error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()

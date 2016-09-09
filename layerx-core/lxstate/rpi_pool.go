@@ -1,9 +1,10 @@
 package lxstate
+
 import (
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 type RpiPool struct {
@@ -17,7 +18,7 @@ func (RpiPool *RpiPool) GetKey() string {
 func (RpiPool *RpiPool) Initialize() error {
 	err := lxdatabase.Mkdir(RpiPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+RpiPool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+RpiPool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -38,7 +39,7 @@ func (RpiPool *RpiPool) AddRpi(rpi *layerx_rpi_client.RpiInfo) error {
 }
 
 func (RpiPool *RpiPool) GetRpi(name string) (*layerx_rpi_client.RpiInfo, error) {
-	rpiJson, err := lxdatabase.Get(RpiPool.GetKey()+"/"+name)
+	rpiJson, err := lxdatabase.Get(RpiPool.GetKey() + "/" + name)
 	if err != nil {
 		return nil, lxerrors.New("retrieving rpi "+name+" from database", err)
 	}
@@ -72,7 +73,7 @@ func (RpiPool *RpiPool) DeleteRpi(name string) error {
 	if err != nil {
 		return lxerrors.New("rpi "+name+" not found", err)
 	}
-	err = lxdatabase.Rm(RpiPool.GetKey()+"/"+name)
+	err = lxdatabase.Rm(RpiPool.GetKey() + "/" + name)
 	if err != nil {
 		return lxerrors.New("removing rpi "+name+" from database", err)
 	}

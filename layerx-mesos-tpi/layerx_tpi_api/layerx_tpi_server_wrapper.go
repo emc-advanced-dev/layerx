@@ -1,19 +1,20 @@
 package layerx_tpi_api
+
 import (
-"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"encoding/json"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api/tpi_api_helpers"
 	"github.com/go-martini/martini"
-"net/http"
-"github.com/Sirupsen/logrus"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"io/ioutil"
-	"encoding/json"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api/tpi_api_helpers"
+	"net/http"
 )
 
 const (
-	COLLECT_TASKS = "/collect_tasks"
-	UPDATE_TASK_STATUS = "/update_task_status"
+	COLLECT_TASKS              = "/collect_tasks"
+	UPDATE_TASK_STATUS         = "/update_task_status"
 	HEALTH_CHECK_TASK_PROVIDER = "/health_check_task_provider"
 )
 
@@ -27,7 +28,7 @@ type tpiApiServerWrapper struct {
 func NewTpiApiServerWrapper(tpi *layerx_tpi_client.LayerXTpi, frameworkManager framework_manager.FrameworkManager) *tpiApiServerWrapper {
 	return &tpiApiServerWrapper{
 		frameworkManager: frameworkManager,
-		tpi: tpi,
+		tpi:              tpi,
 	}
 }
 
@@ -50,7 +51,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}).Errorf( "could not handle collect tasks request")
+				}).Errorf("could not handle collect tasks request")
 				return empty, 500, lxerrors.New("could not handle collect tasks request", err)
 			}
 			return empty, 202, nil
@@ -59,10 +60,10 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 		if err != nil {
 			res.WriteHeader(statusCode)
 			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}).Errorf( "processing collect tasks message")
-//			driverErrc <- err
+			}).Errorf("processing collect tasks message")
+			//			driverErrc <- err
 			return
 		}
 		res.WriteHeader(statusCode)
@@ -85,7 +86,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}).Errorf( "could not handle collect tasks request")
+				}).Errorf("could not handle collect tasks request")
 				return empty, 500, lxerrors.New("could not handle update task status request", err)
 			}
 			return empty, 202, nil
@@ -94,9 +95,9 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 		if err != nil {
 			res.WriteHeader(statusCode)
 			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}).Errorf( "processing update task status message")
+			}).Errorf("processing update task status message")
 			driverErrc <- err
 			return
 		}
@@ -120,7 +121,7 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
-				}).Errorf( "could not handle collect tasks request")
+				}).Errorf("could not handle collect tasks request")
 				return empty, 500, lxerrors.New("could not handle health check task provider request", err)
 			}
 			statusCode := http.StatusGone
@@ -133,9 +134,9 @@ func (wrapper *tpiApiServerWrapper) WrapWithTpi(m *martini.ClassicMartini, maste
 		if err != nil {
 			res.WriteHeader(statusCode)
 			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
+				"error":           err.Error(),
 				"request_sent_by": masterUpidString,
-			}).Errorf( "processing health check task provider message")
+			}).Errorf("processing health check task provider message")
 			driverErrc <- err
 			return
 		}

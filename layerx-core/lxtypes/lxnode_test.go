@@ -3,9 +3,9 @@ package lxtypes_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 )
 
 var _ = Describe("Lxnode", func() {

@@ -3,20 +3,19 @@ package framework_manager_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"time"
-"github.com/Sirupsen/logrus"
-"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/fakes"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/mesos/mesos-go/mesosproto"
 )
 
 var _ = Describe("FrameworkManager", func() {
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
 	logrus.SetLevel(logrus.DebugLevel)
 	time.Sleep(3 * time.Second)
-
 
 	Describe("Notify Framework is registered", func() {
 		It("succesfully gets 202 response", func() {

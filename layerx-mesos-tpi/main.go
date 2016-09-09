@@ -6,13 +6,13 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/layer-x/layerx-commons/lxutils"
 )
 
 func main() {

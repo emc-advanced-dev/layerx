@@ -1,4 +1,5 @@
 package layerx_tpi_client
+
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/mesos/mesos-go/mesosproto"
@@ -13,8 +14,8 @@ type CollectTasksMessage struct {
 }
 
 type UpdateTaskStatusMessage struct {
-	TaskProvider *lxtypes.TaskProvider `json:"task_provider"`
-	TaskStatus *mesosproto.TaskStatus `json:"task_status"`
+	TaskProvider *lxtypes.TaskProvider  `json:"task_provider"`
+	TaskStatus   *mesosproto.TaskStatus `json:"task_status"`
 }
 
 type HealthCheckTaskProviderMessage struct {

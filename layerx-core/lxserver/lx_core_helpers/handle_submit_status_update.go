@@ -1,11 +1,12 @@
 package lx_core_helpers
+
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/Sirupsen/logrus"
 )
 
 func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto.TaskStatus) error {
@@ -42,7 +43,7 @@ func ProcessStatusUpdate(state *lxstate.State, tpiUrl string, status *mesosproto
 			return lxerrors.New("sending status update to tpi", err)
 		}
 	} else {
-		logrus.WithFields(logrus.Fields{"task": task, "status": status}).Warnf( "task is checkpointed, not bubbling status update")
+		logrus.WithFields(logrus.Fields{"task": task, "status": status}).Warnf("task is checkpointed, not bubbling status update")
 	}
 	err = state.StatusPool.AddStatus(status)
 	if err != nil {
@@ -66,8 +67,8 @@ func moveTaskBetweenPools(task *lxtypes.Task, sourceTaskPool, destinationTaskPoo
 func isTerminal(status *mesosproto.TaskStatus) bool {
 	state := status.GetState()
 	return state == mesosproto.TaskState_TASK_ERROR ||
-			state == mesosproto.TaskState_TASK_FAILED ||
-			state == mesosproto.TaskState_TASK_FINISHED ||
-			state == mesosproto.TaskState_TASK_KILLED ||
-			state == mesosproto.TaskState_TASK_LOST
+		state == mesosproto.TaskState_TASK_FAILED ||
+		state == mesosproto.TaskState_TASK_FINISHED ||
+		state == mesosproto.TaskState_TASK_KILLED ||
+		state == mesosproto.TaskState_TASK_LOST
 }

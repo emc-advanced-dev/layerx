@@ -1,4 +1,5 @@
 package lx_core_helpers
+
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/layer-x/layerx-commons/lxerrors"
@@ -8,7 +9,7 @@ import (
 func GetStatusUpdates(state *lxstate.State, tpId string) ([]*mesosproto.TaskStatus, error) {
 	var (
 		statusMap map[string]*mesosproto.TaskStatus
-		err error
+		err       error
 	)
 	if tpId == "" {
 		statusMap, err = state.GetStatusUpdates()

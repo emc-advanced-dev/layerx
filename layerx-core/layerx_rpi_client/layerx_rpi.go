@@ -1,13 +1,13 @@
 package layerx_rpi_client
-import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"fmt"
-	"github.com/mesos/mesos-go/mesosproto"
-	"encoding/json"
-)
 
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/mesos/mesos-go/mesosproto"
+)
 
 type LayerXRpi struct {
 	CoreURL string
@@ -15,10 +15,10 @@ type LayerXRpi struct {
 }
 
 const (
-	RegisterRpi             = "/RegisterRpi"
-	SubmitResource             = "/SubmitResource"
-	SubmitStatusUpdate         = "/SubmitStatusUpdate"
-	GetNodes         = "/GetNodes"
+	RegisterRpi        = "/RegisterRpi"
+	SubmitResource     = "/SubmitResource"
+	SubmitStatusUpdate = "/SubmitStatusUpdate"
+	GetNodes           = "/GetNodes"
 )
 
 //call this method to register the RPI
@@ -26,7 +26,7 @@ const (
 func (rpi *LayerXRpi) RegisterRpi(name, rpiUrl string) error {
 	reg := RpiInfo{
 		Name: name,
-		Url: rpiUrl,
+		Url:  rpiUrl,
 	}
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, RegisterRpi, nil, reg)
 	if err != nil {

@@ -3,18 +3,18 @@ package tpi_messenger_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
 
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"fmt"
-"github.com/Sirupsen/logrus"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 )
 
 func PurgeState() {
@@ -34,11 +34,11 @@ var _ = Describe("TpiMessenger", func() {
 			driverErrc := make(chan error)
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			err = state.SetTpi( "127.0.0.1:8866")
+			err = state.SetTpi("127.0.0.1:8866")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:8855",
+				Url:  "127.0.0.1:8855",
 			})
 
 			m := coreServerWrapper.WrapServer()
@@ -47,15 +47,15 @@ var _ = Describe("TpiMessenger", func() {
 			go fakes.RunFakeRpiServer("127.0.0.1:7766", 8855, driverErrc)
 			logrus.SetLevel(logrus.DebugLevel)
 
-			go func(){
+			go func() {
 				for {
-					serverErr = <- driverErrc
+					serverErr = <-driverErrc
 				}
 			}()
 		})
 	})
-	Describe("SendTaskCollectionMessage(tpiUrl string []*lxtypes.TaskProvider)", func(){
-		It("sends a task collection request to the TPI", func(){
+	Describe("SendTaskCollectionMessage(tpiUrl string []*lxtypes.TaskProvider)", func() {
+		It("sends a task collection request to the TPI", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
@@ -73,25 +73,25 @@ var _ = Describe("TpiMessenger", func() {
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("SendStatusUpdate(tpiUrl *lxtypes.TaskProvider *mesosproto.TaskStatus)", func(){
-		It("sends a status update to the TPI for a specific task, specific task provider", func(){
+	Describe("SendStatusUpdate(tpiUrl *lxtypes.TaskProvider *mesosproto.TaskStatus)", func() {
+		It("sends a status update to the TPI for a specific task, specific task provider", func() {
 			fakeStatus1 := fakes.FakeTaskStatus("fake_task_id_1", mesosproto.TaskState_TASK_RUNNING)
 			fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1", "ff@fakeip1:fakeport")
 			err := SendStatusUpdate("127.0.0.1:8866", fakeTaskProvider1, fakeStatus1)
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("HealthCheck(tpiUrl *lxtypes.TaskProvider)", func(){
-		Context("the task provider is no longer connected", func(){
-			It("returns false", func(){
+	Describe("HealthCheck(tpiUrl *lxtypes.TaskProvider)", func() {
+		Context("the task provider is no longer connected", func() {
+			It("returns false", func() {
 				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1_"+fakes.FAIL_ON_PURPOSE, "ff@fakeip1:fakeport")
 				healthy, err := HealthCheck("127.0.0.1:8866", fakeTaskProvider1)
 				Expect(err).To(BeNil())
 				Expect(healthy).To(BeFalse())
 			})
 		})
-		Context("the task provider is still connected", func(){
-			It("returns true", func(){
+		Context("the task provider is still connected", func() {
+			It("returns true", func() {
 				fakeTaskProvider1 := fakes.FakeTaskProvider("fake_framework_1_", "ff@fakeip1:fakeport")
 				healthy, err := HealthCheck("127.0.0.1:8866", fakeTaskProvider1)
 				Expect(err).To(BeNil())

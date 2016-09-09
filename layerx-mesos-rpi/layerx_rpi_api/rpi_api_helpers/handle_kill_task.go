@@ -1,10 +1,11 @@
 package rpi_api_helpers
+
 import (
-	"github.com/mesos/mesos-go/scheduler"
-	"github.com/mesos/mesos-go/mesosproto"
+	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"fmt"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/mesos/mesos-go/scheduler"
 )
 
 func KillTask(driver scheduler.SchedulerDriver, taskId string) error {
@@ -17,7 +18,7 @@ func KillTask(driver scheduler.SchedulerDriver, taskId string) error {
 		return lxerrors.New(errmsg, err)
 	}
 	if status != mesosproto.Status_DRIVER_RUNNING {
-		err = lxerrors.New("expected status "+mesosproto.Status_DRIVER_RUNNING.String()+ " but got "+status.String(), nil)
+		err = lxerrors.New("expected status "+mesosproto.Status_DRIVER_RUNNING.String()+" but got "+status.String(), nil)
 		errmsg := fmt.Sprintf("killing task %s with mesos schedulerdriver", taskId)
 		return lxerrors.New(errmsg, err)
 	}

@@ -3,16 +3,16 @@ package layerx_brain_client_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"fmt"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/mesos/mesos-go/mesosproto"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func PurgeFakeServer(fakeLxUrl string) error {
@@ -21,7 +21,7 @@ func PurgeFakeServer(fakeLxUrl string) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return lxerrors.New(fmt.Sprintf("status code was %v",resp.StatusCode), nil)
+		return lxerrors.New(fmt.Sprintf("status code was %v", resp.StatusCode), nil)
 	}
 	return nil
 }
@@ -184,7 +184,6 @@ var _ = Describe("LayerxBrainClient", func() {
 			Expect(err).To(BeNil())
 			err = lxTpi.SubmitTask("fake_task_provider_id", fakeTask3)
 			Expect(err).To(BeNil())
-
 
 			fakeTask1.TaskProvider = taskProvider
 			fakeTask2.TaskProvider = taskProvider

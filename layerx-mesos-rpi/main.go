@@ -6,13 +6,13 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api"
 	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-commons/lxutils"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
 )
@@ -40,7 +40,7 @@ func main() {
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}).Fatalf( "retrieving local ip")
+			}).Fatalf("retrieving local ip")
 		}
 	}
 
@@ -59,7 +59,7 @@ func main() {
 		logrus.WithFields(logrus.Fields{
 			"error":      err.Error(),
 			"layerx_url": *layerX,
-		}).Errorf( "registering to layerx")
+		}).Errorf("registering to layerx")
 	}
 
 	rpiScheduler := mesos_framework_api.NewRpiMesosScheduler(rpiClient)
@@ -78,7 +78,7 @@ func main() {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,
-			}).Fatalf( "error initializing mesos schedulerdriver")
+			}).Fatalf("error initializing mesos schedulerdriver")
 		}
 		status, err := driver.Run()
 		if err != nil {
@@ -86,7 +86,7 @@ func main() {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,
-			}).Fatalf( "error running mesos schedulerdriver")
+			}).Fatalf("error running mesos schedulerdriver")
 			return
 		}
 	}()
@@ -103,7 +103,7 @@ func main() {
 	for {
 		err = <-errc
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"error": err}).Errorf( "LayerX Mesos RPI Failed!")
+			logrus.WithFields(logrus.Fields{"error": err}).Errorf("LayerX Mesos RPI Failed!")
 		}
 	}
 }

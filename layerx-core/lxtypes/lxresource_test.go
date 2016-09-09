@@ -3,16 +3,16 @@ package lxtypes_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/mesosutil"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Lxresource", func() {
-	Describe("NewResourceFromMesos", func(){
-		It("converts a mesos offer to a layerx resource", func(){
+	Describe("NewResourceFromMesos", func() {
+		It("converts a mesos offer to a layerx resource", func() {
 			fakeOffer := fakes.FakeOffer("fake_offer_id", "fake_slave_id")
 			resource := NewResourceFromMesos(fakeOffer)
 			Expect(resource.Cpus).To(Equal(getResourceScalar(fakeOffer.GetResources(), "cpus")))

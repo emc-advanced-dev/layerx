@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/go-martini/martini"
-	"github.com/gogo/protobuf/proto"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/go-martini/martini"
+	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

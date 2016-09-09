@@ -120,8 +120,8 @@ var _ = Describe("LayerxTpi", func() {
 			Expect(err).To(BeNil())
 		})
 	})
-	Describe("GetStatusUpdate(taskId)", func(){
-		It("returns the current status of the given task", func(){
+	Describe("GetStatusUpdate(taskId)", func() {
+		It("returns the current status of the given task", func() {
 			taskProvider := &lxtypes.TaskProvider{
 				Id:     "fake_task_provider_id",
 				Source: "taskprovider@tphost:port",

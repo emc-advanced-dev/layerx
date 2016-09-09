@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 type TaskLauncher struct {

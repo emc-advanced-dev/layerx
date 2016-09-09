@@ -1,9 +1,9 @@
 package fakes
+
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 )
-
 
 func FakeFramework() *mesosproto.FrameworkInfo {
 	capabilityType := mesosproto.FrameworkInfo_Capability_REVOCABLE_RESOURCES
@@ -154,7 +154,6 @@ func FakeTaskStatus(taskId string, fakeState mesosproto.TaskState) *mesosproto.T
 		Message: proto.String("fake_message"),
 	}
 }
-
 
 func FakeKillTaskMessage(frameworkId string, taskId string) *mesosproto.KillTaskMessage {
 	return &mesosproto.KillTaskMessage{

@@ -1,11 +1,10 @@
 package fakes
 
 import (
-	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/gogo/protobuf/proto"
+	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/mesosproto/scheduler"
 )
-
 
 func FakeSubscribeCall() *scheduler.Call {
 	callType := scheduler.Call_SUBSCRIBE
@@ -28,7 +27,7 @@ func FakeDeclineOffersCall(frameworkId string, offerIds ...string) *scheduler.Ca
 			Value: proto.String(offerId),
 		})
 	}
-	return &scheduler.Call {
+	return &scheduler.Call{
 		FrameworkId: &mesosproto.FrameworkID{
 			Value: proto.String(frameworkId),
 		},
@@ -49,7 +48,7 @@ func FakeReconcileTasksCall(frameworkId string, taskIds ...string) *scheduler.Ca
 			},
 		})
 	}
-	return &scheduler.Call {
+	return &scheduler.Call{
 		FrameworkId: &mesosproto.FrameworkID{
 			Value: proto.String(frameworkId),
 		},
@@ -62,7 +61,7 @@ func FakeReconcileTasksCall(frameworkId string, taskIds ...string) *scheduler.Ca
 
 func FakeReviveOffersCall(frameworkId string) *scheduler.Call {
 	callType := scheduler.Call_REVIVE
-	return &scheduler.Call {
+	return &scheduler.Call{
 		FrameworkId: &mesosproto.FrameworkID{
 			Value: proto.String(frameworkId),
 		},
@@ -88,13 +87,13 @@ func FakeLaunchTasksCall(frameworkId string, offerIds []string, taskInfos ...*me
 			},
 		})
 	}
-	return &scheduler.Call {
+	return &scheduler.Call{
 		FrameworkId: &mesosproto.FrameworkID{
 			Value: proto.String(frameworkId),
 		},
 		Type: &callType,
 		Accept: &scheduler.Call_Accept{
-			OfferIds: mesosOfferIds,
+			OfferIds:   mesosOfferIds,
 			Operations: launchOperations,
 		},
 	}
@@ -102,7 +101,7 @@ func FakeLaunchTasksCall(frameworkId string, offerIds []string, taskInfos ...*me
 
 func FakeKillTaskCall(frameworkId, taskId string) *scheduler.Call {
 	callType := scheduler.Call_KILL
-	return &scheduler.Call {
+	return &scheduler.Call{
 		FrameworkId: &mesosproto.FrameworkID{
 			Value: proto.String(frameworkId),
 		},

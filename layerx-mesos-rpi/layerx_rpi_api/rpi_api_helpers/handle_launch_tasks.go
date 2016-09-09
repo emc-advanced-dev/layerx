@@ -1,11 +1,12 @@
 package rpi_api_helpers
+
 import (
-	"github.com/mesos/mesos-go/scheduler"
+	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxerrors"
-	"fmt"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/mesos/mesos-go/scheduler"
 )
 
 func LaunchTasks(driver scheduler.SchedulerDriver, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
@@ -30,7 +31,7 @@ func LaunchTasks(driver scheduler.SchedulerDriver, launchTasksMessage layerx_rpi
 		return lxerrors.New(errmsg, err)
 	}
 	if status != mesosproto.Status_DRIVER_RUNNING {
-		err = lxerrors.New("expected status "+mesosproto.Status_DRIVER_RUNNING.String()+ " but got "+status.String(), nil)
+		err = lxerrors.New("expected status "+mesosproto.Status_DRIVER_RUNNING.String()+" but got "+status.String(), nil)
 		errmsg := fmt.Sprintf("launching %v tasks on %v offers with mesos schedulerdriver", len(mesosTasks), len(offerIds))
 		return lxerrors.New(errmsg, err)
 	}

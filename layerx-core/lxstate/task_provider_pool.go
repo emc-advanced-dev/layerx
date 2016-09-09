@@ -1,9 +1,10 @@
 package lxstate
+
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 type TaskProviderPool struct {
@@ -17,7 +18,7 @@ func (taskProviderPool *TaskProviderPool) GetKey() string {
 func (taskProviderPool *TaskProviderPool) Initialize() error {
 	err := lxdatabase.Mkdir(taskProviderPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+taskProviderPool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+taskProviderPool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -36,7 +37,7 @@ func (taskProviderPool *TaskProviderPool) AddTaskProvider(taskProvider *lxtypes.
 }
 
 func (taskProviderPool *TaskProviderPool) GetTaskProvider(taskProviderId string) (*lxtypes.TaskProvider, error) {
-	taskProviderJson, err := lxdatabase.Get(taskProviderPool.GetKey()+"/"+taskProviderId)
+	taskProviderJson, err := lxdatabase.Get(taskProviderPool.GetKey() + "/" + taskProviderId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving taskProvider "+taskProviderId+" from database", err)
 	}
@@ -70,7 +71,7 @@ func (taskProviderPool *TaskProviderPool) DeleteTaskProvider(taskProviderId stri
 	if err != nil {
 		return lxerrors.New("taskProvider "+taskProviderId+" not found", err)
 	}
-	err = lxdatabase.Rm(taskProviderPool.GetKey()+"/"+taskProviderId)
+	err = lxdatabase.Rm(taskProviderPool.GetKey() + "/" + taskProviderId)
 	if err != nil {
 		return lxerrors.New("removing taskProvider "+taskProviderId+" from database", err)
 	}

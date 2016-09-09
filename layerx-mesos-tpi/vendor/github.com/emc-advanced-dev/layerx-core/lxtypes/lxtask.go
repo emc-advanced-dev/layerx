@@ -10,16 +10,16 @@ import (
 const (
 	task_provider_key  = "layerx_mesos_tpi_task_provider_key"
 	kill_requested_key = "layerx_mesos_tpi_kill_requested_key"
-	checkpointed_key       = "layerx_mesos_tpi_checkpointed_key"
+	checkpointed_key   = "layerx_mesos_tpi_checkpointed_key"
 )
 
 type Task struct {
 	TaskProvider  *TaskProvider            `json:"task_provider"`
-	Checkpointed bool                     `json:"checkpointed"`
+	Checkpointed  bool                     `json:"checkpointed"`
 	KillRequested bool                     `json:"kill_requested"`
 	Name          string                   `json:"name,omitempty"`
 	TaskId        string                   `json:"task_id,omitempty"`
-	NodeId string                   `json:"slave_id,omitempty"`
+	NodeId        string                   `json:"slave_id,omitempty"`
 	Cpus          float64                  `json:cpus`
 	Mem           float64                  `json:mem`
 	Disk          float64                  `json:disk`
@@ -191,10 +191,10 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 
 	task := &Task{
 		KillRequested: killRequested,
-		Checkpointed:      checkpointed,
+		Checkpointed:  checkpointed,
 		Name:          taskInfo.GetName(),
 		TaskId:        taskInfo.GetTaskId().GetValue(),
-		NodeId:       taskInfo.GetSlaveId().GetValue(),
+		NodeId:        taskInfo.GetSlaveId().GetValue(),
 		Cpus:          getResourceScalar(taskInfo.GetResources(), "cpus"),
 		Mem:           getResourceScalar(taskInfo.GetResources(), "mem"),
 		Disk:          getResourceScalar(taskInfo.GetResources(), "disk"),

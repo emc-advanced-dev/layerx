@@ -1,16 +1,17 @@
 package rpi_messenger
+
 import (
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
 )
 
 const (
 	COLLECT_RESOURCES = "/collect_resources"
-	LAUNCH_TASKS = "/launch_tasks"
-	KILL_TASK = "/kill_task"
+	LAUNCH_TASKS      = "/launch_tasks"
+	KILL_TASK         = "/kill_task"
 )
 
 func SendResourceCollectionRequest(rpiUrl string) error {
@@ -27,7 +28,7 @@ func SendResourceCollectionRequest(rpiUrl string) error {
 
 func SendLaunchTasksMessage(rpiUrl string, tasksToLaunch []*lxtypes.Task, resourcesToUse []*lxtypes.Resource) error {
 	launchTasksMessage := &layerx_rpi_client.LaunchTasksMessage{
-		TasksToLaunch: tasksToLaunch,
+		TasksToLaunch:  tasksToLaunch,
 		ResourcesToUse: resourcesToUse,
 	}
 	resp, _, err := lxhttpclient.Post(rpiUrl, LAUNCH_TASKS, nil, launchTasksMessage)

@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 var mainLoopLock = &sync.Mutex{}

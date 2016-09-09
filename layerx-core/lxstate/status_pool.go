@@ -1,8 +1,9 @@
 package lxstate
+
 import (
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -17,7 +18,7 @@ func (statusPool *StatusPool) GetKey() string {
 func (statusPool *StatusPool) Initialize() error {
 	err := lxdatabase.Mkdir(statusPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+statusPool.GetKey() +" directory", err)
+		return lxerrors.New("initializing "+statusPool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -40,7 +41,7 @@ func (statusPool *StatusPool) AddStatus(status *mesosproto.TaskStatus) error {
 }
 
 func (statusPool *StatusPool) GetStatus(statusId string) (*mesosproto.TaskStatus, error) {
-	statusJson, err := lxdatabase.Get(statusPool.GetKey()+"/"+statusId)
+	statusJson, err := lxdatabase.Get(statusPool.GetKey() + "/" + statusId)
 	if err != nil {
 		return nil, lxerrors.New("retrieving status "+statusId+" from database", err)
 	}
@@ -91,7 +92,7 @@ func (statusPool *StatusPool) DeleteStatus(statusId string) error {
 	if err != nil {
 		return lxerrors.New("status "+statusId+" not found", err)
 	}
-	err = lxdatabase.Rm(statusPool.GetKey()+"/"+statusId)
+	err = lxdatabase.Rm(statusPool.GetKey() + "/" + statusId)
 	if err != nil {
 		return lxerrors.New("removing status "+statusId+" from database", err)
 	}

@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

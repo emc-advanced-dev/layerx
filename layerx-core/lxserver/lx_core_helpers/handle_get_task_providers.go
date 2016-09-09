@@ -1,11 +1,12 @@
 package lx_core_helpers
+
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
-func  GetTaskProviders(state *lxstate.State) ([]*lxtypes.TaskProvider, error) {
+func GetTaskProviders(state *lxstate.State) ([]*lxtypes.TaskProvider, error) {
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
 		return nil, lxerrors.New("getting task provider list from pool", err)

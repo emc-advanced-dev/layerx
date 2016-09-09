@@ -9,6 +9,6 @@ func LogReviveOffersMessage(reviveOffers mesosproto.ReviveOffersMessage) error {
 	frameworkId := reviveOffers.GetFrameworkId().GetValue()
 	logrus.WithFields(logrus.Fields{
 		"framework_id": frameworkId,
-	}).Debugf( "framework %s requested to revive offers", frameworkId)
+	}).Debugf("framework %s requested to revive offers", frameworkId)
 	return nil
 }

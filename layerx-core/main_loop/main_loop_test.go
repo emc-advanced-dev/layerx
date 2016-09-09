@@ -3,20 +3,20 @@ package main_loop_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/main_loop"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-	"fmt"
-	"github.com/layer-x/layerx-commons/lxmartini"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"time"
-	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 	"github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"time"
 )
 
 func PurgeState() {
@@ -45,11 +45,11 @@ var _ = Describe("MainLoop", func() {
 			Expect(err).To(BeNil())
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			err = state.SetTpi( "127.0.0.1:2288")
+			err = state.SetTpi("127.0.0.1:2288")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:2299",
+				Url:  "127.0.0.1:2299",
 			})
 
 			taskLauncher = task_launcher.NewTaskLauncher(state)
@@ -68,16 +68,16 @@ var _ = Describe("MainLoop", func() {
 		})
 	})
 
-	Describe("MainLoop", func(){
-		It("collects tasks from tpi, collects resources from rpi, and launches staging tasks", func(){
+	Describe("MainLoop", func() {
+		It("collects tasks from tpi, collects resources from rpi, and launches staging tasks", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			err := state.SetTpi( "127.0.0.1:2288")
+			err := state.SetTpi("127.0.0.1:2288")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:2299",
+				Url:  "127.0.0.1:2299",
 			})
 			healthChecker := health_checker.NewHealthChecker(state)
 			go MainLoop(taskLauncher, healthChecker, state, driverErrc)

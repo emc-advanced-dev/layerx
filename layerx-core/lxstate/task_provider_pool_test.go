@@ -3,16 +3,16 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/layer-x/layerx-commons/lxdatabase"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("TaskProviderPool", func() {
-	Describe("GetTaskProvider(taskProviderId)", func(){
-		It("returns the taskProvider if it exists, else returns err", func(){
+	Describe("GetTaskProvider(taskProviderId)", func() {
+		It("returns the taskProvider if it exists, else returns err", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -30,9 +30,9 @@ var _ = Describe("TaskProviderPool", func() {
 			Expect(taskProvider).To(Equal(fakeTaskProvider))
 		})
 	})
-	Describe("AddTaskProvider", func(){
-		Context("the taskProvider is new", func(){
-			It("adds the taskProvider to etcd state", func(){
+	Describe("AddTaskProvider", func() {
+		Context("the taskProvider is new", func() {
+			It("adds the taskProvider to etcd state", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -45,13 +45,13 @@ var _ = Describe("TaskProviderPool", func() {
 				expectedTaskProviderJsonBytes, err := json.Marshal(fakeTaskProvider)
 				Expect(err).To(BeNil())
 				expectedTaskProviderJson := string(expectedTaskProviderJsonBytes)
-				actualTaskProviderJson, err := lxdatabase.Get(state.TaskProviderPool.GetKey() + "/"+fakeTaskProvider.Id)
+				actualTaskProviderJson, err := lxdatabase.Get(state.TaskProviderPool.GetKey() + "/" + fakeTaskProvider.Id)
 				Expect(err).To(BeNil())
 				Expect(actualTaskProviderJson).To(Equal(expectedTaskProviderJson))
 			})
 		})
-		Context("the taskProvider is not new", func(){
-			It("accepts the task provider", func(){
+		Context("the taskProvider is not new", func() {
+			It("accepts the task provider", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -66,8 +66,8 @@ var _ = Describe("TaskProviderPool", func() {
 			})
 		})
 	})
-	Describe("GetTaskProviders()", func(){
-		It("returns all known taskProviders in the pool", func(){
+	Describe("GetTaskProviders()", func() {
+		It("returns all known taskProviders in the pool", func() {
 			state := NewState()
 			state.InitializeState("http://127.0.0.1:4001")
 			PurgeState()
@@ -90,9 +90,9 @@ var _ = Describe("TaskProviderPool", func() {
 			Expect(taskProviders[fakeTaskProvider3.Id]).To(Equal(fakeTaskProvider3))
 		})
 	})
-	Describe("DeleteTaskProvider(taskProviderId)", func(){
-		Context("taskProvider exists", func(){
-			It("deletes the taskProvider", func(){
+	Describe("DeleteTaskProvider(taskProviderId)", func() {
+		Context("taskProvider exists", func() {
+			It("deletes the taskProvider", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()
@@ -117,8 +117,8 @@ var _ = Describe("TaskProviderPool", func() {
 				Expect(taskProviders[fakeTaskProvider3.Id]).To(Equal(fakeTaskProvider3))
 			})
 		})
-		Context("taskProvider does not exist", func(){
-			It("throws error", func(){
+		Context("taskProvider does not exist", func() {
+			It("throws error", func() {
 				state := NewState()
 				state.InitializeState("http://127.0.0.1:4001")
 				PurgeState()

@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/layer-x/layerx-commons/lxerrors"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/layer-x/layerx-commons/lxerrors"
 )
 
 func ProcessMesosHttpRequest(req *http.Request) (*mesos_data.UPID, []byte, int, error) {

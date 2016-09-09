@@ -3,19 +3,19 @@ package task_launcher_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/layer-x/layerx-commons/lxmartini"
-	"fmt"
-"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
-"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxmartini"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func PurgeState() {
@@ -48,11 +48,11 @@ var _ = Describe("TaskLauncher", func() {
 			driverErrc := make(chan error)
 			coreServerWrapper := lxserver.NewLayerXCoreServerWrapper(state, lxmartini.QuietMartini(), driverErrc)
 
-			err = state.SetTpi( "127.0.0.1:2288")
+			err = state.SetTpi("127.0.0.1:2288")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:2299",
+				Url:  "127.0.0.1:2299",
 			})
 
 			go func() {
@@ -68,16 +68,16 @@ var _ = Describe("TaskLauncher", func() {
 			logrus.SetLevel(logrus.DebugLevel)
 		})
 	})
-	Describe("LaunchStagedTasks", func(){
-		It("sends LaunchTaskMessage to rpi for all tasks in the staging pool", func(){
+	Describe("LaunchStagedTasks", func() {
+		It("sends LaunchTaskMessage to rpi for all tasks in the staging pool", func() {
 			PurgeState()
 			err2 := state.InitializeState("http://127.0.0.1:4001")
 			Expect(err2).To(BeNil())
-			err := state.SetTpi( "127.0.0.1:2288")
+			err := state.SetTpi("127.0.0.1:2288")
 			Expect(err).To(BeNil())
 			err = state.RpiPool.AddRpi(&layerx_rpi_client.RpiInfo{
 				Name: "fake-rpi",
-				Url: "127.0.0.1:2299",
+				Url:  "127.0.0.1:2299",
 			})
 			fakeResource1 := lxtypes.NewResourceFromMesos(fakes.FakeOffer("fake_offer_id_1", "fake_slave_id_1"))
 			fakeResource1.RpiName = "fake-rpi"

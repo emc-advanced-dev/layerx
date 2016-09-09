@@ -1,11 +1,12 @@
 package layerx_brain_client
+
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/layer-x/layerx-commons/lxerrors"
-	"fmt"
 	"encoding/json"
-"github.com/mesos/mesos-go/mesosproto"
+	"fmt"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/mesos/mesos-go/mesosproto"
 )
 
 type LayerXBrainClient struct {
@@ -13,12 +14,12 @@ type LayerXBrainClient struct {
 }
 
 const (
-	GetPendingTasks = "/GetPendingTasks"
-	GetStagingTasks = "/GetStagingTasks"
+	GetPendingTasks  = "/GetPendingTasks"
+	GetStagingTasks  = "/GetStagingTasks"
 	GetNodes         = "/GetNodes"
-	GetStatusUpdates  = "/GetStatusUpdates"
-	AssignTasks = "/AssignTasks"
-	MigrateTasks = "/MigrateTasks"
+	GetStatusUpdates = "/GetStatusUpdates"
+	AssignTasks      = "/AssignTasks"
+	MigrateTasks     = "/MigrateTasks"
 )
 
 //call this method to see unassigned tasks
@@ -104,7 +105,7 @@ func (brainClient *LayerXBrainClient) GetStatusUpdates() ([]*mesosproto.TaskStat
 //call this method to assign tasks to a node
 func (brainClient *LayerXBrainClient) AssignTasks(nodeId string, taskIds ...string) error {
 	assignTasksMessage := BrainAssignTasksMessage{
-		NodeId: nodeId,
+		NodeId:  nodeId,
 		TaskIds: taskIds,
 	}
 	resp, _, err := lxhttpclient.Post(brainClient.CoreURL, AssignTasks, nil, assignTasksMessage)
@@ -122,7 +123,7 @@ func (brainClient *LayerXBrainClient) AssignTasks(nodeId string, taskIds ...stri
 func (brainClient *LayerXBrainClient) MigrateTasks(destinationNodeId string, taskIds ...string) error {
 	assignTasksMessage := MigrateTaskMessage{
 		DestinationNodeId: destinationNodeId,
-		TaskIds: taskIds,
+		TaskIds:           taskIds,
 	}
 	resp, _, err := lxhttpclient.Post(brainClient.CoreURL, MigrateTasks, nil, assignTasksMessage)
 	if err != nil {
@@ -134,4 +135,3 @@ func (brainClient *LayerXBrainClient) MigrateTasks(destinationNodeId string, tas
 	}
 	return nil
 }
-

@@ -3,10 +3,10 @@ package lxstate_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("NodePool", func() {
@@ -124,7 +124,7 @@ var _ = Describe("NodePool", func() {
 					err = nodePool.DeleteNode(fakeNode.Id)
 					Expect(err).NotTo(BeNil())
 				})
-			})//TODO: DELETENODE TEST, GETRESOURCEPOOL GETTASKPOOL
+			}) //TODO: DELETENODE TEST, GETRESOURCEPOOL GETTASKPOOL
 		})
 		Describe("GetNodeResourcePool", func() {
 			It("returns the resource pool for the specified nodeid", func() {
