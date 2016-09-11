@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/mesosproto"
 )
@@ -31,11 +31,11 @@ func (tpi *LayerXTpi) RegisterTpi(tpiUrl string) error {
 	reg := TpiRegistrationMessage{TpiUrl: tpiUrl}
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, RegisterTpi, nil, reg)
 	if err != nil {
-		return lxerrors.New("POSTing registration request to LayerX core server", err)
+		return errors.New("POSTing registration request to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing registration request to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -45,11 +45,11 @@ func (tpi *LayerXTpi) RegisterTpi(tpiUrl string) error {
 func (tpi *LayerXTpi) RegisterTaskProvider(tp *lxtypes.TaskProvider) error {
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, RegisterTaskProvider, nil, tp)
 	if err != nil {
-		return lxerrors.New("POSTing TaskProvider to LayerX core server", err)
+		return errors.New("POSTing TaskProvider to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing TaskProvider to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -59,11 +59,11 @@ func (tpi *LayerXTpi) RegisterTaskProvider(tp *lxtypes.TaskProvider) error {
 func (tpi *LayerXTpi) DeregisterTaskProvider(tpId string) error {
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, DeregisterTaskProvider+"/"+tpId, nil, nil)
 	if err != nil {
-		return lxerrors.New("Requesting DeRegister of task provider "+tpId+" to LayerX core server", err)
+		return errors.New("Requesting DeRegister of task provider "+tpId+" to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("Requesting DeRegister of task provider "+tpId+" to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -73,14 +73,14 @@ func (tpi *LayerXTpi) DeregisterTaskProvider(tpId string) error {
 func (tpi *LayerXTpi) GetTaskProvider(tpid string) (*lxtypes.TaskProvider, error) {
 	taskProviders, err := tpi.GetTaskProviders()
 	if err != nil {
-		return nil, lxerrors.New("retrieving list of task providers", err)
+		return nil, errors.New("retrieving list of task providers", err)
 	}
 	for _, taskProvider := range taskProviders {
 		if taskProvider.Id == tpid {
 			return taskProvider, nil
 		}
 	}
-	return nil, lxerrors.New("task provider with id "+tpid+" not found", nil)
+	return nil, errors.New("task provider with id "+tpid+" not found", nil)
 }
 
 //call this method to retrieve a list of registered
@@ -90,15 +90,15 @@ func (tpi *LayerXTpi) GetTaskProviders() ([]*lxtypes.TaskProvider, error) {
 	taskProviders := []*lxtypes.TaskProvider{}
 	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetTaskProviders, nil)
 	if err != nil {
-		return nil, lxerrors.New("Requesting task provider list from LayerX core server", err)
+		return nil, errors.New("Requesting task provider list from LayerX core server", err)
 	}
 	if resp.StatusCode != 200 {
 		msg := fmt.Sprintf("Requesting task provider list from LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return nil, lxerrors.New(msg, err)
+		return nil, errors.New(msg, err)
 	}
 	err = json.Unmarshal(body, &taskProviders)
 	if err != nil {
-		return nil, lxerrors.New("unmarshalling json to []*lxtypes.TaskProvider", err)
+		return nil, errors.New("unmarshalling json to []*lxtypes.TaskProvider", err)
 	}
 	return taskProviders, nil
 }
@@ -110,15 +110,15 @@ func (tpi *LayerXTpi) GetStatusUpdates(tpid string) ([]*mesosproto.TaskStatus, e
 	statusUpdates := []*mesosproto.TaskStatus{}
 	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetStatusUpdates+"/"+tpid, nil)
 	if err != nil {
-		return nil, lxerrors.New("Requesting status update list from LayerX core server", err)
+		return nil, errors.New("Requesting status update list from LayerX core server", err)
 	}
 	if resp.StatusCode != 200 {
 		msg := fmt.Sprintf("Requesting status update list from LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return nil, lxerrors.New(msg, err)
+		return nil, errors.New(msg, err)
 	}
 	err = json.Unmarshal(body, &statusUpdates)
 	if err != nil {
-		return nil, lxerrors.New("unmarshalling json to []*mesosproto.TaskStatus", err)
+		return nil, errors.New("unmarshalling json to []*mesosproto.TaskStatus", err)
 	}
 	return statusUpdates, nil
 }
@@ -129,15 +129,15 @@ func (tpi *LayerXTpi) GetStatusUpdate(taskId string) (*mesosproto.TaskStatus, er
 	var status mesosproto.TaskStatus
 	resp, body, err := lxhttpclient.Get(tpi.CoreURL, GetStatusUpdate+"/"+taskId, nil)
 	if err != nil {
-		return nil, lxerrors.New("Requesting status update for task "+taskId+" from LayerX core server", err)
+		return nil, errors.New("Requesting status update for task "+taskId+" from LayerX core server", err)
 	}
 	if resp.StatusCode != 200 {
 		msg := fmt.Sprintf("Requesting status update for task "+taskId+" from LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return nil, lxerrors.New(msg, err)
+		return nil, errors.New(msg, err)
 	}
 	err = json.Unmarshal(body, &status)
 	if err != nil {
-		return nil, lxerrors.New("unmarshalling json to *mesosproto.TaskStatus", err)
+		return nil, errors.New("unmarshalling json to *mesosproto.TaskStatus", err)
 	}
 	return &status, nil
 }
@@ -147,11 +147,11 @@ func (tpi *LayerXTpi) GetStatusUpdate(taskId string) (*mesosproto.TaskStatus, er
 func (tpi *LayerXTpi) SubmitTask(tpid string, task *lxtypes.Task) error {
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, SubmitTask+"/"+tpid, nil, task)
 	if err != nil {
-		return lxerrors.New("POSTing Task to LayerX core server", err)
+		return errors.New("POSTing Task to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing Task to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -161,11 +161,11 @@ func (tpi *LayerXTpi) SubmitTask(tpid string, task *lxtypes.Task) error {
 func (tpi *LayerXTpi) KillTask(taskProviderId, taskId string) error {
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, KillTask+"/"+taskProviderId+"/"+taskId, nil, nil)
 	if err != nil {
-		return lxerrors.New("Requesting KILL on task "+taskId+" to LayerX core server", err)
+		return errors.New("Requesting KILL on task "+taskId+" to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("Requesting KILL on task "+taskId+" to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -175,11 +175,11 @@ func (tpi *LayerXTpi) KillTask(taskProviderId, taskId string) error {
 func (tpi *LayerXTpi) PurgeTask(taskId string) error {
 	resp, _, err := lxhttpclient.Post(tpi.CoreURL, PurgeTask+"/"+taskId, nil, nil)
 	if err != nil {
-		return lxerrors.New("Requesting Purge on task "+taskId+" to LayerX core server", err)
+		return errors.New("Requesting Purge on task "+taskId+" to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("Requesting Purge on task "+taskId+" to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }

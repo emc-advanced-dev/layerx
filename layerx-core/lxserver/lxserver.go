@@ -14,7 +14,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -65,19 +65,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing register tpi request", err)
+				return empty, 400, errors.New("parsing register tpi request", err)
 			}
 			var tpiRegistrationMessage layerx_tpi_client.TpiRegistrationMessage
 			err = json.Unmarshal(data, &tpiRegistrationMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to register tpi message", err)
+				return empty, 500, errors.New("could not parse json to register tpi message", err)
 			}
 			err = lx_core_helpers.RegisterTpi(wrapper.state, tpiRegistrationMessage.TpiUrl)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle register tpi request")
-				return empty, 500, lxerrors.New("could not handle register tpi request", err)
+				return empty, 500, errors.New("could not handle register tpi request", err)
 			}
 			logrus.WithFields(logrus.Fields{"tpi_url": tpiRegistrationMessage.TpiUrl}).Infof("Registered TPI to LayerX")
 			return empty, 202, nil
@@ -101,19 +101,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing register rpi request", err)
+				return empty, 400, errors.New("parsing register rpi request", err)
 			}
 			var rpiRegistrationMessage layerx_rpi_client.RpiInfo
 			err = json.Unmarshal(data, &rpiRegistrationMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to register rpi message", err)
+				return empty, 500, errors.New("could not parse json to register rpi message", err)
 			}
 			err = lx_core_helpers.RegisterRpi(wrapper.state, rpiRegistrationMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle register rpi request")
-				return empty, 500, lxerrors.New("could not handle register rpi request", err)
+				return empty, 500, errors.New("could not handle register rpi request", err)
 			}
 			logrus.WithFields(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}).Infof("Registered TPI to LayerX")
 			return empty, 202, nil
@@ -137,19 +137,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing register TaskProvider request", err)
+				return empty, 400, errors.New("parsing register TaskProvider request", err)
 			}
 			var taskProvider lxtypes.TaskProvider
 			err = json.Unmarshal(data, &taskProvider)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to register TaskProvider message", err)
+				return empty, 500, errors.New("could not parse json to register TaskProvider message", err)
 			}
 			err = lx_core_helpers.RegisterTaskProvider(wrapper.state, &taskProvider)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle register TaskProvider request")
-				return empty, 500, lxerrors.New("could not handle register TaskProvider request", err)
+				return empty, 500, errors.New("could not handle register TaskProvider request", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_provider": taskProvider}).Infof("Added new TaskProvider to LayerX")
 			return empty, 202, nil
@@ -174,7 +174,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle deregister TaskProvider request")
-				return empty, 500, lxerrors.New("could not handle deregister TaskProvider request", err)
+				return empty, 500, errors.New("could not handle deregister TaskProvider request", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_provider_id": tpId}).Infof("removed task provider from LayerX")
 			return empty, 202, nil
@@ -198,12 +198,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get TaskProviders request")
-				return empty, 500, lxerrors.New("could not handle Get TaskProviders request", err)
+				return empty, 500, errors.New("could not handle Get TaskProviders request", err)
 			}
 			data, err := json.Marshal(taskProviders)
 			if err != nil {
 				logrus.Errorf("could not marshal task providers to json")
-				return empty, 500, lxerrors.New("marshalling taskProviders to json", err)
+				return empty, 500, errors.New("marshalling taskProviders to json", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_providers": taskProviders}).Debugf("Added new TaskProvider to LayerX")
 			return data, 200, nil
@@ -228,12 +228,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get Status Updates request")
-				return empty, 500, lxerrors.New("could not handle Get Status Updates request", err)
+				return empty, 500, errors.New("could not handle Get Status Updates request", err)
 			}
 			data, err := json.Marshal(statuses)
 			if err != nil {
 				logrus.Errorf("could not marshal Status Updates to json")
-				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
+				return empty, 500, errors.New("marshalling Statuses to json", err)
 			}
 			logrus.WithFields(logrus.Fields{"statuses": statuses}).Debugf("Replying with Statuses")
 			return data, 200, nil
@@ -258,12 +258,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get Status Update request")
-				return empty, 500, lxerrors.New("could not handle Get Status Update request", err)
+				return empty, 500, errors.New("could not handle Get Status Update request", err)
 			}
 			data, err := json.Marshal(status)
 			if err != nil {
 				logrus.Errorf("could not marshal Status Update to json")
-				return empty, 500, lxerrors.New("marshalling Statuses to json", err)
+				return empty, 500, errors.New("marshalling Statuses to json", err)
 			}
 			return data, 200, nil
 		}
@@ -287,19 +287,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing SubmitTask request", err)
+				return empty, 400, errors.New("parsing SubmitTask request", err)
 			}
 			var task lxtypes.Task
 			err = json.Unmarshal(data, &task)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to task", err)
+				return empty, 500, errors.New("could not parse json to task", err)
 			}
 			err = lx_core_helpers.SubmitTask(wrapper.state, tpId, &task)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get SubmitTask request")
-				return empty, 500, lxerrors.New("could not handle SubmitTask request", err)
+				return empty, 500, errors.New("could not handle SubmitTask request", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_provider_id": tpId, "task": task}).Infof("accepted task from task provider")
 			return empty, 202, nil
@@ -325,7 +325,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle kill task request")
-				return empty, 500, lxerrors.New("could not handle kill task request", err)
+				return empty, 500, errors.New("could not handle kill task request", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_id": taskId, "task_provider_id": taskProviderId}).Infof("killed task")
 			return empty, 202, nil
@@ -350,7 +350,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle purge task request")
-				return empty, 500, lxerrors.New("could not handle purge task request", err)
+				return empty, 500, errors.New("could not handle purge task request", err)
 			}
 			logrus.WithFields(logrus.Fields{"task_id": taskId}).Infof("removed task from LayerX")
 			return empty, 202, nil
@@ -374,19 +374,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing submit resource request", err)
+				return empty, 400, errors.New("parsing submit resource request", err)
 			}
 			var resource lxtypes.Resource
 			err = json.Unmarshal(data, &resource)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to resource", err)
+				return empty, 500, errors.New("could not parse json to resource", err)
 			}
 			err = lx_core_helpers.SubmitResource(wrapper.state, &resource)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Submit Resource request")
-				return empty, 500, lxerrors.New("could not handle SubmitResource request", err)
+				return empty, 500, errors.New("could not handle SubmitResource request", err)
 			}
 			logrus.WithFields(logrus.Fields{"resource": resource}).Infof("accepted resource from rpi")
 			return empty, 202, nil
@@ -410,19 +410,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing submit status request", err)
+				return empty, 400, errors.New("parsing submit status request", err)
 			}
 			var status mesosproto.TaskStatus
 			err = proto.Unmarshal(data, &status)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse protobuf to status", err)
+				return empty, 500, errors.New("could not parse protobuf to status", err)
 			}
 			err = lx_core_helpers.ProcessStatusUpdate(wrapper.state, wrapper.state.GetTpiUrl(), &status)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Submit status request")
-				return empty, 500, lxerrors.New("could not handle submit status request", err)
+				return empty, 500, errors.New("could not handle submit status request", err)
 			}
 			logrus.WithFields(logrus.Fields{"status": status, "message": status.GetMessage()}).Infof("accepted status update from rpi")
 			return empty, 202, nil
@@ -446,12 +446,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get Nodes request")
-				return empty, 500, lxerrors.New("could not handle Get Nodes request", err)
+				return empty, 500, errors.New("could not handle Get Nodes request", err)
 			}
 			data, err := json.Marshal(nodes)
 			if err != nil {
 				logrus.Errorf("could not marshal nodes to json")
-				return empty, 500, lxerrors.New("marshalling nodes to json", err)
+				return empty, 500, errors.New("marshalling nodes to json", err)
 			}
 			logrus.WithFields(logrus.Fields{"nodes": nodes}).Debugf("Replying with Nodes")
 			return data, 200, nil
@@ -475,12 +475,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get Pending Tasks request")
-				return empty, 500, lxerrors.New("could not handle Get Pending Tasks request", err)
+				return empty, 500, errors.New("could not handle Get Pending Tasks request", err)
 			}
 			data, err := json.Marshal(tasks)
 			if err != nil {
 				logrus.Errorf("could not marshal tasks to json")
-				return empty, 500, lxerrors.New("marshalling tasks to json", err)
+				return empty, 500, errors.New("marshalling tasks to json", err)
 			}
 			logrus.WithFields(logrus.Fields{"tasks": tasks}).Debugf("Replying with Pending Tasks")
 			return data, 200, nil
@@ -504,12 +504,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle Get Staging Tasks request")
-				return empty, 500, lxerrors.New("could not handle Get Staging Tasks request", err)
+				return empty, 500, errors.New("could not handle Get Staging Tasks request", err)
 			}
 			data, err := json.Marshal(tasks)
 			if err != nil {
 				logrus.Errorf("could not marshal tasks to json")
-				return empty, 500, lxerrors.New("marshalling tasks to json", err)
+				return empty, 500, errors.New("marshalling tasks to json", err)
 			}
 			logrus.WithFields(logrus.Fields{"tasks": tasks}).Debugf("Replying with Staging Tasks")
 			return data, 200, nil
@@ -533,12 +533,12 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing assign tasks request", err)
+				return empty, 400, errors.New("parsing assign tasks request", err)
 			}
 			var assignTasksMessage layerx_brain_client.BrainAssignTasksMessage
 			err = json.Unmarshal(data, &assignTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to assign tasks message ("+string(data)+")", err)
+				return empty, 500, errors.New("could not parse json to assign tasks message ("+string(data)+")", err)
 			}
 			err = lx_core_helpers.AssignTasks(wrapper.state, assignTasksMessage)
 			if err != nil {
@@ -546,7 +546,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 					"error": err,
 					"data":  string(data),
 				}).Errorf("could not handle assign tasks request")
-				return empty, 500, lxerrors.New("could not handle assign tasks message", err)
+				return empty, 500, errors.New("could not handle assign tasks message", err)
 			}
 			logrus.WithFields(logrus.Fields{"assignTasksMessage": assignTasksMessage}).Infof("accepted assign tasks message from brain")
 			return empty, 202, nil
@@ -570,19 +570,19 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing migrate tasks request", err)
+				return empty, 400, errors.New("parsing migrate tasks request", err)
 			}
 			var migrateTasksMessage layerx_brain_client.MigrateTaskMessage
 			err = json.Unmarshal(data, &migrateTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to migrate tasks message", err)
+				return empty, 500, errors.New("could not parse json to migrate tasks message", err)
 			}
 			err = lx_core_helpers.MigrateTasks(wrapper.state, migrateTasksMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle migrate tasks request")
-				return empty, 500, lxerrors.New("could not handle migrate tasks message", err)
+				return empty, 500, errors.New("could not handle migrate tasks message", err)
 			}
 			logrus.WithFields(logrus.Fields{"migrateTasksMessage": migrateTasksMessage}).Infof("accepted migrate tasks message from brain")
 			return empty, 202, nil

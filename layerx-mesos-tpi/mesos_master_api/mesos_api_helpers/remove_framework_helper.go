@@ -3,13 +3,13 @@ package mesos_api_helpers
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 func HandleRemoveFramework(tpi *layerx_tpi_client.LayerXTpi, frameworkId string) error {
 	err := tpi.DeregisterTaskProvider(frameworkId)
 	if err != nil {
-		err = lxerrors.New("registering framework as new task provider with layer x", err)
+		err = errors.New("registering framework as new task provider with layer x", err)
 		logrus.WithFields(logrus.Fields{
 			"error":       err.Error(),
 			"frameworkId": frameworkId,

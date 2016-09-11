@@ -6,7 +6,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 func ProcessMesosHttpRequest(req *http.Request) (*mesos_data.UPID, []byte, int, error) {
@@ -18,7 +18,7 @@ func ProcessMesosHttpRequest(req *http.Request) (*mesos_data.UPID, []byte, int, 
 		logrus.WithFields(logrus.Fields{
 			"error": err,
 		}).Errorf("could not read  REGISTER_FRAMEWORK_MESSAGE request body")
-		return nil, empty, 500, lxerrors.New("could not read  mesos http request body", err)
+		return nil, empty, 500, errors.New("could not read  mesos http request body", err)
 	}
 	requestingFramework := req.Header.Get("Libprocess-From")
 	if requestingFramework == "" {
@@ -30,7 +30,7 @@ func ProcessMesosHttpRequest(req *http.Request) (*mesos_data.UPID, []byte, int, 
 		logrus.WithFields(logrus.Fields{
 			"error": err,
 		}).Errorf("could not parse pid of requesting framework")
-		return nil, empty, 500, lxerrors.New("could not parse pid of requesting framework", err)
+		return nil, empty, 500, errors.New("could not parse pid of requesting framework", err)
 	}
 	return upid, data, -1, nil
 }

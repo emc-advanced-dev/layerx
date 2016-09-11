@@ -2,7 +2,7 @@ package mesos_data
 
 import (
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/mesos/mesos-go/mesosproto"
 	"net"
@@ -149,11 +149,11 @@ type MesosState struct {
 func (state *MesosState) ToMasterInfo() (*mesosproto.MasterInfo, error) {
 	upid, err := UPIDFromString(state.Leader)
 	if err != nil {
-		return nil, lxerrors.New("parsing upid from state.Leader", err)
+		return nil, errors.New("parsing upid from state.Leader", err)
 	}
 	port, err := strconv.Atoi(upid.Port)
 	if err != nil {
-		return nil, lxerrors.New("converting state.Port to int", err)
+		return nil, errors.New("converting state.Port to int", err)
 	}
 	ipInt := lxutils.IpToI(net.ParseIP(upid.Host))
 	return &mesosproto.MasterInfo{

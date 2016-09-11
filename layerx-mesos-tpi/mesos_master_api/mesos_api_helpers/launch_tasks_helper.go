@@ -4,7 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -19,7 +19,7 @@ func HandleLaunchTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkId stri
 				"tpi":         tpi,
 				"task":        lxTask,
 			}).Errorf("submitting task to layer-x core")
-			return lxerrors.New("submitting task "+lxTask.TaskId+" to layer-x core", err)
+			return errors.New("submitting task "+lxTask.TaskId+" to layer-x core", err)
 		}
 	}
 	return nil

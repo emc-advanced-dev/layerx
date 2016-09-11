@@ -9,7 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/pborman/uuid"
@@ -35,7 +35,7 @@ func NewFrameworkManager(masterUpid *mesos_data.UPID) *frameworkManager {
 //notify a framework that it has successfully registered with the tpi
 func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, frameworkId string, frameworkUpid *mesos_data.UPID) error {
 	if frameworkName == "" {
-		return lxerrors.New("framework must be named", nil)
+		return errors.New("framework must be named", nil)
 	}
 
 	masterState := &mesos_data.MesosState{
@@ -44,7 +44,7 @@ func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, framew
 	}
 	masterInfo, err := masterState.ToMasterInfo()
 	if err != nil {
-		return lxerrors.New("converting master state to master info", err)
+		return errors.New("converting master state to master info", err)
 	}
 
 	frameworkRegisteredMsg := &mesosproto.FrameworkRegisteredMessage{
@@ -55,11 +55,11 @@ func (manager *frameworkManager) NotifyFrameworkRegistered(frameworkName, framew
 	}
 	resp, _, err := manager.sendMessage(frameworkUpid, frameworkRegisteredMsg, "/mesos.internal.FrameworkRegisteredMessage")
 	if err != nil {
-		return lxerrors.New("sending registered message to framework", err)
+		return errors.New("sending registered message to framework", err)
 	}
 	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		statusCode := fmt.Sprintf("%v", resp.StatusCode)
-		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
+		return errors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
 	}
 	return nil
 }
@@ -90,11 +90,11 @@ func (manager *frameworkManager) SendStatusUpdate(frameworkId string, frameworkU
 	}
 	resp, _, err := manager.sendMessage(frameworkUpid, statusUpdateMessage, "/mesos.internal.StatusUpdateMessage")
 	if err != nil {
-		return lxerrors.New("sending status update to framework", err)
+		return errors.New("sending status update to framework", err)
 	}
 	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		statusCode := fmt.Sprintf("%v", resp.StatusCode)
-		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
+		return errors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
 	}
 	return nil
 }
@@ -111,11 +111,11 @@ func (manager *frameworkManager) SendTaskCollectionOffer(frameworkId, phonyOffer
 	}
 	resp, _, err := manager.sendMessage(frameworkUpid, offerMessage, "/mesos.internal.ResourceOffersMessage")
 	if err != nil {
-		return lxerrors.New("sending task collection offer to framework", err)
+		return errors.New("sending task collection offer to framework", err)
 	}
 	if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
 		statusCode := fmt.Sprintf("%v", resp.StatusCode)
-		return lxerrors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
+		return errors.New("expected 200 or 202 response from framework, got "+statusCode, nil)
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func (manager *frameworkManager) HealthCheckFramework(frameworkId string, framew
 		if strings.Contains(err.Error(), "connection refused") {
 			return false, nil
 		}
-		return false, lxerrors.New("performing health check on framework", err)
+		return false, errors.New("performing health check on framework", err)
 	}
 	return true, nil
 }
@@ -147,7 +147,7 @@ func (manager *frameworkManager) sendMessage(destination *mesos_data.UPID, messa
 	}
 	resp, data, err := lxhttpclient.Post(url, path, headers, message)
 	if err != nil {
-		err = lxerrors.New("sending data("+string(data)+") to framework", err)
+		err = errors.New("sending data("+string(data)+") to framework", err)
 	}
 	return resp, data, err
 }

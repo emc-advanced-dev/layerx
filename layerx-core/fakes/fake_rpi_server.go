@@ -11,7 +11,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/pborman/uuid"
 )
@@ -33,7 +33,7 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect resources request")
-				return empty, 500, lxerrors.New("could not handle collect resources request", err)
+				return empty, 500, errors.New("could not handle collect resources request", err)
 			}
 			return empty, 202, nil
 		}
@@ -55,19 +55,19 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing launch task request", err)
+				return empty, 400, errors.New("parsing launch task request", err)
 			}
 			var launchTaskMessage layerx_rpi_client.LaunchTasksMessage
 			err = json.Unmarshal(data, &launchTaskMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to update launch task message", err)
+				return empty, 500, errors.New("could not parse json to update launch task message", err)
 			}
 			err = fakeLaunchTasks(layerxUrl, launchTaskMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect resources request")
-				return empty, 500, lxerrors.New("could not handle update launch task request", err)
+				return empty, 500, errors.New("could not handle update launch task request", err)
 			}
 			return empty, 202, nil
 		}
@@ -90,7 +90,7 @@ func RunFakeRpiServer(layerxUrl string, port int, driverErrc chan error) {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not kill task")
-				return empty, 500, lxerrors.New("could not kill task", err)
+				return empty, 500, errors.New("could not kill task", err)
 			}
 			return empty, 202, nil
 		}
@@ -127,22 +127,22 @@ func fakeCollectResources(layerXUrl string) error {
 	fakeResource3 := lxtypes.NewResourceFromMesos(FakeOffer(fakeResourceId3, "fake_slave_id_3"))
 	err := rpiClient.SubmitResource(fakeResource1)
 	if err != nil {
-		return lxerrors.New("submitting resource", err)
+		return errors.New("submitting resource", err)
 	}
 	err = rpiClient.SubmitResource(fakeResource2)
 	if err != nil {
-		return lxerrors.New("submitting resource", err)
+		return errors.New("submitting resource", err)
 	}
 	err = rpiClient.SubmitResource(fakeResource3)
 	if err != nil {
-		return lxerrors.New("submitting resource", err)
+		return errors.New("submitting resource", err)
 	}
 	return nil
 }
 
 func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.LaunchTasksMessage) error {
 	if len(launchTaskMessage.ResourcesToUse) < 1 {
-		return lxerrors.New("must specify at least one resource for fake launch!", nil)
+		return errors.New("must specify at least one resource for fake launch!", nil)
 	}
 	nodeId := launchTaskMessage.ResourcesToUse[0].NodeId
 	for _, task := range launchTaskMessage.TasksToLaunch {
@@ -156,7 +156,7 @@ func fakeLaunchTasks(layerXUrl string, launchTaskMessage layerx_rpi_client.Launc
 		}
 		err := rpiClient.SubmitStatusUpdate(fakeRunningStatus)
 		if err != nil {
-			return lxerrors.New("submitting fake TASK_RUNNING status update to layerx core", err)
+			return errors.New("submitting fake TASK_RUNNING status update to layerx core", err)
 		}
 	}
 	for _, task := range launchTaskMessage.TasksToLaunch {

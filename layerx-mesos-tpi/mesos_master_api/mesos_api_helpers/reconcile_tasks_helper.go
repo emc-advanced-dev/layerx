@@ -5,7 +5,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -14,7 +14,7 @@ func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkMana
 	for _, taskId := range taskIds {
 		status, err := tpi.GetStatusUpdate(taskId)
 		if err != nil {
-			return lxerrors.New("getting status for task "+taskId+" from layerx core", err)
+			return errors.New("getting status for task "+taskId+" from layerx core", err)
 		}
 		statusUpdates = append(statusUpdates, status)
 		continue
@@ -29,7 +29,7 @@ func HandleReconcileTasksRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkMana
 				"status":         status,
 				"error":          err,
 			}).Errorf("failed sending status update to framework")
-			return lxerrors.New("sending status update to framework", err)
+			return errors.New("sending status update to framework", err)
 		}
 	}
 	return nil

@@ -10,7 +10,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/mesos/mesos-go/mesosproto"
@@ -74,7 +74,7 @@ func main() {
 	go func() {
 		driver, err := scheduler.NewMesosSchedulerDriver(config)
 		if err != nil {
-			err = lxerrors.New("initializing mesos schedulerdriver", err)
+			err = errors.New("initializing mesos schedulerdriver", err)
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,
@@ -82,7 +82,7 @@ func main() {
 		}
 		status, err := driver.Run()
 		if err != nil {
-			err = lxerrors.New("Framework stopped with status "+status.String(), err)
+			err = errors.New("Framework stopped with status "+status.String(), err)
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"mesos_url": *master,

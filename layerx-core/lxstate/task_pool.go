@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 type TaskPool struct {
@@ -18,27 +18,27 @@ func (taskPool *TaskPool) GetKey() string {
 func (taskPool *TaskPool) Initialize() error {
 	err := lxdatabase.Mkdir(taskPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+taskPool.GetKey()+" directory", err)
+		return errors.New("initializing "+taskPool.GetKey()+" directory", err)
 	}
 	return nil
 }
 
 func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
 	if task.TaskProvider == nil {
-		return lxerrors.New("cannot accept task "+task.TaskId+" with no task provider!", nil)
+		return errors.New("cannot accept task "+task.TaskId+" with no task provider!", nil)
 	}
 	taskId := task.TaskId
 	_, err := taskPool.GetTask(taskId)
 	if err == nil {
-		return lxerrors.New("task "+taskId+" already exists in database, try Modify()?", err)
+		return errors.New("task "+taskId+" already exists in database, try Modify()?", err)
 	}
 	taskData, err := json.Marshal(task)
 	if err != nil {
-		return lxerrors.New("could not marshal task to json", err)
+		return errors.New("could not marshal task to json", err)
 	}
 	err = lxdatabase.Set(taskPool.GetKey()+"/"+taskId, string(taskData))
 	if err != nil {
-		return lxerrors.New("setting key/value pair for task", err)
+		return errors.New("setting key/value pair for task", err)
 	}
 	return nil
 }
@@ -46,12 +46,12 @@ func (taskPool *TaskPool) AddTask(task *lxtypes.Task) error {
 func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
 	taskJson, err := lxdatabase.Get(taskPool.GetKey() + "/" + taskId)
 	if err != nil {
-		return nil, lxerrors.New("retrieving task "+taskId+" from database", err)
+		return nil, errors.New("retrieving task "+taskId+" from database", err)
 	}
 	var task lxtypes.Task
 	err = json.Unmarshal([]byte(taskJson), &task)
 	if err != nil {
-		return nil, lxerrors.New("unmarshalling json into Task struct", err)
+		return nil, errors.New("unmarshalling json into Task struct", err)
 	}
 	return &task, nil
 }
@@ -59,15 +59,15 @@ func (taskPool *TaskPool) GetTask(taskId string) (*lxtypes.Task, error) {
 func (taskPool *TaskPool) ModifyTask(taskId string, modifiedTask *lxtypes.Task) error {
 	_, err := taskPool.GetTask(taskId)
 	if err != nil {
-		return lxerrors.New("task "+taskId+" not found", err)
+		return errors.New("task "+taskId+" not found", err)
 	}
 	taskData, err := json.Marshal(modifiedTask)
 	if err != nil {
-		return lxerrors.New("could not marshal modified task to json", err)
+		return errors.New("could not marshal modified task to json", err)
 	}
 	err = lxdatabase.Set(taskPool.GetKey()+"/"+taskId, string(taskData))
 	if err != nil {
-		return lxerrors.New("setting key/value pair for modified task", err)
+		return errors.New("setting key/value pair for modified task", err)
 	}
 	return nil
 
@@ -77,13 +77,13 @@ func (taskPool *TaskPool) GetTasks() (map[string]*lxtypes.Task, error) {
 	tasks := make(map[string]*lxtypes.Task)
 	knownTasks, err := lxdatabase.GetKeys(taskPool.GetKey())
 	if err != nil {
-		return nil, lxerrors.New("retrieving list of known tasks", err)
+		return nil, errors.New("retrieving list of known tasks", err)
 	}
 	for _, taskJson := range knownTasks {
 		var task lxtypes.Task
 		err = json.Unmarshal([]byte(taskJson), &task)
 		if err != nil {
-			return nil, lxerrors.New("unmarshalling json into Task struct", err)
+			return nil, errors.New("unmarshalling json into Task struct", err)
 		}
 		tasks[task.TaskId] = &task
 	}
@@ -93,11 +93,11 @@ func (taskPool *TaskPool) GetTasks() (map[string]*lxtypes.Task, error) {
 func (taskPool *TaskPool) DeleteTask(taskId string) error {
 	_, err := taskPool.GetTask(taskId)
 	if err != nil {
-		return lxerrors.New("task "+taskId+" not found", err)
+		return errors.New("task "+taskId+" not found", err)
 	}
 	err = lxdatabase.Rm(taskPool.GetKey() + "/" + taskId)
 	if err != nil {
-		return lxerrors.New("removing task "+taskId+" from database", err)
+		return errors.New("removing task "+taskId+" from database", err)
 	}
 	return nil
 }

@@ -1,6 +1,6 @@
 package lxtypes
 
-import "github.com/layer-x/layerx-commons/lxerrors"
+import "github.com/emc-advanced-dev/pkg/errors"
 
 type Node struct {
 	Id           string               `json:"id"`
@@ -18,10 +18,10 @@ func NewNode(nodeId string) *Node {
 
 func (n *Node) AddResource(resource *Resource) error {
 	if _, ok := n.Resources[resource.Id]; ok {
-		return lxerrors.New("resource "+resource.Id+" already found on node "+n.Id, nil)
+		return errors.New("resource "+resource.Id+" already found on node "+n.Id, nil)
 	}
 	if n.Id != resource.NodeId {
-		return lxerrors.New("attempted to add resource "+resource.Id+" with node id "+resource.NodeId+" to node "+n.Id, nil)
+		return errors.New("attempted to add resource "+resource.Id+" with node id "+resource.NodeId+" to node "+n.Id, nil)
 	}
 	n.Resources[resource.Id] = resource
 	return nil
@@ -52,7 +52,7 @@ func (n *Node) FlushResources() {
 
 func (n *Node) AddTask(task *Task) error {
 	if _, ok := n.RunningTasks[task.TaskId]; ok {
-		return lxerrors.New("task "+task.TaskId+" already found on node "+n.Id, nil)
+		return errors.New("task "+task.TaskId+" already found on node "+n.Id, nil)
 	}
 	n.RunningTasks[task.TaskId] = task
 	return nil
@@ -72,7 +72,7 @@ func (n *Node) GetTasks() []*Task {
 
 func (n *Node) ModifyTask(task *Task) error {
 	if _, ok := n.RunningTasks[task.TaskId]; !ok {
-		return lxerrors.New("task "+task.TaskId+" not found on node "+n.Id, nil)
+		return errors.New("task "+task.TaskId+" not found on node "+n.Id, nil)
 	}
 	n.RunningTasks[task.TaskId] = task
 	return nil
@@ -80,7 +80,7 @@ func (n *Node) ModifyTask(task *Task) error {
 
 func (n *Node) RemoveTask(taskId string) error {
 	if _, ok := n.RunningTasks[taskId]; !ok {
-		return lxerrors.New("task "+taskId+" not found on node "+n.Id, nil)
+		return errors.New("task "+taskId+" not found on node "+n.Id, nil)
 	}
 	delete(n.RunningTasks, taskId)
 	return nil

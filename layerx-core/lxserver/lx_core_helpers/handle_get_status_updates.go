@@ -2,7 +2,7 @@ package lx_core_helpers
 
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -14,12 +14,12 @@ func GetStatusUpdates(state *lxstate.State, tpId string) ([]*mesosproto.TaskStat
 	if tpId == "" {
 		statusMap, err = state.GetStatusUpdates()
 		if err != nil {
-			return nil, lxerrors.New("getting all statuses", err)
+			return nil, errors.New("getting all statuses", err)
 		}
 	} else {
 		statusMap, err = state.GetStatusUpdatesForTaskProvider(tpId)
 		if err != nil {
-			return nil, lxerrors.New("getting statuses for task provider", err)
+			return nil, errors.New("getting statuses for task provider", err)
 		}
 	}
 	statuses := []*mesosproto.TaskStatus{}

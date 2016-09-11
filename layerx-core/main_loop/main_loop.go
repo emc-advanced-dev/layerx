@@ -11,7 +11,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 var mainLoopLock = &sync.Mutex{}
@@ -26,7 +26,7 @@ func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker *health_ch
 		}()
 		err := <-errc
 		if err != nil {
-			driverErrc <- lxerrors.New("main loop failed while running", err)
+			driverErrc <- errors.New("main loop failed while running", err)
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -37,7 +37,7 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	defer mainLoopLock.Unlock()
 	taskProviderMap, err := state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
-		return lxerrors.New("retrieving list of task providers from state", err)
+		return errors.New("retrieving list of task providers from state", err)
 	}
 	taskProviders := []*lxtypes.TaskProvider{}
 	for _, taskProvider := range taskProviderMap {
@@ -61,17 +61,17 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 
 	err = healthChecker.FailDisconnectedTaskProviders()
 	if err != nil {
-		return lxerrors.New("failing disconnected task providers", err)
+		return errors.New("failing disconnected task providers", err)
 	}
 
 	err = healthChecker.ExpireTimedOutTaskProviders()
 	if err != nil {
-		return lxerrors.New("expiring timed out providers", err)
+		return errors.New("expiring timed out providers", err)
 	}
 
 	err = taskLauncher.LaunchStagedTasks()
 	if err != nil {
-		return lxerrors.New("launching staged tasks", err)
+		return errors.New("launching staged tasks", err)
 	}
 
 	return nil

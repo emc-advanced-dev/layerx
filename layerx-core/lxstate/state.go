@@ -6,7 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -61,7 +61,7 @@ func NewState() *State {
 func (state *State) InitializeState(etcdUrl string) error {
 	err := lxdatabase.Init([]string{etcdUrl})
 	if err != nil {
-		return lxerrors.New("initializing etcd client failed", err)
+		return errors.New("initializing etcd client failed", err)
 	}
 	lxdatabase.Mkdir(state_root)
 	state.PendingTaskPool.Initialize()
@@ -77,7 +77,7 @@ func (state *State) InitializeState(etcdUrl string) error {
 func (state *State) SetTpi(tpiUrl string) error {
 	err := lxdatabase.Set(tpi_url_key, tpiUrl)
 	if err != nil {
-		return lxerrors.New("could not set tpi url", err)
+		return errors.New("could not set tpi url", err)
 	}
 	return nil
 }
@@ -85,7 +85,7 @@ func (state *State) SetTpi(tpiUrl string) error {
 func (state *State) GetTpi() (string, error) {
 	tpiUrl, err := lxdatabase.Get(tpi_url_key)
 	if err != nil {
-		return "", lxerrors.New("could not get tpi url", err)
+		return "", errors.New("could not get tpi url", err)
 	}
 	return tpiUrl, nil
 }
@@ -94,31 +94,31 @@ func (state *State) GetAllTasks() (map[string]*lxtypes.Task, error) {
 	allTasks := make(map[string]*lxtypes.Task)
 	pendingTasks, err := state.PendingTaskPool.GetTasks()
 	if err != nil {
-		return nil, lxerrors.New("could not get tasks from pending task pool", err)
+		return nil, errors.New("could not get tasks from pending task pool", err)
 	}
 	for _, task := range pendingTasks {
 		allTasks[task.TaskId] = task
 	}
 	stagingTasks, err := state.StagingTaskPool.GetTasks()
 	if err != nil {
-		return nil, lxerrors.New("could not get tasks from staging task pool", err)
+		return nil, errors.New("could not get tasks from staging task pool", err)
 	}
 	for _, task := range stagingTasks {
 		allTasks[task.TaskId] = task
 	}
 	nodes, err := state.NodePool.GetNodes()
 	if err != nil {
-		return nil, lxerrors.New("getting list of nodes from node pool", err)
+		return nil, errors.New("getting list of nodes from node pool", err)
 	}
 	for _, node := range nodes {
 		nodeId := node.Id
 		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
 		if err != nil {
-			return nil, lxerrors.New("getting task pool for node "+nodeId, err)
+			return nil, errors.New("getting task pool for node "+nodeId, err)
 		}
 		nodeTasks, err := nodeTaskPool.GetTasks()
 		if err != nil {
-			return nil, lxerrors.New("getting list of tasks from node "+nodeId+"task pool", err)
+			return nil, errors.New("getting list of tasks from node "+nodeId+"task pool", err)
 		}
 		for _, task := range nodeTasks {
 			allTasks[task.TaskId] = task
@@ -130,7 +130,7 @@ func (state *State) GetAllTasks() (map[string]*lxtypes.Task, error) {
 func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*mesosproto.TaskStatus, error) {
 	taskProviders, err := state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
-		return nil, lxerrors.New("could not get task provider list", err)
+		return nil, errors.New("could not get task provider list", err)
 	}
 	tpIds := []string{}
 	for tpId := range taskProviders {
@@ -138,7 +138,7 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 	}
 	allTasks, err := state.GetAllTasks()
 	if err != nil {
-		return nil, lxerrors.New("getting all tasks from state", err)
+		return nil, errors.New("getting all tasks from state", err)
 	}
 	targetTaskIds := []string{}
 	for _, task := range allTasks {
@@ -148,7 +148,7 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 	}
 	allStatuses, err := state.StatusPool.GetStatuses()
 	if err != nil {
-		return nil, lxerrors.New("getting all statuses from state", err)
+		return nil, errors.New("getting all statuses from state", err)
 	}
 	statuses := make(map[string]*mesosproto.TaskStatus)
 	for _, status := range allStatuses {
@@ -162,7 +162,7 @@ func (state *State) GetStatusUpdatesForTaskProvider(tpId string) (map[string]*me
 func (state *State) GetStatusUpdates() (map[string]*mesosproto.TaskStatus, error) {
 	allTasks, err := state.GetAllTasks()
 	if err != nil {
-		return nil, lxerrors.New("getting all tasks from state", err)
+		return nil, errors.New("getting all tasks from state", err)
 	}
 	targetTaskIds := []string{}
 	for _, task := range allTasks {
@@ -170,7 +170,7 @@ func (state *State) GetStatusUpdates() (map[string]*mesosproto.TaskStatus, error
 	}
 	allStatuses, err := state.StatusPool.GetStatuses()
 	if err != nil {
-		return nil, lxerrors.New("getting all statuses from state", err)
+		return nil, errors.New("getting all statuses from state", err)
 	}
 	statuses := make(map[string]*mesosproto.TaskStatus)
 	for _, status := range allStatuses {
@@ -184,20 +184,20 @@ func (state *State) GetStatusUpdates() (map[string]*mesosproto.TaskStatus, error
 func (state *State) GetTaskFromAnywhere(taskId string) (*lxtypes.Task, error) {
 	allTasks, err := state.GetAllTasks()
 	if err != nil {
-		return nil, lxerrors.New("could not get all tasks", err)
+		return nil, errors.New("could not get all tasks", err)
 	}
 	for _, task := range allTasks {
 		if task.TaskId == taskId {
 			return task, nil
 		}
 	}
-	return nil, lxerrors.New("task was not found with id "+taskId, nil)
+	return nil, errors.New("task was not found with id "+taskId, nil)
 }
 
 func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) {
 	pendingTasks, err := state.PendingTaskPool.GetTasks()
 	if err != nil {
-		return nil, lxerrors.New("could not get tasks from pending task pool", err)
+		return nil, errors.New("could not get tasks from pending task pool", err)
 	}
 	for _, task := range pendingTasks {
 		if task.TaskId == taskId {
@@ -206,7 +206,7 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 	}
 	stagingTasks, err := state.StagingTaskPool.GetTasks()
 	if err != nil {
-		return nil, lxerrors.New("could not get tasks from staging task pool", err)
+		return nil, errors.New("could not get tasks from staging task pool", err)
 	}
 	for _, task := range stagingTasks {
 		if task.TaskId == taskId {
@@ -215,17 +215,17 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 	}
 	nodes, err := state.NodePool.GetNodes()
 	if err != nil {
-		return nil, lxerrors.New("getting list of nodes from node pool", err)
+		return nil, errors.New("getting list of nodes from node pool", err)
 	}
 	for _, node := range nodes {
 		nodeId := node.Id
 		nodeTaskPool, err := state.NodePool.GetNodeTaskPool(nodeId)
 		if err != nil {
-			return nil, lxerrors.New("getting task pool for node "+nodeId, err)
+			return nil, errors.New("getting task pool for node "+nodeId, err)
 		}
 		nodeTasks, err := nodeTaskPool.GetTasks()
 		if err != nil {
-			return nil, lxerrors.New("getting list of tasks from node "+nodeId+"task pool", err)
+			return nil, errors.New("getting list of tasks from node "+nodeId+"task pool", err)
 		}
 		for _, task := range nodeTasks {
 			if task.TaskId == taskId {
@@ -233,7 +233,7 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 			}
 		}
 	}
-	return nil, lxerrors.New("task pool not found that contains task "+taskId, nil)
+	return nil, errors.New("task pool not found that contains task "+taskId, nil)
 }
 
 func (state *State) GetTpiUrl() string {

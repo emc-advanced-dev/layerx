@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
@@ -32,7 +32,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &frameworkRegistered)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
+			res.Header().Add("error", errors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}
@@ -53,13 +53,13 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &resourceOffers)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
+			res.Header().Add("error", errors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}
 		if len(resourceOffers.Offers) == 0 {
 			fmt.Printf("\noffers recieved: %v\n", len(resourceOffers.Offers))
-			res.Header().Add("error", lxerrors.New("received only 0 offers", nil).Error())
+			res.Header().Add("error", errors.New("received only 0 offers", nil).Error())
 			res.WriteHeader(500)
 			return
 		}
@@ -97,7 +97,7 @@ func RunFakeFrameworkServer(frameworkid string, port int) {
 		err = proto.Unmarshal(body, &statusUpdate)
 		if err != nil {
 			fmt.Printf("\nerr: %v\n", err)
-			res.Header().Add("error", lxerrors.New("received data("+string(body)+")", err).Error())
+			res.Header().Add("error", errors.New("received data("+string(body)+")", err).Error())
 			res.WriteHeader(500)
 			return
 		}

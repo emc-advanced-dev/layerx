@@ -3,7 +3,7 @@ package mesos_api_helpers
 import (
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 var (
@@ -17,7 +17,7 @@ func GetMesosState(masterUpidString string) ([]byte, error) {
 	}
 	data, err := json.Marshal(state)
 	if err != nil {
-		return empty, lxerrors.New("marshalling master state to json", err)
+		return empty, errors.New("marshalling master state to json", err)
 	}
 	return data, nil
 }

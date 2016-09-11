@@ -6,7 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/mesosproto"
 
@@ -25,7 +25,7 @@ func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvi
 	}
 	resp, _, err := lxhttpclient.Post(tpiUrl, COLLECT_TASKS, nil, collectTasksMessage)
 	if err != nil {
-		return lxerrors.New("POSTing CollectTasksMessage to TPI server", err)
+		return errors.New("POSTing CollectTasksMessage to TPI server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing CollectTasksMessage to TPI server; status code was %v, expected 202", resp.StatusCode)
@@ -41,11 +41,11 @@ func SendStatusUpdate(tpiUrl string, taskProvider *lxtypes.TaskProvider, status 
 	}
 	resp, _, err := lxhttpclient.Post(tpiUrl, UPDATE_TASK_STATUS, nil, updateTaskStatusMessage)
 	if err != nil {
-		return lxerrors.New("POSTing TaskStatus to TPI server", err)
+		return errors.New("POSTing TaskStatus to TPI server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing TaskStatus to TPI server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func HealthCheck(tpiUrl string, taskProvider *lxtypes.TaskProvider) (bool, error
 	}
 	resp, _, err := lxhttpclient.Post(tpiUrl, HEALTH_CHECK_TASK_PROVIDER, nil, healthCheckTaskProvider)
 	if err != nil {
-		return false, lxerrors.New("POSTing HealthCheckTaskProviderMessage to TPI server", err)
+		return false, errors.New("POSTing HealthCheckTaskProviderMessage to TPI server", err)
 	}
 	if resp.StatusCode == http.StatusOK {
 		return true, nil
@@ -65,5 +65,5 @@ func HealthCheck(tpiUrl string, taskProvider *lxtypes.TaskProvider) (bool, error
 		return false, nil
 	}
 	msg := fmt.Sprintf("POSTing HealthCheckTaskProviderMessage to TPI server; status code was %v, expected 200 or 410", resp.StatusCode)
-	return false, lxerrors.New(msg, err)
+	return false, errors.New(msg, err)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 type TaskLauncher struct {
@@ -23,7 +23,7 @@ func NewTaskLauncher(state *lxstate.State) *TaskLauncher {
 func (tl *TaskLauncher) LaunchStagedTasks() error {
 	stagingTasks, err := tl.state.StagingTaskPool.GetTasks()
 	if err != nil {
-		return lxerrors.New("retrieving staging tasks", err)
+		return errors.New("retrieving staging tasks", err)
 	}
 
 	nodeTaskMap := make(map[string][]*lxtypes.Task)
@@ -38,11 +38,11 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 	for nodeId, tasksToLaunch := range nodeTaskMap {
 		nodeResourcePool, err := tl.state.NodePool.GetNodeResourcePool(nodeId)
 		if err != nil {
-			return lxerrors.New("finding resource pool for node "+nodeId, err)
+			return errors.New("finding resource pool for node "+nodeId, err)
 		}
 		resourcesToUseMap, err := nodeResourcePool.GetResources()
 		if err != nil {
-			return lxerrors.New("retrieving resource list for node "+nodeId, err)
+			return errors.New("retrieving resource list for node "+nodeId, err)
 		}
 		resourceRpiMap := make(map[string][]*lxtypes.Resource)
 		for _, resource := range resourcesToUseMap {
@@ -65,7 +65,7 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 					"node_id":   fmt.Sprintf("%s", nodeId),
 					"rpi":       rpiName,
 				}).Errorf("retreiving rpi for name ")
-				return lxerrors.New("retreiving rpi for name", err)
+				return errors.New("retreiving rpi for name", err)
 			}
 			err = rpi_messenger.SendLaunchTasksMessage(rpi.Url, tasksToLaunch, resourcesToUse)
 			if err != nil {
@@ -75,7 +75,7 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 					"node_id":   fmt.Sprintf("%s", nodeId),
 					"rpi_url":   rpi.Url,
 				}).Errorf("trying to launch tasks on rpi")
-				return lxerrors.New("sending launch task message to rpi", err)
+				return errors.New("sending launch task message to rpi", err)
 			}
 			//flush resources from node
 			for resourceId, resource := range resourcesToUseMap {
@@ -85,7 +85,7 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 						"resource": fmt.Sprintf("%v", resource),
 						"node_id":  fmt.Sprintf("%s", nodeId),
 					}).Errorf("flushing resource " + resourceId + " from node " + nodeId)
-					return lxerrors.New("flushing resource "+resourceId+" from node "+nodeId, err)
+					return errors.New("flushing resource "+resourceId+" from node "+nodeId, err)
 				}
 			}
 		}

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/layer-x/layerx-commons/lxdatabase"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 type TaskProviderPool struct {
@@ -18,7 +18,7 @@ func (taskProviderPool *TaskProviderPool) GetKey() string {
 func (taskProviderPool *TaskProviderPool) Initialize() error {
 	err := lxdatabase.Mkdir(taskProviderPool.GetKey())
 	if err != nil {
-		return lxerrors.New("initializing "+taskProviderPool.GetKey()+" directory", err)
+		return errors.New("initializing "+taskProviderPool.GetKey()+" directory", err)
 	}
 	return nil
 }
@@ -27,11 +27,11 @@ func (taskProviderPool *TaskProviderPool) AddTaskProvider(taskProvider *lxtypes.
 	taskProviderId := taskProvider.Id
 	taskProviderData, err := json.Marshal(taskProvider)
 	if err != nil {
-		return lxerrors.New("could not marshal taskProvider to json", err)
+		return errors.New("could not marshal taskProvider to json", err)
 	}
 	err = lxdatabase.Set(taskProviderPool.GetKey()+"/"+taskProviderId, string(taskProviderData))
 	if err != nil {
-		return lxerrors.New("setting key/value pair for taskProvider", err)
+		return errors.New("setting key/value pair for taskProvider", err)
 	}
 	return nil
 }
@@ -39,12 +39,12 @@ func (taskProviderPool *TaskProviderPool) AddTaskProvider(taskProvider *lxtypes.
 func (taskProviderPool *TaskProviderPool) GetTaskProvider(taskProviderId string) (*lxtypes.TaskProvider, error) {
 	taskProviderJson, err := lxdatabase.Get(taskProviderPool.GetKey() + "/" + taskProviderId)
 	if err != nil {
-		return nil, lxerrors.New("retrieving taskProvider "+taskProviderId+" from database", err)
+		return nil, errors.New("retrieving taskProvider "+taskProviderId+" from database", err)
 	}
 	var taskProvider lxtypes.TaskProvider
 	err = json.Unmarshal([]byte(taskProviderJson), &taskProvider)
 	if err != nil {
-		return nil, lxerrors.New("unmarshalling json into TaskProvider struct", err)
+		return nil, errors.New("unmarshalling json into TaskProvider struct", err)
 	}
 	return &taskProvider, nil
 }
@@ -53,13 +53,13 @@ func (taskProviderPool *TaskProviderPool) GetTaskProviders() (map[string]*lxtype
 	taskProviders := make(map[string]*lxtypes.TaskProvider)
 	knownTaskProviders, err := lxdatabase.GetKeys(taskProviderPool.GetKey())
 	if err != nil {
-		return nil, lxerrors.New("retrieving list of known taskProviders", err)
+		return nil, errors.New("retrieving list of known taskProviders", err)
 	}
 	for _, taskProviderJson := range knownTaskProviders {
 		var taskProvider lxtypes.TaskProvider
 		err = json.Unmarshal([]byte(taskProviderJson), &taskProvider)
 		if err != nil {
-			return nil, lxerrors.New("unmarshalling json into TaskProvider struct", err)
+			return nil, errors.New("unmarshalling json into TaskProvider struct", err)
 		}
 		taskProviders[taskProvider.Id] = &taskProvider
 	}
@@ -69,11 +69,11 @@ func (taskProviderPool *TaskProviderPool) GetTaskProviders() (map[string]*lxtype
 func (taskProviderPool *TaskProviderPool) DeleteTaskProvider(taskProviderId string) error {
 	_, err := taskProviderPool.GetTaskProvider(taskProviderId)
 	if err != nil {
-		return lxerrors.New("taskProvider "+taskProviderId+" not found", err)
+		return errors.New("taskProvider "+taskProviderId+" not found", err)
 	}
 	err = lxdatabase.Rm(taskProviderPool.GetKey() + "/" + taskProviderId)
 	if err != nil {
-		return lxerrors.New("removing taskProvider "+taskProviderId+" from database", err)
+		return errors.New("removing taskProvider "+taskProviderId+" from database", err)
 	}
 	return nil
 }

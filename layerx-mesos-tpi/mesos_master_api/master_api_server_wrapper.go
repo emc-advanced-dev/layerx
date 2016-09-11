@@ -10,7 +10,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/go-martini/martini"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 	mesosscheduler "github.com/mesos/mesos-go/mesosproto/scheduler"
 )
@@ -48,7 +48,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		getStateFn := func() ([]byte, int, error) {
 			data, err := mesos_api_helpers.GetMesosState(masterUpidString)
 			if err != nil {
-				return empty, 500, lxerrors.New("retreiving master state", err)
+				return empty, 500, errors.New("retreiving master state", err)
 			}
 			return data, 200, nil
 		}
@@ -67,14 +67,14 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		fn := func() ([]byte, int, error) {
 			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reregisterFramework request", err)
+				return empty, statusCode, errors.New("parsing reregisterFramework request", err)
 			}
 			err = wrapper.processMesosCall(data, upid)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not read process scheduler call request")
-				return empty, 500, lxerrors.New("could not read process scheduler call request", err)
+				return empty, 500, errors.New("could not read process scheduler call request", err)
 			}
 			return empty, 202, nil
 		}
@@ -94,19 +94,19 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		registerFrameworkFn := func() ([]byte, int, error) {
 			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing registerFramework request", err)
+				return empty, statusCode, errors.New("parsing registerFramework request", err)
 			}
 			var registerRequest mesosproto.RegisterFrameworkMessage
 			err = proto.Unmarshal(data, &registerRequest)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse data to registerFrameworkMessage", err)
+				return empty, 500, errors.New("could not parse data to registerFrameworkMessage", err)
 			}
 			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, registerRequest.GetFramework())
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle register framework request")
-				return empty, 500, lxerrors.New("could not handle register framework request", err)
+				return empty, 500, errors.New("could not handle register framework request", err)
 			}
 			return empty, 202, nil
 		}
@@ -126,19 +126,19 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		reregisterFrameworkFn := func() ([]byte, int, error) {
 			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reregisterFramework request", err)
+				return empty, statusCode, errors.New("parsing reregisterFramework request", err)
 			}
 			var reregisterRequest mesosproto.ReregisterFrameworkMessage
 			err = proto.Unmarshal(data, &reregisterRequest)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to reregisterRequest", err)
+				return empty, 500, errors.New("could not unmarshal data to reregisterRequest", err)
 			}
 			err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, reregisterRequest.GetFramework())
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle reregister framework request")
-				return empty, 500, lxerrors.New("could not handle reregister framework request", err)
+				return empty, 500, errors.New("could not handle reregister framework request", err)
 			}
 			return empty, 202, nil
 		}
@@ -158,19 +158,19 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		unregisterFrameworkFn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing unregisterFramework request", err)
+				return empty, statusCode, errors.New("parsing unregisterFramework request", err)
 			}
 			var unregisterRequest mesosproto.UnregisterFrameworkMessage
 			err = proto.Unmarshal(data, &unregisterRequest)
 			if err != nil {
-				return empty, 500, lxerrors.New("could unmarshal data to unregister request", err)
+				return empty, 500, errors.New("could unmarshal data to unregister request", err)
 			}
 			err = mesos_api_helpers.HandleRemoveFramework(wrapper.tpi, unregisterRequest.GetFrameworkId().GetValue())
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle register framework request")
-				return empty, 500, lxerrors.New("could not handle unregister framework request", err)
+				return empty, 500, errors.New("could not handle unregister framework request", err)
 			}
 			return empty, 202, nil
 		}
@@ -190,12 +190,12 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		reregisterFrameworkFn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing launchTasks request", err)
+				return empty, statusCode, errors.New("parsing launchTasks request", err)
 			}
 			var launchTasksMessage mesosproto.LaunchTasksMessage
 			err = proto.Unmarshal(data, &launchTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to launchTasks", err)
+				return empty, 500, errors.New("could not unmarshal data to launchTasks", err)
 			}
 			frameworkId := launchTasksMessage.GetFrameworkId().GetValue()
 			mesosTasks := launchTasksMessage.GetTasks()
@@ -204,7 +204,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle launch tasks request")
-				return empty, 500, lxerrors.New("could not handle launchTasks request", err)
+				return empty, 500, errors.New("could not handle launchTasks request", err)
 			}
 			return empty, 202, nil
 		}
@@ -224,12 +224,12 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		reconcileTasksFn := func() ([]byte, int, error) {
 			upid, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reconcile tasks request", err)
+				return empty, statusCode, errors.New("parsing reconcile tasks request", err)
 			}
 			var reconcileTasksMessage mesosproto.ReconcileTasksMessage
 			err = proto.Unmarshal(data, &reconcileTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to reconcile tasks", err)
+				return empty, 500, errors.New("could not unmarshal data to reconcile tasks", err)
 			}
 			frameworkId := reconcileTasksMessage.GetFrameworkId().GetValue()
 			taskIds := []string{}
@@ -241,7 +241,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle reconcile tasks request")
-				return empty, 500, lxerrors.New("could not handle reconcile tasks request", err)
+				return empty, 500, errors.New("could not handle reconcile tasks request", err)
 			}
 			return empty, 202, nil
 		}
@@ -261,12 +261,12 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		reconcileTasksFn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reconcile tasks request", err)
+				return empty, statusCode, errors.New("parsing reconcile tasks request", err)
 			}
 			var killTaskMessage mesosproto.KillTaskMessage
 			err = proto.Unmarshal(data, &killTaskMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to killTaskMessage", err)
+				return empty, 500, errors.New("could not unmarshal data to killTaskMessage", err)
 			}
 			frameworkId := killTaskMessage.GetFrameworkId().GetValue()
 			taskId := killTaskMessage.GetTaskId().GetValue()
@@ -275,7 +275,7 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle kill task request")
-				return empty, 500, lxerrors.New("could not handle kill task request", err)
+				return empty, 500, errors.New("could not handle kill task request", err)
 			}
 			return empty, 202, nil
 		}
@@ -295,19 +295,19 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		logStatusUpdateAckFn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reconcile tasks request", err)
+				return empty, statusCode, errors.New("parsing reconcile tasks request", err)
 			}
 			var statusUpdateAck mesosproto.StatusUpdateAcknowledgementMessage
 			err = proto.Unmarshal(data, &statusUpdateAck)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to killTaskMessage", err)
+				return empty, 500, errors.New("could not unmarshal data to killTaskMessage", err)
 			}
 			err = mesos_api_helpers.LogStatusUpdateAck(statusUpdateAck)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not log status update ack")
-				return empty, 500, lxerrors.New("calling log status update ack handler", err)
+				return empty, 500, errors.New("calling log status update ack handler", err)
 			}
 			return empty, 202, nil
 		}
@@ -327,19 +327,19 @@ func (wrapper *mesosApiServerWrapper) WrapWithMesos(m *martini.ClassicMartini, m
 		fn := func() ([]byte, int, error) {
 			_, data, statusCode, err := mesos_api_helpers.ProcessMesosHttpRequest(req)
 			if err != nil {
-				return empty, statusCode, lxerrors.New("parsing reviveOffers request", err)
+				return empty, statusCode, errors.New("parsing reviveOffers request", err)
 			}
 			var reviveOffersMessage mesosproto.ReviveOffersMessage
 			err = proto.Unmarshal(data, &reviveOffersMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not unmarshal data to reviveOffersMessage", err)
+				return empty, 500, errors.New("could not unmarshal data to reviveOffersMessage", err)
 			}
 			err = mesos_api_helpers.LogReviveOffersMessage(reviveOffersMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not log status update ack")
-				return empty, 500, lxerrors.New("calling log reviveOffersMessage handler", err)
+				return empty, 500, errors.New("calling log reviveOffersMessage handler", err)
 			}
 			return empty, 202, nil
 		}
@@ -387,7 +387,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	var call mesosscheduler.Call
 	err := proto.Unmarshal(data, &call)
 	if err != nil {
-		return lxerrors.New("could not parse data to protobuf msg Call", err)
+		return errors.New("could not parse data to protobuf msg Call", err)
 	}
 	callType := call.GetType()
 	frameworkId := call.GetFrameworkId().GetValue()
@@ -402,7 +402,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		subscribe := call.Subscribe
 		err = mesos_api_helpers.HandleRegisterRequest(wrapper.tpi, wrapper.frameworkManager, upid, subscribe.GetFrameworkInfo())
 		if err != nil {
-			return lxerrors.New("processing subscribe request", err)
+			return errors.New("processing subscribe request", err)
 		}
 		break
 	case mesosscheduler.Call_DECLINE:
@@ -417,7 +417,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		}
 		err = mesos_api_helpers.HandleReconcileTasksRequest(wrapper.tpi, wrapper.frameworkManager, upid, frameworkId, taskIds)
 		if err != nil {
-			return lxerrors.New("processing reconcile tasks request", err)
+			return errors.New("processing reconcile tasks request", err)
 		}
 		break
 	case mesosscheduler.Call_REVIVE:
@@ -429,7 +429,7 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		accept := call.Accept
 		err := wrapper.processAcceptCall(frameworkId, accept)
 		if err != nil {
-			return lxerrors.New("processing Call_ACCEPT message from framework "+frameworkId, err)
+			return errors.New("processing Call_ACCEPT message from framework "+frameworkId, err)
 		}
 		break
 	case mesosscheduler.Call_KILL:
@@ -437,11 +437,11 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 		taskId := kill.GetTaskId().GetValue()
 		err = mesos_api_helpers.HandleKillTaskRequest(wrapper.tpi, frameworkId, taskId)
 		if err != nil {
-			return lxerrors.New("processing Call_KILL message from framework "+frameworkId, err)
+			return errors.New("processing Call_KILL message from framework "+frameworkId, err)
 		}
 		break
 	default:
-		return lxerrors.New("processing unknown call type: "+callType.String(), nil)
+		return errors.New("processing unknown call type: "+callType.String(), nil)
 	}
 
 	return nil
@@ -461,10 +461,10 @@ func (wrapper *mesosApiServerWrapper) processAcceptCall(frameworkId string, acce
 			mesosTasks := launchOperation.GetTaskInfos()
 			err := mesos_api_helpers.HandleLaunchTasksRequest(wrapper.tpi, frameworkId, mesosTasks)
 			if err != nil {
-				return lxerrors.New("processing launch tasks operation", err)
+				return errors.New("processing launch tasks operation", err)
 			}
 		default:
-			return lxerrors.New("processing unknown operation type: "+operationType.String(), nil)
+			return errors.New("processing unknown operation type: "+operationType.String(), nil)
 		}
 	}
 	return nil

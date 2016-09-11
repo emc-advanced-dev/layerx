@@ -6,7 +6,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"github.com/emc-advanced-dev/layerx/layerx-core/tpi_messenger"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"time"
 )
 
@@ -23,28 +23,28 @@ func NewHealthChecker(state *lxstate.State) *HealthChecker {
 func (hc *HealthChecker) FailDisconnectedTaskProviders() error {
 	taskProviders, err := hc.state.TaskProviderPool.GetTaskProviders()
 	if err != nil {
-		return lxerrors.New("getting task providers from pool", err)
+		return errors.New("getting task providers from pool", err)
 	}
 	for _, taskProvider := range taskProviders {
 		healthy, err := tpi_messenger.HealthCheck(hc.state.GetTpiUrl(), taskProvider)
 		if err != nil {
-			return lxerrors.New("performing health check on task provider "+taskProvider.Id, err)
+			return errors.New("performing health check on task provider "+taskProvider.Id, err)
 		}
 		if !healthy {
 			logrus.WithFields(logrus.Fields{"task-provider": taskProvider}).Warnf("task provider disconnected")
 			err = hc.state.TaskProviderPool.DeleteTaskProvider(taskProvider.Id)
 			if err != nil {
-				return lxerrors.New("removing failed task provider from active task provider pool", err)
+				return errors.New("removing failed task provider from active task provider pool", err)
 			}
 			taskProvider.TimeFailed = float64(time.Now().Unix())
 			err = hc.state.FailedTaskProviderPool.AddTaskProvider(taskProvider)
 			if err != nil {
-				return lxerrors.New("adding failed task provider to failed task provider pool", err)
+				return errors.New("adding failed task provider to failed task provider pool", err)
 			}
 			if taskProvider.FailoverTimeout == 0 {
 				err = hc.destroyFailedTaskProvider(taskProvider)
 				if err != nil {
-					return lxerrors.New("destroying non-failover task provider that disconnected", err)
+					return errors.New("destroying non-failover task provider that disconnected", err)
 				}
 			}
 		}
@@ -55,7 +55,7 @@ func (hc *HealthChecker) FailDisconnectedTaskProviders() error {
 func (hc *HealthChecker) ExpireTimedOutTaskProviders() error {
 	failedTaskProviders, err := hc.state.FailedTaskProviderPool.GetTaskProviders()
 	if err != nil {
-		return lxerrors.New("getting task providers from failed pool", err)
+		return errors.New("getting task providers from failed pool", err)
 	}
 	for _, failedTaskProvider := range failedTaskProviders {
 		expirationTime := failedTaskProvider.TimeFailed + failedTaskProvider.FailoverTimeout
@@ -63,7 +63,7 @@ func (hc *HealthChecker) ExpireTimedOutTaskProviders() error {
 			logrus.WithFields(logrus.Fields{"task-provider": failedTaskProvider}).Warnf("failed-over task provider has expired, proceeding to purge")
 			err = hc.destroyFailedTaskProvider(failedTaskProvider)
 			if err != nil {
-				return lxerrors.New("destroying non-failover task provider that disconnected", err)
+				return errors.New("destroying non-failover task provider that disconnected", err)
 			}
 		}
 	}
@@ -73,7 +73,7 @@ func (hc *HealthChecker) ExpireTimedOutTaskProviders() error {
 func (hc *HealthChecker) destroyFailedTaskProvider(taskProvider *lxtypes.TaskProvider) error {
 	allTasks, err := hc.state.GetAllTasks()
 	if err != nil {
-		return lxerrors.New("retrieving all tasks from state", err)
+		return errors.New("retrieving all tasks from state", err)
 	}
 
 	for taskId, task := range allTasks {
@@ -87,18 +87,18 @@ func (hc *HealthChecker) destroyFailedTaskProvider(taskProvider *lxtypes.TaskPro
 			}
 			taskPool, err := hc.state.GetTaskPoolContainingTask(taskId)
 			if err != nil {
-				return lxerrors.New("retrieving task pool containing task "+taskId, err)
+				return errors.New("retrieving task pool containing task "+taskId, err)
 			}
 			err = taskPool.DeleteTask(taskId)
 			if err != nil {
-				return lxerrors.New("deleting task from task pool "+taskPool.GetKey(), err)
+				return errors.New("deleting task from task pool "+taskPool.GetKey(), err)
 			}
 		}
 	}
 
 	err = hc.state.FailedTaskProviderPool.DeleteTaskProvider(taskProvider.Id)
 	if err != nil {
-		return lxerrors.New("removing failed task provider from failed task provider pool", err)
+		return errors.New("removing failed task provider from failed task provider pool", err)
 	}
 
 	return nil

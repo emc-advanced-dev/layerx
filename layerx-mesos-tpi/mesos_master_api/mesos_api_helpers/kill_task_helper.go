@@ -3,7 +3,7 @@ package mesos_api_helpers
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 func HandleKillTaskRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkId, taskId string) error {
@@ -14,7 +14,7 @@ func HandleKillTaskRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkId, taskId
 			"tpi":     tpi,
 			"task_id": taskId,
 		}).Errorf("submitting kill task " + taskId + " message to layer-x core")
-		return lxerrors.New("submitting kill task "+taskId+" message to layer-x core", err)
+		return errors.New("submitting kill task "+taskId+" message to layer-x core", err)
 	}
 	return nil
 }

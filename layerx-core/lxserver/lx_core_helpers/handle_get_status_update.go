@@ -3,7 +3,7 @@ package lx_core_helpers
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/gogo/protobuf/proto"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 
@@ -22,7 +22,7 @@ func GetStatusUpdate(state *lxstate.State, taskId string) (*mesosproto.TaskStatu
 	if taskPool == state.StagingTaskPool {
 		return generateTaskStatus(taskId, mesosproto.TaskState_TASK_STARTING, "task has been assigned, waiting for status"), nil
 	}
-	return nil, lxerrors.New("task exists on node but no status known yet?", nil)
+	return nil, errors.New("task exists on node but no status known yet?", nil)
 }
 
 func generateTaskStatus(taskId string, taskState mesosproto.TaskState, message string) *mesosproto.TaskStatus {

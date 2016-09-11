@@ -9,7 +9,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api/rpi_api_helpers"
 	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/scheduler"
 )
 
@@ -41,7 +41,7 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect resources request")
-				return empty, 500, lxerrors.New("could not handle collect resources request", err)
+				return empty, 500, errors.New("could not handle collect resources request", err)
 			}
 			return empty, 202, nil
 		}
@@ -63,19 +63,19 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing launch tasks request", err)
+				return empty, 400, errors.New("parsing launch tasks request", err)
 			}
 			var launchTasksMessage layerx_rpi_client.LaunchTasksMessage
 			err = json.Unmarshal(data, &launchTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to update task status message", err)
+				return empty, 500, errors.New("could not parse json to update task status message", err)
 			}
 			err = rpi_api_helpers.LaunchTasks(wrapper.mesosSchedulerDriver, launchTasksMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle launch tasks request")
-				return empty, 500, lxerrors.New("could not handle launch tasks request", err)
+				return empty, 500, errors.New("could not handle launch tasks request", err)
 			}
 			return empty, 202, nil
 		}
@@ -98,7 +98,7 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle kill task request")
-				return empty, 500, lxerrors.New("could not handle kill task request", err)
+				return empty, 500, errors.New("could not handle kill task request", err)
 			}
 			return empty, 202, nil
 		}

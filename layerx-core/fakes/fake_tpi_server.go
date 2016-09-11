@@ -10,7 +10,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/go-martini/martini"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 const (
@@ -34,19 +34,19 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing collect tasks request", err)
+				return empty, 400, errors.New("parsing collect tasks request", err)
 			}
 			var collectTasksMessage layerx_tpi_client.CollectTasksMessage
 			err = json.Unmarshal(data, &collectTasksMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to collect tasks message", err)
+				return empty, 500, errors.New("could not parse json to collect tasks message", err)
 			}
 			err = fakeCollectTasks(layerxUrl, collectTasksMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect tasks request")
-				return empty, 500, lxerrors.New("could not handle collect tasks request", err)
+				return empty, 500, errors.New("could not handle collect tasks request", err)
 			}
 			return empty, 202, nil
 		}
@@ -68,19 +68,19 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing update task status request", err)
+				return empty, 400, errors.New("parsing update task status request", err)
 			}
 			var updateTaskStatusMessage layerx_tpi_client.UpdateTaskStatusMessage
 			err = json.Unmarshal(data, &updateTaskStatusMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to update task status message", err)
+				return empty, 500, errors.New("could not parse json to update task status message", err)
 			}
 			err = fakeUpdateTaskStatus(updateTaskStatusMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect tasks request")
-				return empty, 500, lxerrors.New("could not handle update task status request", err)
+				return empty, 500, errors.New("could not handle update task status request", err)
 			}
 			return empty, 202, nil
 		}
@@ -102,12 +102,12 @@ func RunFakeTpiServer(layerxUrl string, port int, driverErrc chan error) {
 				defer req.Body.Close()
 			}
 			if err != nil {
-				return empty, 400, lxerrors.New("parsing update health check task provider request", err)
+				return empty, 400, errors.New("parsing update health check task provider request", err)
 			}
 			var healthCheckTaskProviderMessage layerx_tpi_client.HealthCheckTaskProviderMessage
 			err = json.Unmarshal(data, &healthCheckTaskProviderMessage)
 			if err != nil {
-				return empty, 500, lxerrors.New("could not parse json to health check task provider message", err)
+				return empty, 500, errors.New("could not parse json to health check task provider message", err)
 			}
 			//this is to make the request fail for testing
 			failOnPurpose := strings.Contains(healthCheckTaskProviderMessage.TaskProvider.Id, FAIL_ON_PURPOSE)
@@ -149,7 +149,7 @@ func fakeCollectTasks(layerXUrl string, collectTasksMessage layerx_tpi_client.Co
 		fakeTaskForProvider := FakeLXTask(fakeTaskId, fakeTaskName, fakeSlaveId, fakeCommand)
 		err := tpiClient.SubmitTask(taskProvider.Id, fakeTaskForProvider)
 		if err != nil {
-			return lxerrors.New("submitting fake task to lx core", err)
+			return errors.New("submitting fake task to lx core", err)
 		}
 	}
 	return nil

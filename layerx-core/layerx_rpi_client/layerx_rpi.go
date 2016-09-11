@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
 	"github.com/mesos/mesos-go/mesosproto"
 )
@@ -30,11 +30,11 @@ func (rpi *LayerXRpi) RegisterRpi(name, rpiUrl string) error {
 	}
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, RegisterRpi, nil, reg)
 	if err != nil {
-		return lxerrors.New("POSTing registration request to LayerX core server", err)
+		return errors.New("POSTing registration request to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing registration request to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -45,11 +45,11 @@ func (rpi *LayerXRpi) SubmitResource(resource *lxtypes.Resource) error {
 	resource.RpiName = rpi.RpiName
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, SubmitResource, nil, resource)
 	if err != nil {
-		return lxerrors.New("POSTing resource to LayerX core server", err)
+		return errors.New("POSTing resource to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing resource to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -59,11 +59,11 @@ func (rpi *LayerXRpi) SubmitResource(resource *lxtypes.Resource) error {
 func (rpi *LayerXRpi) SubmitStatusUpdate(status *mesosproto.TaskStatus) error {
 	resp, _, err := lxhttpclient.Post(rpi.CoreURL, SubmitStatusUpdate, nil, status)
 	if err != nil {
-		return lxerrors.New("POSTing TaskStatus to LayerX core server", err)
+		return errors.New("POSTing TaskStatus to LayerX core server", err)
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing TaskStatus to LayerX core server; status code was %v, expected 202", resp.StatusCode)
-		return lxerrors.New(msg, err)
+		return errors.New(msg, err)
 	}
 	return nil
 }
@@ -73,17 +73,17 @@ func (rpi *LayerXRpi) SubmitStatusUpdate(status *mesosproto.TaskStatus) error {
 func (rpi *LayerXRpi) GetNodes() ([]*lxtypes.Node, error) {
 	resp, data, err := lxhttpclient.Get(rpi.CoreURL, GetNodes, nil)
 	if err != nil {
-		return nil, lxerrors.New("GETing nodes from LayerX core server", err)
+		return nil, errors.New("GETing nodes from LayerX core server", err)
 	}
 	if resp.StatusCode != 200 {
 		msg := fmt.Sprintf("GETing nodes from LayerX core server; status code was %v, expected 200", resp.StatusCode)
-		return nil, lxerrors.New(msg, err)
+		return nil, errors.New(msg, err)
 	}
 	var nodes []*lxtypes.Node
 	err = json.Unmarshal(data, &nodes)
 	if err != nil {
 		msg := fmt.Sprintf("unmarshalling data %s into node array", string(data))
-		return nil, lxerrors.New(msg, err)
+		return nil, errors.New(msg, err)
 	}
 	return nodes, nil
 }

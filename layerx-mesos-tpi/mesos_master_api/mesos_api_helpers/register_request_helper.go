@@ -6,7 +6,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
-	"github.com/layer-x/layerx-commons/lxerrors"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/pborman/uuid"
 )
@@ -26,7 +26,7 @@ func HandleRegisterRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager fr
 	}
 	err := tpi.RegisterTaskProvider(taskProvider)
 	if err != nil {
-		err = lxerrors.New("registering framework as new task provider with layer x", err)
+		err = errors.New("registering framework as new task provider with layer x", err)
 		logrus.WithFields(logrus.Fields{
 			"error":         err.Error(),
 			"frameworkName": frameworkName,
@@ -38,7 +38,7 @@ func HandleRegisterRequest(tpi *layerx_tpi_client.LayerXTpi, frameworkManager fr
 
 	err = frameworkManager.NotifyFrameworkRegistered(frameworkName, frameworkId, frameworkUpid)
 	if err != nil {
-		err = lxerrors.New("sending framework registered message to framework", err)
+		err = errors.New("sending framework registered message to framework", err)
 		logrus.WithFields(logrus.Fields{
 			"error":         err.Error(),
 			"frameworkName": frameworkName,
