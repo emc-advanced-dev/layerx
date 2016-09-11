@@ -21,3 +21,9 @@ In the **Layer-X** world:
 **Brains** are also designed to be pluggable, 3rd party extensions for **Layer-X**. The Brain API is visible through the Brain Client package [here](./layerx-core/layerx_brain_client/layerx_brain_client.go)
 
 Get started with [installation documentation](docs/install.md).
+
+---
+
+A rough diagram of Layer-X architecture:
+
+![Layer-X Arch Diagram](http://i.imgur.com/GcYh5ug.png "Architecture")
