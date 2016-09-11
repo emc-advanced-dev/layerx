@@ -9,9 +9,9 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/go-martini/martini"
 	"github.com/golang/protobuf/proto"
-	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/pborman/uuid"
 )

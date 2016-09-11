@@ -8,9 +8,9 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_api_helpers"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/go-martini/martini"
 	"github.com/gogo/protobuf/proto"
-	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
 	mesosscheduler "github.com/mesos/mesos-go/mesosproto/scheduler"
 )

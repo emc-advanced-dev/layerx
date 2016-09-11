@@ -2,8 +2,8 @@ package lx_core_helpers
 
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
-	"github.com/gogo/protobuf/proto"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

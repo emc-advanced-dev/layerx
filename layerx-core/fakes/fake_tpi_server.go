@@ -9,8 +9,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
-	"github.com/go-martini/martini"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/go-martini/martini"
 )
 
 const (

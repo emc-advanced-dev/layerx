@@ -5,8 +5,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

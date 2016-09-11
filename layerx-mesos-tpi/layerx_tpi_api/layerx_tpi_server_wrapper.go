@@ -6,8 +6,8 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_tpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/framework_manager"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/layerx_tpi_api/tpi_api_helpers"
-	"github.com/go-martini/martini"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/go-martini/martini"
 	"io/ioutil"
 	"net/http"
 )

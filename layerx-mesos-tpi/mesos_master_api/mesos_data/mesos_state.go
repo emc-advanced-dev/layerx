@@ -1,8 +1,8 @@
 package mesos_data
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/gogo/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/mesos/mesos-go/mesosproto"
 	"net"

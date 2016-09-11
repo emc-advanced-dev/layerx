@@ -2,8 +2,8 @@ package rpi_api_helpers
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/golang/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
 )

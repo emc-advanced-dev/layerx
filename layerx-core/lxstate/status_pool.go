@@ -2,8 +2,8 @@ package lxstate
 
 import (
 	"encoding/json"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/mesos/mesos-go/mesosproto"
 )
 

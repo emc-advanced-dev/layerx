@@ -3,8 +3,8 @@ package lxstate
 import (
 	"encoding/json"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/layer-x/layerx-commons/lxdatabase"
 )
 
 type RpiPool struct {
