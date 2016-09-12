@@ -73,7 +73,7 @@ var _ = Describe("LayerxRpiServerWrapper", func() {
 			rpiServerWrapper := NewRpiApiServerWrapper(fakeRpi, mesosSchedulerDriver)
 
 			m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), make(chan error))
-			go core_fakes.RunFakeLayerXServer(nil, 34446)
+			go core_fakes.NewFakeCore().Start(nil, 34446)
 			go m.RunOnAddr(fmt.Sprintf(":3033"))
 			logrus.SetLevel(logrus.DebugLevel)
 		})

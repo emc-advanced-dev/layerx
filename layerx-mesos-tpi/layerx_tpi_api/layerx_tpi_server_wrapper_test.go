@@ -34,7 +34,7 @@ var _ = Describe("LayerxTpiServerWrapper", func() {
 	m = masterServer.WrapWithMesos(m, "master@127.0.0.1:3032", make(chan error))
 	go m.RunOnAddr(fmt.Sprintf(":3032"))
 	go fakes.RunFakeFrameworkServer("fakeframework", 3002)
-	go core_fakes.RunFakeLayerXServer(nil, 34445)
+	go core_fakes.NewFakeCore().Start(nil, 34445)
 	logrus.SetLevel(logrus.DebugLevel)
 
 	Describe("POST {collect_tasks_message} "+COLLECT_TASKS, func() {

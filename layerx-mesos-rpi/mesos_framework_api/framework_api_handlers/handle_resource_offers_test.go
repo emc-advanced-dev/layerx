@@ -15,7 +15,7 @@ var _ = Describe("HandleResourceOffers", func() {
 
 	fakeStatuses := []*mesosproto.TaskStatus{fakeStatus1}
 
-	go core_fakes.RunFakeLayerXServer(fakeStatuses, 12346)
+	go core_fakes.NewFakeCore().Start(fakeStatuses, 12346)
 	lxRpi := &layerx_rpi_client.LayerXRpi{
 		CoreURL: "127.0.0.1:12346",
 	}

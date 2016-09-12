@@ -18,7 +18,7 @@ var _ = Describe("LayerxTpi", func() {
 
 	fakeStatuses := []*mesosproto.TaskStatus{fakeStatus1, fakeStatus2, fakeStatus3}
 
-	go fakes.RunFakeLayerXServer(fakeStatuses, 12345)
+	go fakes.NewFakeCore().Start(fakeStatuses, 12345)
 	lxTpi := LayerXTpi{
 		CoreURL: "127.0.0.1:12345",
 	}

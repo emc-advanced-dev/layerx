@@ -43,15 +43,27 @@ const (
 	Purge = "/Purge"
 )
 
-func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
-	taskProviders := make(map[string]*lxtypes.TaskProvider)
-	statusUpdates := make(map[string]*mesosproto.TaskStatus)
-	tasks := make(map[string]*lxtypes.Task)
-	stagingTasks := make(map[string]*lxtypes.Task)
-	nodes := make(map[string]*lxtypes.Node)
+type FakeCore struct {
+	TaskProviders map[string]*lxtypes.TaskProvider
+	StatusUpdates map[string]*mesosproto.TaskStatus
+	Tasks map[string]*lxtypes.Task
+	StagingTasks map[string]*lxtypes.Task
+	Nodes map[string]*lxtypes.Node
+}
 
+func NewFakeCore() *FakeCore {
+	return &FakeCore{
+		TaskProviders: make(map[string]*lxtypes.TaskProvider),
+		StatusUpdates: make(map[string]*mesosproto.TaskStatus),
+		Tasks: make(map[string]*lxtypes.Task),
+		StagingTasks: make(map[string]*lxtypes.Task),
+		Nodes: make(map[string]*lxtypes.Node),
+	}
+}
+
+func (core *FakeCore) Start(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	for _, status := range fakeStatuses {
-		statusUpdates[status.GetTaskId().GetValue()] = status
+		core.StatusUpdates[status.GetTaskId().GetValue()] = status
 	}
 
 	m := martini.Classic()
@@ -106,24 +118,24 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		taskProviders[tp.Id] = &tp
+		core.TaskProviders[tp.Id] = &tp
 		res.WriteHeader(202)
 	})
 	m.Post(DeregisterTaskProvider+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
-		if _, ok := taskProviders[tpid]; !ok {
+		if _, ok := core.TaskProviders[tpid]; !ok {
 			logrus.WithFields(logrus.Fields{
 				"tpid": tpid,
 			}).Errorf("task provider was not registered")
 			res.WriteHeader(400)
 			return
 		}
-		delete(taskProviders, tpid)
+		delete(core.TaskProviders, tpid)
 		res.WriteHeader(202)
 	})
 	m.Get(GetTaskProviders, func(res http.ResponseWriter, req *http.Request) {
 		tps := []*lxtypes.TaskProvider{}
-		for _, tp := range taskProviders {
+		for _, tp := range core.TaskProviders {
 			tps = append(tps, tp)
 		}
 		data, err := json.Marshal(tps)
@@ -140,9 +152,9 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	m.Get(GetStatusUpdates+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
 		statuses := []*mesosproto.TaskStatus{}
-		for _, status := range statusUpdates {
+		for _, status := range core.StatusUpdates {
 			taskId := status.GetTaskId().GetValue()
-			task, ok := tasks[taskId]
+			task, ok := core.Tasks[taskId]
 			if !ok {
 				logrus.WithFields(logrus.Fields{
 					"task_id": taskId,
@@ -166,9 +178,9 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	})
 	m.Get(GetStatusUpdates, func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		statuses := []*mesosproto.TaskStatus{}
-		for _, status := range statusUpdates {
+		for _, status := range core.StatusUpdates {
 			taskId := status.GetTaskId().GetValue()
-			_, ok := tasks[taskId]
+			_, ok := core.Tasks[taskId]
 			if !ok {
 				logrus.WithFields(logrus.Fields{
 					"task_id": taskId,
@@ -191,7 +203,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 
 	m.Get(GetStatusUpdate+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskId := params["task_id"]
-		status, ok := statusUpdates[taskId]
+		status, ok := core.StatusUpdates[taskId]
 		if !ok {
 			logrus.WithFields(logrus.Fields{
 				"task_id": taskId,
@@ -212,7 +224,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 
 	m.Post(SubmitTask+"/:task_provider_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		tpid := params["task_provider_id"]
-		tp, ok := taskProviders[tpid]
+		tp, ok := core.TaskProviders[tpid]
 		if !ok {
 			logrus.WithFields(logrus.Fields{
 				"tp_id": tpid,
@@ -242,14 +254,14 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			return
 		}
 		task.TaskProvider = tp
-		tasks[task.TaskId] = &task
+		core.Tasks[task.TaskId] = &task
 		res.WriteHeader(202)
 	})
 
 	m.Post(KillTask+"/:tpid/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
 		tpid := params["framework_id"]
-		if _, ok := tasks[taskid]; !ok {
+		if _, ok := core.Tasks[taskid]; !ok {
 			logrus.WithFields(logrus.Fields{
 				"taskid": taskid,
 				"tpid":   tpid,
@@ -257,20 +269,20 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(400)
 			return
 		}
-		tasks[taskid].KillRequested = true
+		core.Tasks[taskid].KillRequested = true
 		res.WriteHeader(202)
 	})
 
 	m.Post(PurgeTask+"/:task_id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		taskid := params["task_id"]
-		if _, ok := tasks[taskid]; !ok {
+		if _, ok := core.Tasks[taskid]; !ok {
 			logrus.WithFields(logrus.Fields{
 				"tpid": taskid,
 			}).Errorf("task was not submitted")
 			res.WriteHeader(400)
 			return
 		}
-		delete(tasks, taskid)
+		delete(core.Tasks, taskid)
 		res.WriteHeader(202)
 	})
 
@@ -325,7 +337,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			return
 		}
 		nodeId := resource.NodeId
-		if knownNode, ok := nodes[nodeId]; ok {
+		if knownNode, ok := core.Nodes[nodeId]; ok {
 			err = knownNode.AddResource(&resource)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
@@ -336,7 +348,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				res.WriteHeader(500)
 				return
 			}
-			nodes[nodeId] = knownNode
+			core.Nodes[nodeId] = knownNode
 		} else {
 			newNode := lxtypes.NewNode(nodeId)
 			err = newNode.AddResource(&resource)
@@ -348,7 +360,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				}).Errorf("could not add resource to node")
 				res.WriteHeader(500)
 			}
-			nodes[nodeId] = newNode
+			core.Nodes[nodeId] = newNode
 		}
 		res.WriteHeader(202)
 	})
@@ -377,13 +389,13 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			return
 		}
 		taskId := status.GetTaskId().GetValue()
-		statusUpdates[taskId] = &status
+		core.StatusUpdates[taskId] = &status
 		res.WriteHeader(202)
 	})
 
 	m.Get(GetNodes, func(res http.ResponseWriter) {
 		nodeArr := []*lxtypes.Node{}
-		for _, node := range nodes {
+		for _, node := range core.Nodes {
 			nodeArr = append(nodeArr, node)
 		}
 		data, err := json.Marshal(nodeArr)
@@ -391,7 +403,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}).Errorf("could marshal nodes to json")
+			}).Errorf("could marshal core.Nodes to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -400,7 +412,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 
 	m.Get(GetPendingTasks, func(res http.ResponseWriter) {
 		taskArr := []*lxtypes.Task{}
-		for _, task := range tasks {
+		for _, task := range core.Tasks {
 			taskArr = append(taskArr, task)
 		}
 		data, err := json.Marshal(taskArr)
@@ -408,7 +420,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}).Errorf("could marshal tasks to json")
+			}).Errorf("could marshal core.Tasks to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -417,8 +429,8 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 
 	m.Get(GetStagingTasks, func(res http.ResponseWriter) {
 		taskArr := []*lxtypes.Task{}
-		logrus.WithFields(logrus.Fields{"stagingTasks": stagingTasks}).Infof("GETSTAGINGTASKS current staging tasks pool")
-		for _, task := range stagingTasks {
+		logrus.WithFields(logrus.Fields{"core.StagingTasks": core.StagingTasks}).Infof("GETSTAGINGTASKS current staging core.Tasks pool")
+		for _, task := range core.StagingTasks {
 			taskArr = append(taskArr, task)
 		}
 		data, err := json.Marshal(taskArr)
@@ -426,7 +438,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 				"data":  string(data),
-			}).Errorf("could marshal tasks to json")
+			}).Errorf("could marshal core.Tasks to json")
 			res.WriteHeader(500)
 			return
 		}
@@ -456,7 +468,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		node, ok := nodes[brainAssignmentMessage.NodeId]
+		node, ok := core.Nodes[brainAssignmentMessage.NodeId]
 		if !ok {
 			logrus.WithFields(logrus.Fields{
 				"node_id": brainAssignmentMessage.NodeId,
@@ -464,7 +476,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(400)
 		}
 		for _, taskId := range brainAssignmentMessage.TaskIds {
-			task, ok := tasks[taskId]
+			task, ok := core.Tasks[taskId]
 			if !ok {
 				logrus.WithFields(logrus.Fields{
 					"task_id": taskId,
@@ -472,9 +484,9 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				res.WriteHeader(400)
 			}
 			task.NodeId = brainAssignmentMessage.NodeId
-			stagingTasks[taskId] = task
-			delete(tasks, taskId)
-			logrus.WithFields(logrus.Fields{"stagingTasks": stagingTasks}).Infof("current staging tasks pool")
+			core.StagingTasks[taskId] = task
+			delete(core.Tasks, taskId)
+			logrus.WithFields(logrus.Fields{"core.StagingTasks": core.StagingTasks}).Infof("current staging core.Tasks pool")
 			err = node.AddTask(task)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
@@ -486,7 +498,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				go func() {
 					//delay this for testing
 					time.Sleep(3 * time.Second)
-					delete(stagingTasks, taskId)
+					delete(core.StagingTasks, taskId)
 				}()
 			}
 		}
@@ -516,7 +528,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			res.WriteHeader(500)
 			return
 		}
-		targetNode, ok := nodes[migrateMessage.DestinationNodeId]
+		targetNode, ok := core.Nodes[migrateMessage.DestinationNodeId]
 		if !ok {
 			logrus.WithFields(logrus.Fields{
 				"node_id": migrateMessage.DestinationNodeId,
@@ -527,7 +539,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 		for _, taskId := range migrateMessage.TaskIds {
 			var task *lxtypes.Task
 			var sourceNode *lxtypes.Node
-			for _, node := range nodes {
+			for _, node := range core.Nodes {
 				logrus.WithFields(logrus.Fields{"task_id": taskId, "node": node}).Infof("searching node for task")
 				task = node.GetTask(taskId)
 				sourceNode = node
@@ -536,7 +548,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				}
 			}
 			if task == nil {
-				logrus.WithFields(logrus.Fields{"task_id": taskId, "nodes": nodes}).Errorf("invalid task id")
+				logrus.WithFields(logrus.Fields{"task_id": taskId, "core.Nodes": core.Nodes}).Errorf("invalid task id")
 				res.WriteHeader(400)
 				return
 			}
@@ -547,7 +559,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 				res.WriteHeader(400)
 				return
 			}
-			stagingTasks[taskId] = task
+			core.StagingTasks[taskId] = task
 			go func() {
 				logrus.Debugf("in 3 seconds, moving from staging to running on the node")
 				time.Sleep(1 * time.Second)
@@ -559,7 +571,7 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 					res.WriteHeader(400)
 					return
 				} else {
-					delete(stagingTasks, taskId)
+					delete(core.StagingTasks, taskId)
 				}
 			}()
 
@@ -568,10 +580,10 @@ func RunFakeLayerXServer(fakeStatuses []*mesosproto.TaskStatus, port int) {
 	})
 
 	m.Post(Purge, func() {
-		taskProviders = make(map[string]*lxtypes.TaskProvider)
-		tasks = make(map[string]*lxtypes.Task)
-		stagingTasks = make(map[string]*lxtypes.Task)
-		nodes = make(map[string]*lxtypes.Node)
+		core.TaskProviders = make(map[string]*lxtypes.TaskProvider)
+		core.Tasks = make(map[string]*lxtypes.Task)
+		core.StagingTasks = make(map[string]*lxtypes.Task)
+		core.Nodes = make(map[string]*lxtypes.Node)
 	})
 
 	m.RunOnAddr(fmt.Sprintf(":%v", port))

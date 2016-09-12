@@ -37,7 +37,7 @@ var _ = Describe("MasterApiServer", func() {
 	m := masterServer.WrapWithMesos(lxmartini.QuietMartini(), "master@127.0.0.1:3031", driverErrc)
 	go m.RunOnAddr(fmt.Sprintf(":3031"))
 	go fakes.RunFakeFrameworkServer("fakeframework", 3001)
-	go core_fakes.RunFakeLayerXServer(statuses, 34443)
+	go core_fakes.NewFakeCore().Start(statuses, 34443)
 	go func() {
 		for {
 			err := <-driverErrc

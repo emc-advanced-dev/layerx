@@ -70,6 +70,8 @@ func (rpi *LayerXRpi) SubmitStatusUpdate(status *mesosproto.TaskStatus) error {
 
 //call this method to see submitted nodes
 //and their resources
+//currently only used in test
+// (the rpi shouldn't really care what the core knows, right?
 func (rpi *LayerXRpi) GetNodes() ([]*lxtypes.Node, error) {
 	resp, data, err := lxhttpclient.Get(rpi.CoreURL, GetNodes, nil)
 	if err != nil {

@@ -32,7 +32,7 @@ var _ = Describe("LayerxBrainClient", func() {
 
 	fakeStatuses := []*mesosproto.TaskStatus{fakeStatus1}
 
-	go fakes.RunFakeLayerXServer(fakeStatuses, 12349)
+	go fakes.NewFakeCore().Start(fakeStatuses, 12349)
 	brainClient := LayerXBrainClient{
 		CoreURL: "127.0.0.1:12349",
 	}
