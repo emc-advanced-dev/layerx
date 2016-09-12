@@ -1,11 +1,19 @@
 package lxtypes
 
-import "github.com/emc-advanced-dev/pkg/errors"
+import (
+	"github.com/emc-advanced-dev/pkg/errors"
+	"encoding/json"
+)
 
 type Node struct {
 	Id           string               `json:"id"`
 	Resources    map[string]*Resource `json:"resources"`
 	RunningTasks map[string]*Task     `json:"tasks"`
+}
+
+func (n *Node) String() string {
+	b, _ := json.Marshal(n)
+	return string(b)
 }
 
 func NewNode(nodeId string) *Node {
