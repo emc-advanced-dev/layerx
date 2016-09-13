@@ -11,6 +11,8 @@ import (
 	"github.com/emc-advanced-dev/pkg/errors"
 	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"fmt"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 var (
@@ -32,12 +34,23 @@ var _ = Describe("Client", func() {
 			started = true
 		}
 	})
-	Describe("CollectResources", func() {
+	Describe("FetchResources", func() {
 		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
 			nodes, err := client.FetchNodes()
 			Expect(err).To(BeNil())
 			Expect(nodes).NotTo(BeEmpty())
 			fmt.Printf("Nodes: %+v", nodes[0])
+		})
+	})
+	Describe("LaunchTasks", func() {
+		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
+			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
+				TasksToLaunch: []*lxtypes.Task{},
+				ResourcesToUse: []*lxtypes.Resource{},
+			}
+
+			err := client.LaunchTasks(launchTasksMessage)
+			Expect(err).To(BeNil())
 		})
 	})
 })
