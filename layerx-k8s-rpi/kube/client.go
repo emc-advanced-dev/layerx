@@ -64,7 +64,7 @@ func (c *Client) FetchNodes() ([]*lxtypes.Node, error) {
 
 
 func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
-	if len(launchTasksMessage.ResourcesToUse) < 0 {
+	if len(launchTasksMessage.ResourcesToUse) < 1 {
 		return errors.New("must specify a node to launch these tasks on", nil)
 	}
 	nodeName := launchTasksMessage.ResourcesToUse[0].Id
