@@ -12,6 +12,12 @@ import (
 	"github.com/Sirupsen/logrus"
 	"k8s.io/client-go/1.4/pkg/api/resource"
 	"strings"
+	"github.com/golang/protobuf/proto"
+	"time"
+)
+
+var (
+	watchTimeout = time.Minute * 3
 )
 
 const (
@@ -112,6 +118,9 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 		if err != nil {
 			return errors.New("failed to create pod on k8s", err)
 		}
+		if err := c.waitPodCreate(result.Name); err != nil {
+			return errors.New("waiting for pod to be created", err)
+		}
 		logrus.Infof("created pod", result)
 	}
 
@@ -119,7 +128,28 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 }
 
 func (c *Client) KillTask(taskID string) error {
+	logrus.Debug("killing task", taskID)
+	if err := c.kubeClient.Core().Pods(namespaceName).Delete(taskID, &api.DeleteOptions{}); err != nil {
+		return errors.New("deleting pod "+taskID, err)
+	}
+	if err := c.waitPodDelete(taskID); err != nil {
+		return errors.New("waiting for pod to be deleted", err)
+	}
 	return nil
+}
+
+func (c *Client) GetStatuses() ([]*mesosproto.TaskStatus, error) {
+	logrus.Debug("getting status for all pods")
+	podList, err := c.kubeClient.Core().Pods(namespaceName).List(api.ListOptions{})
+	if err != nil {
+		return nil, errors.New("getting pod list", err)
+	}
+	statuses := []*mesosproto.TaskStatus{}
+	for _, pod := range podList.Items {
+		statuses = append(statuses, getStatus(pod))
+	}
+	logrus.Debug("got status list", statuses)
+	return statuses, nil
 }
 
 func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
@@ -236,4 +266,68 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 		ObjectMeta: objectMeta,
 		Spec: spec,
 	}, nil
+}
+
+func getStatus(pod v1.Pod) *mesosproto.TaskStatus {
+	name := pod.Name
+	message := pod.Status.Message
+	var mesosState mesosproto.TaskState
+	switch pod.Status.Phase {
+	case v1.PodPending:
+		mesosState = mesosproto.TaskState_TASK_STAGING
+	case v1.PodRunning:
+		mesosState = mesosproto.TaskState_TASK_RUNNING
+	case v1.PodSucceeded:
+		mesosState = mesosproto.TaskState_TASK_FINISHED
+	case v1.PodFailed:
+		mesosState = mesosproto.TaskState_TASK_FAILED
+	case v1.PodUnknown:
+		mesosState = mesosproto.TaskState_TASK_ERROR
+	}
+	nodeID := pod.Spec.NodeName
+	return &mesosproto.TaskStatus{
+		TaskId: &mesosproto.TaskID{Value: proto.String(name)},
+		State: &mesosState,
+		Message: proto.String(message),
+		SlaveId: &mesosproto.SlaveID{Value: proto.String(nodeID)},
+	}
+}
+
+func (c *Client) waitPodCreate(name string) error {
+	return PollWait(func() bool{
+		_, err := c.kubeClient.Core().Pods(namespaceName).Get(name)
+		if err == nil {
+			return true
+		}
+		return false
+	})
+}
+
+func (c *Client) waitPodDelete(name string) error {
+	return PollWait(func() bool{
+			_, err := c.kubeClient.Core().Pods(namespaceName).Get(name)
+			if err != nil {
+				return true
+			}
+		return false
+	})
+}
+
+func PollWait(waitFunc func() bool) error {
+	finished := make(chan struct{})
+	go func(){
+		for {
+			if waitFunc() {
+				close(finished)
+				return
+			}
+			time.Sleep(time.Second)
+		}
+	}()
+	select {
+	case <-finished:
+		return nil
+	case <-time.After(watchTimeout):
+		return errors.New("waiting for result timed out", nil)
+	}
 }
