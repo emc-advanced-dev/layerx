@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/Sirupsen/logrus"
+	"time"
 )
 
 var (
@@ -23,16 +25,31 @@ var (
 )
 
 var _ = Describe("Client", func() {
+	logrus.SetLevel(logrus.DebugLevel)
 	BeforeEach(func() {
-		if err := setUp(); err != nil {
-			fmt.Println(err)
-			os.Exit(-1)
-		}
-		fakeCore = core_fakes.NewFakeCore()
 		if !started {
+			fakeCore = core_fakes.NewFakeCore()
 			go fakeCore.Start(nil, fakeCorePort)
 			started = true
 		}
+		if err := setUp(); err != nil {
+			fmt.Println(err)
+			//os.Exit(-1)
+		}
+	})
+	AfterEach(func(){
+		//if err := tearDown(); err != nil {
+		//	fmt.Println(err)
+		//	os.Exit(-1)
+		//}
+	})
+	Describe("Init", func() {
+		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
+			nodes, err := client.FetchNodes()
+			Expect(err).To(BeNil())
+			Expect(nodes).NotTo(BeEmpty())
+			fmt.Printf("Nodes: %+v", nodes[0])
+		})
 	})
 	Describe("FetchResources", func() {
 		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
@@ -44,12 +61,17 @@ var _ = Describe("Client", func() {
 	})
 	Describe("LaunchTasks", func() {
 		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
+			nodes, err := client.FetchNodes()
+			Expect(err).To(BeNil())
+			Expect(nodes).NotTo(BeEmpty())
+			Expect(nodes[0].GetResources()).NotTo(BeEmpty())
+			fakeTask := core_fakes.FakeLXDockerTask("1234", "fake-task", nodes[0].Id, "echo DID IT WORKED??")
+			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
-				TasksToLaunch: []*lxtypes.Task{},
-				ResourcesToUse: []*lxtypes.Resource{},
+				TasksToLaunch: []*lxtypes.Task{fakeTask},
+				ResourcesToUse: []*lxtypes.Resource{nodes[0].GetResources()[0]},
 			}
-
-			err := client.LaunchTasks(launchTasksMessage)
+			err = client.LaunchTasks(launchTasksMessage)
 			Expect(err).To(BeNil())
 		})
 	})
@@ -74,5 +96,18 @@ func setUp() error {
 	}
 
 	client = NewClient(clientset)
+
+	//time to sleep in case last delete just happened
+	time.Sleep(time.Second)
+	if err := client.Init(); err != nil {
+		return errors.New("initializing k8s", err)
+	}
+	return nil
+}
+
+func tearDown() error {
+	if err := client.Teardown(); err != nil {
+		return errors.New("tearing down k8s", err)
+	}
 	return nil
 }

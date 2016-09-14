@@ -201,6 +201,7 @@ func NewTaskFromMesos(taskInfo *mesosproto.TaskInfo) *Task {
 		Ports:         ports,
 		Executor:      taskInfo.Executor,
 		Command:       taskInfo.Command,
+		Container:     taskInfo.Container,
 		Data:          taskInfo.Data,
 		HealthCheck:   taskInfo.HealthCheck,
 	}

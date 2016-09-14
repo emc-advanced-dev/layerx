@@ -28,6 +28,35 @@ func FakeMesosTask(taskId, taskName, slaveId, taskCommand string) *mesosproto.Ta
 	}
 }
 
+func FakeLXDockerTask(taskId, taskName, slaveId, taskCommand string) *lxtypes.Task {
+	mesosTask := FakeMesosDockerTask(taskId, taskName, slaveId, taskCommand)
+	return lxtypes.NewTaskFromMesos(mesosTask)
+}
+
+func FakeMesosDockerTask(taskId, taskName, slaveId, taskCommand string) *mesosproto.TaskInfo {
+	containerType := mesosproto.ContainerInfo_DOCKER
+	return &mesosproto.TaskInfo{
+		Name: proto.String(taskName),
+		TaskId: &mesosproto.TaskID{
+			Value: proto.String(taskId),
+		},
+		SlaveId: &mesosproto.SlaveID{
+			Value: proto.String(slaveId),
+		},
+		Resources: fakeMesosResources(),
+		Container: &mesosproto.ContainerInfo{
+			Type: &containerType,
+			Docker: &mesosproto.ContainerInfo_DockerInfo{
+				Image: proto.String("busybox"),
+			},
+		},
+		Command: &mesosproto.CommandInfo{
+			Value: proto.String(taskCommand),
+			Shell: proto.Bool(true),
+		},
+	}
+}
+
 func fakeMesosResources() []*mesosproto.Resource {
 	var scalarType = mesosproto.Value_SCALAR
 	var rangesType = mesosproto.Value_RANGES

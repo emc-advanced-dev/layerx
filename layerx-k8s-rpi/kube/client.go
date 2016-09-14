@@ -11,6 +11,11 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/Sirupsen/logrus"
 	"k8s.io/client-go/1.4/pkg/api/resource"
+	"strings"
+)
+
+const (
+	namespaceName = "layer-x"
 )
 
 type Client struct {
@@ -23,6 +28,32 @@ func NewClient(kubeClient *kubernetes.Clientset) *Client{
 	}
 }
 
+func (c *Client) Init() error {
+	//create namespace
+	namespace := &v1.Namespace{
+		ObjectMeta: v1.ObjectMeta{
+			Name: namespaceName,
+		},
+	}
+	logrus.Debug("creating namespace", namespace)
+	res, err := c.kubeClient.Core().Namespaces().Create(namespace)
+	if err != nil {
+		return errors.New("creating namespace", err)
+	}
+	logrus.Debug("successfully created", res)
+	return nil
+}
+
+func (c *Client) Teardown() error {
+	//delete namespace
+	logrus.Debug("deleting namespace", namespaceName)
+	if err := c.kubeClient.Core().Namespaces().Delete(namespaceName, &api.DeleteOptions{}); err != nil {
+		return errors.New("deleting namespace", err)
+	}
+	logrus.Debug("successfully deleted namespace", namespaceName)
+	return nil
+}
+
 func (c *Client) FetchNodes() ([]*lxtypes.Node, error) {
 	nodes := []*lxtypes.Node{}
 	//collect available kubeletes
@@ -31,13 +62,13 @@ func (c *Client) FetchNodes() ([]*lxtypes.Node, error) {
 		return nil, errors.New("getting kube nodes list", err)
 	}
 	for _, n := range nl.Items {
-		nodeId := string(n.UID)
+		nodeId := n.Name
 		kCpus := n.Status.Allocatable[v1.ResourceCPU]
 		cpus := float64((&kCpus).Value())
 		kMemMB := n.Status.Allocatable[v1.ResourceMemory]
-		memMB := float64((&kMemMB).Value() >> 10)
+		memMB := float64((&kMemMB).Value())
 		kDiskMB := n.Status.Allocatable[v1.ResourceStorage]
-		diskMB := float64((&kDiskMB).Value() >> 10)
+		diskMB := float64((&kDiskMB).Value())
 
 		resource := &lxtypes.Resource{
 			Id: nodeId,
@@ -77,7 +108,7 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 			return errors.New("failed to convert task to pod", err)
 		}
 		logrus.Debug("creating pod", pod)
-		result, err := c.kubeClient.Core().Pods("").Create(pod)
+		result, err := c.kubeClient.Core().Pods(namespaceName).Create(pod)
 		if err != nil {
 			return errors.New("failed to create pod on k8s", err)
 		}
@@ -114,33 +145,38 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 		kubePorts = append(kubePorts, kubePort)
 	}
 	kubeEnvVars := []v1.EnvVar{}
-	for _, env := range task.Command.Environment.Variables {
-		kubeVar := v1.EnvVar{
-			Name: *env.Name,
-			Value: *env.Value,
+	if task.Command.Environment != nil {
+		for _, env := range task.Command.Environment.Variables {
+			kubeVar := v1.EnvVar{
+				Name: *env.Name,
+				Value: *env.Value,
+			}
+			kubeEnvVars = append(kubeEnvVars, kubeVar)
 		}
-		kubeEnvVars = append(kubeEnvVars, kubeVar)
 	}
-
 	cpus, err := resource.ParseQuantity(fmt.Sprintf("%v", task.Cpus))
 	if err != nil {
 		return nil, errors.New("parsing quantity from task", err)
 	}
-	mem, err := resource.ParseQuantity(fmt.Sprintf("%v", task.Mem * 1024))
+
+	mem, err := resource.ParseQuantity(fmt.Sprintf("%vMi", task.Mem))
 	if err != nil {
 		return nil, errors.New("parsing quantity from task", err)
 	}
-	disk, err := resource.ParseQuantity(fmt.Sprintf("%v", task.Disk * 1024))
-	if err != nil {
-		return nil, errors.New("parsing quantity from task", err)
-	}
+	//disk, err := resource.ParseQuantity(fmt.Sprintf("%v", task.Disk * 1024))
+	//if err != nil {
+	//	return nil, errors.New("parsing quantity from task", err)
+	//}
 	resources := v1.ResourceRequirements{
 		Limits: v1.ResourceList{
 			v1.ResourceCPU: cpus,
 			v1.ResourceMemory: mem,
-			v1.ResourceStorage: disk,
+			//todo: figure out if it's possible to set storage limits for containers
+			//v1.ResourceStorage: disk,
 		},
 	}
+
+	logrus.Debugf("task %v has limits %v", task, resources)
 
 	kubeMounts := []v1.VolumeMount{}
 	kubeVols := []v1.Volume{}
@@ -167,10 +203,24 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 		kubeMounts = append(kubeMounts, kubeMount)
 	}
 
+	//args or command for container
+	args := []string{}
+	if binary := *task.Command.Value; binary != "" {
+		args = append(args, strings.Split(binary, " ")...)
+	}
+	args = append(args, task.Command.Arguments...)
+	cmd := []string{}
+	// no entrypoint
+	if *task.Command.Shell {
+		cmd = args
+		args = []string{}
+	}
+
 	container := v1.Container{
 		Name: task.Name,
 		Image: *task.Container.Docker.Image,
-		Args: task.Command.Arguments,
+		Command: cmd,
+		Args: args,
 		Ports: kubePorts,
 		Env: kubeEnvVars,
 		Resources: resources,
