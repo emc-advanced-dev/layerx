@@ -60,9 +60,9 @@ func (c *Client) Teardown() error {
 	return nil
 }
 
-func (c *Client) FetchNodes() ([]*lxtypes.Node, error) {
-	nodes := []*lxtypes.Node{}
-	//collect available kubeletes
+func (c *Client) FetchResources() ([]*lxtypes.Resource, error) {
+	resources := []*lxtypes.Resource{}
+	//collect available kubelets
 	nl, err := c.kubeClient.Core().Nodes().List(api.ListOptions{})
 	if err != nil {
 		return nil, errors.New("getting kube nodes list", err)
@@ -90,15 +90,11 @@ func (c *Client) FetchNodes() ([]*lxtypes.Node, error) {
 				},
 			},
 		}
-
-		lxNode := lxtypes.NewNode(nodeId)
-		lxNode.AddResource(resource)
-		nodes = append(nodes, lxNode)
+		resources = append(resources, resource)
 	}
 
-	return nodes, nil
+	return resources, nil
 }
-
 
 func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
 	if len(launchTasksMessage.ResourcesToUse) < 1 {

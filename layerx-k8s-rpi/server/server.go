@@ -18,17 +18,18 @@ const (
 	KILL_TASK = "/kill_task"
 )
 
-func Start(port string, client *kube.Client) {
+func Start(port string, client *kube.Client, core *layerx_rpi_client.LayerXRpi) {
 	m := lxmartini.QuietMartini()
 
 	m.Post(COLLECT_RESOURCES, func(req *http.Request, res http.ResponseWriter) {
 		handle(res, func() ([]byte, int, error) {
-			if err := client.FetchNodes(); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-				}).Errorf("could not handle collect resources request")
+			nodes, err := client.FetchResources()
+			if err != nil {
 				return nil, 500, errors.New("could not handle collect resources request", err)
 			}
+			go func(){
+				core.SubmitResource()
+			}()
 			return nil, 202, nil
 		})
 	})

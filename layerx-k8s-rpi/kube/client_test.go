@@ -46,23 +46,22 @@ var _ = Describe("Client", func() {
 	})
 	Describe("FetchResources", func() {
 		It("returns all the kube nodes as an array of lx resourecs", func() {
-			nodes, err := client.FetchNodes()
+			resources, err := client.FetchResources()
 			Expect(err).To(BeNil())
-			Expect(nodes).NotTo(BeEmpty())
-			fmt.Printf("Nodes: %+v", nodes[0])
+			Expect(resources).NotTo(BeEmpty())
+			fmt.Printf("Nodes: %+v", resources[0])
 		})
 	})
 	Describe("LaunchTasks", func() {
 		It("launches lx task as a pod on the target k8s node", func() {
-			nodes, err := client.FetchNodes()
+			nodes, err := client.FetchResources()
 			Expect(err).To(BeNil())
 			Expect(nodes).NotTo(BeEmpty())
-			Expect(nodes[0].GetResources()).NotTo(BeEmpty())
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo DID IT WORKED??")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
 				TasksToLaunch: []*lxtypes.Task{fakeTask},
-				ResourcesToUse: []*lxtypes.Resource{nodes[0].GetResources()[0]},
+				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
 			Expect(err).To(BeNil())
@@ -70,15 +69,14 @@ var _ = Describe("Client", func() {
 	})
 	Describe("GetStatuses", func() {
 		It("gets the status for all existing pods", func() {
-			nodes, err := client.FetchNodes()
+			nodes, err := client.FetchResources()
 			Expect(err).To(BeNil())
 			Expect(nodes).NotTo(BeEmpty())
-			Expect(nodes[0].GetResources()).NotTo(BeEmpty())
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo STARTING! && sleep 1 && echo FINISHED!")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
 				TasksToLaunch: []*lxtypes.Task{fakeTask},
-				ResourcesToUse: []*lxtypes.Resource{nodes[0].GetResources()[0]},
+				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
 			Expect(err).To(BeNil())
@@ -102,15 +100,14 @@ var _ = Describe("Client", func() {
 	})
 	Describe("KillTask", func() {
 		It("Calls CoreMessenger.SubmitResource() with an array of lx resourecs", func() {
-			nodes, err := client.FetchNodes()
+			nodes, err := client.FetchResources()
 			Expect(err).To(BeNil())
 			Expect(nodes).NotTo(BeEmpty())
-			Expect(nodes[0].GetResources()).NotTo(BeEmpty())
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo DID IT WORKED??")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
 				TasksToLaunch: []*lxtypes.Task{fakeTask},
-				ResourcesToUse: []*lxtypes.Resource{nodes[0].GetResources()[0]},
+				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
 			Expect(err).To(BeNil())
