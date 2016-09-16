@@ -25,6 +25,11 @@ import (
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
 	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/server"
+	"time"
+	"github.com/mesos/mesos-go/mesosproto"
+	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -59,7 +64,7 @@ func main() {
 			}).Fatalf("retrieving local ip")
 		}
 	}
-	rpiClient := &layerx_rpi_client.LayerXRpi{
+	core := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
 		RpiName: rpi_name,
 	}
@@ -67,13 +72,12 @@ func main() {
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}).Infof("registering to layerx")
 
-	if err := rpiClient.RegisterRpi(rpi_name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
+	if err := core.RegisterRpi(rpi_name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err.Error(),
 			"layerx_url": *layerX,
-		}).Errorf("registering to layerx")
+		}).Fatal("registering to layerx")
 	}
-
 
 
 	//initialize kube client
@@ -91,14 +95,68 @@ func main() {
 
 	kubeClient := kube.NewClient(clientset)
 
-	server.Start(*port, kubeClient)
 
-	//for {
-	//	pods, err := clientset.Core().Pods("").List(api.ListOptions{})
-	//	if err != nil {
-	//		panic(err.Error())
-	//	}
-	//	fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
-	//	time.Sleep(10 * time.Second)
-	//}
+	go func(){
+		statusUpdatesForever(core, kubeClient)
+	}()
+
+	server.Start(*port, kubeClient, core)
+}
+
+
+func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Client) {
+	for {
+		statuses, err := kubeClient.GetStatuses()
+		if err != nil {
+			logrus.Error("failed retrieving k8s task status updates", err)
+			continue
+		}
+		killedStatuses, err := updatesForKilledTasks(core, statuses)
+		if err != nil {
+			logrus.Error("failed to get killed tasks", err)
+			continue
+		}
+		statuses = append(statuses, killedStatuses...)
+		for _, status := range statuses {
+			go func () {
+				if err := core.SubmitStatusUpdate(status); err != nil {
+					logrus.Error("failed submitting status updates to core", err)
+				}
+			}()
+		}
+		time.Sleep(statusUpdateInterval)
+	}
+}
+
+func updatesForKilledTasks(core *layerx_rpi_client.LayerXRpi, notKilledStatuses []*mesosproto.TaskStatus) ([]*mesosproto.TaskStatus, error) {
+	killedStatuses := []*mesosproto.TaskStatus{}
+	nodes, err := core.GetNodes()
+	if err != nil {
+		return nil, errors.New("failed checking the lx list of nodes", err)
+	}
+	for _, node := range nodes {
+		for _, task := range node.GetTasks() {
+			taskKilled := true
+			for _, status := range notKilledStatuses {
+				if status.GetTaskId().GetValue() == task.TaskId {
+					taskKilled = false
+					break
+				}
+			}
+			if taskKilled {
+				killedStatuses = append(killedStatuses, newPodKilledStatus(task))
+			}
+		}
+	}
+	return killedStatuses, nil
+}
+
+func newPodKilledStatus(task *lxtypes.Task) *mesosproto.TaskStatus {
+	var mesosState = mesosproto.TaskState_TASK_KILLED
+	return &mesosproto.TaskStatus{
+		TaskId: &mesosproto.TaskID{Value: proto.String(task.TaskId)},
+		State: &mesosState,
+		Message: proto.String("Task Killed or Lost"),
+		SlaveId: &mesosproto.SlaveID{Value: proto.String(task.NodeId)},
+	}
 }
