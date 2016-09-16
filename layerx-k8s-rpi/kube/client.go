@@ -231,10 +231,14 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 
 	//args or command for container
 	args := []string{}
-	if binary := *task.Command.Value; binary != "" {
-		args = append(args, strings.Split(binary, " ")...)
+	if task.Command != nil && task.Command.Value != nil {
+		if binary := *task.Command.Value; binary != "" {
+			args = append(args, strings.Split(binary, " ")...)
+		}
 	}
-	args = append(args, task.Command.Arguments...)
+	if task.Command.Arguments != nil {
+		args = append(args, task.Command.Arguments...)
+	}
 	cmd := []string{}
 	// no entrypoint
 	if *task.Command.Shell {
