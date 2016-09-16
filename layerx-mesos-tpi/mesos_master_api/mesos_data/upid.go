@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 // UPID is a equivalent of the UPID in libprocess.
@@ -23,10 +24,11 @@ func UPIDFromString(input string) (*UPID, error) {
 	}
 	upid.ID = splits[0]
 
-	if _, err := net.ResolveTCPAddr("tcp4", splits[1]); err != nil {
-		return nil, err
+	var err error
+	upid.Host, upid.Port, err = net.SplitHostPort(splits[1])
+	if err != nil {
+		return nil, errors.New("failed to split host and port", err)
 	}
-	upid.Host, upid.Port, _ = net.SplitHostPort(splits[1])
 	return upid, nil
 }
 
