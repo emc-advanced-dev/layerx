@@ -25,6 +25,11 @@ func SubmitResource(state *lxstate.State, resource *lxtypes.Resource) error {
 }
 
 func addResourceToNode(resourcePool *lxstate.ResourcePool, resource *lxtypes.Resource) error {
+	//if resource exists with the same id on the node, replace it
+	if resource, err := resourcePool.GetResource(resource.Id); err == nil {
+		return resourcePool.ModifyResource(resource.Id, resource)
+	}
+
 	err := resourcePool.AddResource(resource)
 	if err != nil {
 		return errors.New("adding resource "+resource.Id+" to resource pool", err)
