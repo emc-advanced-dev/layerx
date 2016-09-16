@@ -36,10 +36,17 @@ var (
 	port = flag.String("port", "4000", "port to run on")
 	layerX = flag.String("layerx", "", "address:port for layerx core")
 	localIpStr = flag.String("localip", "", "broadcast ip for the rpi")
+	debug = flag.Bool("debug", false, "verbose logging")
+
+	statusUpdateInterval = time.Millisecond * 250 //1/4 second per status update
 )
 
 func main() {
 	flag.Parse()
+
+	if *debug {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 
 	//register to layer x core
 	localip := net.ParseIP(*localIpStr)

@@ -115,7 +115,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				}).Errorf("could not handle register rpi request")
 				return empty, 500, errors.New("could not handle register rpi request", err)
 			}
-			logrus.WithFields(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}).Infof("Registered TPI to LayerX")
+			logrus.WithFields(logrus.Fields{"rpi_url": rpiRegistrationMessage.Url}).Infof("Registered RPI to LayerX")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)

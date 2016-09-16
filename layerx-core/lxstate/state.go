@@ -3,7 +3,6 @@ package lxstate
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxdatabase"
@@ -236,42 +235,38 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 	return nil, errors.New("task pool not found that contains task "+taskId, nil)
 }
 
+
+//singluar (for now)
 func (state *State) GetTpiUrl() string {
 	for {
 		tpiUrl, err := state.GetTpi()
-		if err != nil {
-			logrus.WithFields(logrus.Fields{"err": err}).Errorf("Failed to retrieve rpis from state")
-		} else {
+		if err == nil {
+			if tpiUrl != "" {
+				return tpiUrl
+			}
 			return tpiUrl
 		}
-		if tpiUrl != "" {
-			logrus.WithFields(logrus.Fields{
-				"tpiUrl": tpiUrl,
-			}).Infof("TPI registered...")
-			return tpiUrl
-		} else {
-			time.Sleep(500 * time.Millisecond)
-		}
+		//logrus.Warnf("no TPIs registered...")
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
+
+//plural
 func (state *State) GetRpiUrls() []string {
 	rpiUrls := []string{}
 	for {
 		rpis, err := state.RpiPool.GetRpis()
-		if err != nil {
-			logrus.WithError(err).Warnf("Failed to retrieve rpis from state")
-		} else {
+		if err == nil {
 			for _, rpi := range rpis {
 				rpiUrls = append(rpiUrls, rpi.Url)
 			}
+			if len(rpiUrls) > 0 {
+				return rpiUrls
+			}
 		}
-		if len(rpiUrls) > 0 {
-			return rpiUrls
-		} else {
-			logrus.Warnf("no RPIs registered...")
-			time.Sleep(500 * time.Millisecond)
-		}
+		//logrus.Warnf("no RPIs registered...")
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
+	"github.com/Sirupsen/logrus"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 )
 
 func SendResourceCollectionRequest(rpiUrl string) error {
+	logrus.Debug("sending resource collection message to", rpiUrl)
 	resp, _, err := lxhttpclient.Post(rpiUrl, COLLECT_RESOURCES, nil, nil)
 	if err != nil {
 		return errors.New("POSTing COLLECT_RESOURCES to RPI server", err)

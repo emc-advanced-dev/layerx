@@ -20,6 +20,7 @@ const (
 )
 
 func SendTaskCollectionMessage(tpiUrl string, taskProviders []*lxtypes.TaskProvider) error {
+	logrus.Debug("sending task collection message to", tpiUrl)
 	collectTasksMessage := &layerx_tpi_client.CollectTasksMessage{
 		TaskProviders: taskProviders,
 	}

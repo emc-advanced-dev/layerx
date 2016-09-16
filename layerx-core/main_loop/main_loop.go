@@ -45,13 +45,13 @@ func singleExeuction(state *lxstate.State, taskLauncher *task_launcher.TaskLaunc
 	}
 	tpiErr := tpi_messenger.SendTaskCollectionMessage(state.GetTpiUrl(), taskProviders)
 	if tpiErr != nil {
-		logrus.WithFields(logrus.Fields{"error": err}).Warnf("failed sending task collection message to tpi. Is Tpi connected?")
+		logrus.WithFields(logrus.Fields{"error": tpiErr}).Warnf("failed sending task collection message to tpi. Is Tpi connected?")
 	}
 	var rpiErr error
 	for _, rpiUrl := range state.GetRpiUrls() {
 		rpiErr = rpi_messenger.SendResourceCollectionRequest(rpiUrl)
 		if rpiErr != nil {
-			logrus.WithFields(logrus.Fields{"error": err}).Warnf("failed sending resource collection request to rpi. Is Rpi connected?")
+			logrus.WithFields(logrus.Fields{"error": rpiErr}).Warnf("failed sending resource collection request to rpi. Is Rpi connected?")
 		}
 	}
 
