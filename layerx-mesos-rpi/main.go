@@ -26,6 +26,7 @@ func main() {
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
 	localIpStr := flag.String("localip", "", "binding address for the rpi")
 	rpiName := flag.String("name", rpi_name, "name to use to register to layerx")
+	user := flag.String("user", "root", "mesos user to use on mesos")
 	flag.Parse()
 
 	if *debug == "true" {
@@ -44,7 +45,7 @@ func main() {
 		}
 	}
 
-	rpiFramework := prepareFrameworkInfo(*layerX)
+	rpiFramework := prepareFrameworkInfo(*layerX, *user)
 	rpiClient := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
 		RpiName: *rpiName,
@@ -108,9 +109,9 @@ func main() {
 	}
 }
 
-func prepareFrameworkInfo(layerxUrl string) *mesosproto.FrameworkInfo {
+func prepareFrameworkInfo(layerxUrl, user string) *mesosproto.FrameworkInfo {
 	return &mesosproto.FrameworkInfo{
-		User: proto.String(""),
+		User: proto.String(user),
 		//		Id: &mesosproto.FrameworkID{
 		//			Value: proto.String("lx_mesos_rpi_framework_3"),
 		//		},
