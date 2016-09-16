@@ -19,12 +19,7 @@ var mainLoopLock = &sync.Mutex{}
 //run as goroutine
 func MainLoop(taskLauncher *task_launcher.TaskLauncher, healthChecker *health_checker.HealthChecker, state *lxstate.State, driverErrc chan error) {
 	for {
-		errc := make(chan error)
-		go func() {
-			result := singleExeuction(state, taskLauncher, healthChecker)
-			errc <- result
-		}()
-		err := <-errc
+		err := singleExeuction(state, taskLauncher, healthChecker)
 		if err != nil {
 			driverErrc <- errors.New("main loop failed while running", err)
 		}
