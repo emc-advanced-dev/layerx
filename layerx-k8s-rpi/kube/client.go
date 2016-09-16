@@ -72,9 +72,9 @@ func (c *Client) FetchResources() ([]*lxtypes.Resource, error) {
 		kCpus := n.Status.Allocatable[v1.ResourceCPU]
 		cpus := float64((&kCpus).Value())
 		kMemMB := n.Status.Allocatable[v1.ResourceMemory]
-		memMB := float64((&kMemMB).Value())
+		memMB := float64((&kMemMB).Value() >> 20)
 		kDiskMB := n.Status.Allocatable[v1.ResourceStorage]
-		diskMB := float64((&kDiskMB).Value())
+		diskMB := float64((&kDiskMB).Value() >> 20)
 
 		resource := &lxtypes.Resource{
 			Id: nodeId,
