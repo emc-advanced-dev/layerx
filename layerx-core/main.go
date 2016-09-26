@@ -10,9 +10,9 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/main_loop"
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
-	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/emc-advanced-dev/layerx/layerx-core/bindata"
 )
 
 func purgeState() error {
@@ -68,7 +68,7 @@ func main() {
 
 	mainServer = coreServerWrapper.WrapServer()
 
-	mainServer.Use(martini.Static("web"))
+	mainServer.Use(bindata.Static())
 
 	go mainServer.RunOnAddr(fmt.Sprintf(":%v", *portPtr))
 
