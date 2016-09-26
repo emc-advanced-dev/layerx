@@ -146,3 +146,4 @@ _testmain.go
 *.test
 *.prof
 
+example-brain
