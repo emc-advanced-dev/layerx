@@ -146,4 +146,5 @@ _testmain.go
 *.test
 *.prof
 
-example-brain
+example-brain/example-brain
+bin/
