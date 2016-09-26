@@ -1,5 +1,5 @@
 body {
-  background-color: #666699;
+  background-color: #4896d2;
   margin: 0 auto;
 }
 
@@ -23,7 +23,7 @@ body, input, button {
 
 h1 {
   text-align: center;
-  background-color: #a4a4c1;
+  background-color: #4896d2;
   margin-top: 20px;
   margin-bottom: 0;
   padding: 10px;
@@ -31,7 +31,7 @@ h1 {
 
 h3 {
   background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 5px solid #a4a4c1;
+  border-bottom: 5px solid #4896d2;
   text-align: center;
   padding: 10px;
 }
@@ -97,7 +97,6 @@ ul {
 }
 
 .parent {
-  background-color: rgba(255, 255, 255, 0.2);
   margin: 50px 0;
   padding: 20px;
 }
