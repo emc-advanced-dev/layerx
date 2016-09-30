@@ -84,13 +84,13 @@ func main() {
 	// uses the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatal("building config", err)
 	}
 
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatal("creating clientset", err)
 	}
 
 	kubeClient := kube.NewClient(clientset)
