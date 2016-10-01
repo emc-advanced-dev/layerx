@@ -31,6 +31,7 @@ const (
 	//rpi
 	RegisterRpi        = "/RegisterRpi"
 	SubmitResource     = "/SubmitResource"
+	RescindResource    = "/RescindResource"
 	SubmitStatusUpdate = "/SubmitStatusUpdate"
 	//brain
 	GetNodes        = "/GetNodes"
@@ -363,6 +364,41 @@ func (core *FakeCore) Start(fakeStatuses []*mesosproto.TaskStatus, port int) {
 			core.Nodes[nodeId] = newNode
 		}
 		res.WriteHeader(202)
+	})
+
+	m.Post(RescindResource, func(res http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		if req.Body != nil {
+			defer req.Body.Close()
+		}
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+				"body":  string(body),
+			}).Errorf("could not read  request body")
+			res.WriteHeader(500)
+			return
+		}
+		resourceID := string(body)
+		for _, node := range core.Nodes {
+			for _, resource := range node.GetResources() {
+				if resource.Id == resourceID {
+					node.RemoveResource(resourceID)
+					resourceID = ""
+					break
+				}
+			}
+		}
+		if resourceID != "" {
+			logrus.WithFields(logrus.Fields{
+				"error":    err,
+				"nodes":    core.Nodes,
+				"resource": resourceID,
+			}).Errorf("failed to find resource to delete")
+			res.WriteHeader(500)
+			return
+		}
+		res.WriteHeader(204)
 	})
 
 	m.Post(SubmitStatusUpdate, func(res http.ResponseWriter, req *http.Request) {

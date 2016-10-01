@@ -17,6 +17,7 @@ type LayerXRpi struct {
 const (
 	RegisterRpi        = "/RegisterRpi"
 	SubmitResource     = "/SubmitResource"
+	RescindResource    = "/RescindResource"
 	SubmitStatusUpdate = "/SubmitStatusUpdate"
 	GetNodes           = "/GetNodes"
 )
@@ -49,6 +50,20 @@ func (rpi *LayerXRpi) SubmitResource(resource *lxtypes.Resource) error {
 	}
 	if resp.StatusCode != 202 {
 		msg := fmt.Sprintf("POSTing resource to LayerX core server; status code was %v, expected 202", resp.StatusCode)
+		return errors.New(msg, err)
+	}
+	return nil
+}
+
+//call this method if a resource has been rescinded
+// or is no longer valid / available
+func (rpi *LayerXRpi) RescindResource(resourceID string) error {
+	resp, _, err := lxhttpclient.Post(rpi.CoreURL, RescindResource, nil, resourceID)
+	if err != nil {
+		return errors.New("Rescinding resource from LayerX core server", err)
+	}
+	if resp.StatusCode != 204 {
+		msg := fmt.Sprintf("Rescinding to LayerX core server; status code was %v, expected 204", resp.StatusCode)
 		return errors.New(msg, err)
 	}
 	return nil

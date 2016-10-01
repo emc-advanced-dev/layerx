@@ -32,6 +32,7 @@ const (
 	//rpi
 	RegisterRpi        = "/RegisterRpi"
 	SubmitResource     = "/SubmitResource"
+	RescindResource    = "/RescindResource"
 	SubmitStatusUpdate = "/SubmitStatusUpdate"
 	//brain
 	GetPendingTasks = "/GetPendingTasks"
@@ -403,6 +404,38 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 		res.WriteHeader(statusCode)
 	}
 
+	rescindResourceHandler := func(res http.ResponseWriter, req *http.Request) {
+		fn := func() ([]byte, int, error) {
+			data, err := ioutil.ReadAll(req.Body)
+			if req.Body != nil {
+				defer req.Body.Close()
+			}
+			if err != nil {
+				return empty, 400, errors.New("parsing submit resource request", err)
+			}
+			resourceID := string(data)
+			err = lx_core_helpers.RescindResource(wrapper.state, resourceID)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"error": err,
+				}).Errorf("could not handle Rescind Resource request")
+				return empty, 500, errors.New("could not handle Rescind request", err)
+			}
+			logrus.WithFields(logrus.Fields{"resource": resourceID}).Infof("resource rescinded as per rpi request")
+			return empty, 204, nil
+		}
+		_, statusCode, err := wrapper.doOperation(fn)
+		if err != nil {
+			res.WriteHeader(statusCode)
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Errorf("processing Rescind Resource request")
+			wrapper.driverErrc <- err
+			return
+		}
+		res.WriteHeader(statusCode)
+	}
+
 	submitStatusUpdateHandler := func(res http.ResponseWriter, req *http.Request) {
 		fn := func() ([]byte, int, error) {
 			data, err := ioutil.ReadAll(req.Body)
@@ -610,6 +643,7 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 	wrapper.m.Post(KillTask+"/:task_provider_id/:task_id", killTaskHandler)
 	wrapper.m.Post(PurgeTask+"/:task_id", purgeTaskHandler)
 	wrapper.m.Post(SubmitResource, submitResourceHandler)
+	wrapper.m.Post(RescindResource, rescindResourceHandler)
 	wrapper.m.Post(SubmitStatusUpdate, submitStatusUpdateHandler)
 	wrapper.m.Get(GetNodes, getNodesHandler)
 	wrapper.m.Get(GetStatusUpdates, getStatusUpdatesHandler)

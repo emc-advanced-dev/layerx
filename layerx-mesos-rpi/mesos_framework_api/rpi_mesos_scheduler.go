@@ -16,14 +16,14 @@ type MesosScheduler interface {
 type rpiMesosScheduler struct {
 	driver  scheduler.SchedulerDriver
 	driverc chan scheduler.SchedulerDriver
-	lxRpi   *layerx_rpi_client.LayerXRpi
+	core    *layerx_rpi_client.LayerXRpi
 }
 
 func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi) *rpiMesosScheduler {
 	return &rpiMesosScheduler{
 		driver:  nil,
 		driverc: make(chan scheduler.SchedulerDriver),
-		lxRpi:   lxRpi,
+		core:    lxRpi,
 	}
 }
 
@@ -54,7 +54,7 @@ func (s *rpiMesosScheduler) Disconnected(scheduler.SchedulerDriver) {
 func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, offers []*mesosproto.Offer) {
 	logrus.Infof("Collecting %v offers from Mesos Master...\n", len(offers))
 	go func() {
-		err := framework_api_handlers.HandleResourceOffers(s.lxRpi, offers)
+		err := framework_api_handlers.HandleResourceOffers(s.core, offers)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
@@ -66,7 +66,7 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, status *mesosproto.TaskStatus) {
 	logrus.Infof("Status update: task "+status.GetTaskId().GetValue()+" is in state "+status.State.Enum().String()+" with message %s", status.GetMessage())
 	go func() {
-		err := framework_api_handlers.HandleStatusUpdate(s.lxRpi, status)
+		err := framework_api_handlers.HandleStatusUpdate(s.core, status)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
@@ -76,7 +76,13 @@ func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, statu
 }
 
 func (s *rpiMesosScheduler) OfferRescinded(driver scheduler.SchedulerDriver, id *mesosproto.OfferID) {
-	logrus.Infof("Offer '%v' rescinded.\n", *id)
+	logrus.Infof("Offer '%v' rescinded. Notifying Core and declining / reviving offer.\n", *id)
+	if err := framework_api_handlers.HandleOfferRescinded(s.core, driver, id); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Errorf("handling offer rescinded message from mesos master")
+	}
+
 }
 
 func (s *rpiMesosScheduler) FrameworkMessage(driver scheduler.SchedulerDriver, exId *mesosproto.ExecutorID, slvId *mesosproto.SlaveID, msg string) {

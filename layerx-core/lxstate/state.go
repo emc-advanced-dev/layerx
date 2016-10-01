@@ -193,6 +193,25 @@ func (state *State) GetTaskFromAnywhere(taskId string) (*lxtypes.Task, error) {
 	return nil, errors.New("task was not found with id "+taskId, nil)
 }
 
+func (state *State) GetResourcePoolContainingResource(resourceID string) (*ResourcePool, error) {
+	nodes, err := state.NodePool.GetNodes()
+	if err != nil {
+		return nil, errors.New("getting node list", err)
+	}
+	for _, node := range nodes {
+		for _, resource := range node.Resources {
+			if resource.Id == resourceID {
+				resourcePool, err := state.NodePool.GetNodeResourcePool(node.Id)
+				if err != nil {
+					return nil, errors.New("getting resource pool for node "+node.Id, err)
+				}
+				return resourcePool, nil
+			}
+		}
+	}
+	return nil, errors.New("no node found that contains resource "+resourceID, nil)
+}
+
 func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) {
 	pendingTasks, err := state.PendingTaskPool.GetTasks()
 	if err != nil {

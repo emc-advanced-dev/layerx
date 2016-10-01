@@ -86,6 +86,14 @@ func (n *Node) ModifyTask(task *Task) error {
 	return nil
 }
 
+func (n *Node) RemoveResource(resourceID string) error {
+	if _, ok := n.Resources[resourceID]; !ok {
+		return errors.New("resource "+resourceID+" not found on node "+n.Id, nil)
+	}
+	delete(n.Resources, resourceID)
+	return nil
+}
+
 func (n *Node) RemoveTask(taskId string) error {
 	if _, ok := n.RunningTasks[taskId]; !ok {
 		return errors.New("task "+taskId+" not found on node "+n.Id, nil)
