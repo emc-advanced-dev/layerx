@@ -1,6 +1,4 @@
-![Layer-X](http://i.imgur.com/idwFRSK.png "Banner")
-
-# Container Scheduling across Clusters
+# <img src="http://i.imgur.com/idwFRSK.png" alt="Container Scheduling across Clusters" width="159" height="50">
 
 **Layer-X** is a framework for connecting **distributed applications** with **resource clusters** in a *vendor-agnostic* way.
 
