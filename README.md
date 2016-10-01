@@ -1,4 +1,4 @@
-![Layer-X](http://i.imgur.com/fGo7UxL.png "Banner")
+![Layer-X](http://i.imgur.com/idwFRSK.png "Banner")
 
 # Container Scheduling across Clusters
 
