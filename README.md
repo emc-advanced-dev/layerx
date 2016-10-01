@@ -6,7 +6,7 @@
 
 **Layer-X** abstracts the interface to cluster managers like [*Mesos*](http://mesos.apache.org/), [*Kubernetes*](http://kubernetes.io/), and [*Docker Swarm*](https://docs.docker.com/swarm/), allowing any application that runs Docker containers to run identically on any resource manager.
 
-![Layer-X Arch](http://i.imgur.com/rrb9CHu.png "Architecture")
+![Layer-X Arch](http://imgur.com/a/fDa4q "Architecture")
 
 
 In the **Layer-X** world:
