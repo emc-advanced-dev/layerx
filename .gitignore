@@ -148,3 +148,4 @@ _testmain.go
 
 example-brain/example-brain
 bin/
+bin*
