@@ -1,13 +1,13 @@
 package bindata
 
 import (
+	"github.com/elazarl/go-bindata-assetfs"
+	"github.com/go-martini/martini"
+	"log"
 	"net/http"
 	"net/url"
-	"log"
-	"strings"
-	"github.com/go-martini/martini"
 	"path"
-	"github.com/elazarl/go-bindata-assetfs"
+	"strings"
 )
 
 // Static returns a middleware handler that serves static files in the given directory.

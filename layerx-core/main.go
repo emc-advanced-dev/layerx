@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/bindata"
 	"github.com/emc-advanced-dev/layerx/layerx-core/health_checker"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxserver"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
@@ -12,7 +13,6 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-commons/lxmartini"
-	"github.com/emc-advanced-dev/layerx/layerx-core/bindata"
 )
 
 func purgeState() error {

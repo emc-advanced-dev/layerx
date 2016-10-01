@@ -23,10 +23,10 @@
 package bindata
 
 import (
-	"github.com/elazarl/go-bindata-assetfs"
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/elazarl/go-bindata-assetfs"
 	"io"
 	"io/ioutil"
 	"os"
@@ -498,24 +498,24 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"web/classes.js": webClassesJs,
-	"web/dist/dragula.css": webDistDragulaCss,
-	"web/dist/dragula.js": webDistDragulaJs,
-	"web/dist/dragula.min.css": webDistDragulaMinCss,
-	"web/dist/dragula.min.js": webDistDragulaMinJs,
-	"web/dragula.js": webDragulaJs,
-	"web/dragula.styl": webDragulaStyl,
-	"web/example/example.css": webExampleExampleCss,
+	"web/classes.js":             webClassesJs,
+	"web/dist/dragula.css":       webDistDragulaCss,
+	"web/dist/dragula.js":        webDistDragulaJs,
+	"web/dist/dragula.min.css":   webDistDragulaMinCss,
+	"web/dist/dragula.min.js":    webDistDragulaMinJs,
+	"web/dragula.js":             webDragulaJs,
+	"web/dragula.styl":           webDragulaStyl,
+	"web/example/example.css":    webExampleExampleCss,
 	"web/example/example.min.js": webExampleExampleMinJs,
-	"web/favicon.ico": webFaviconIco,
-	"web/index.html": webIndexHtml,
-	"web/resources/demo.png": webResourcesDemoPng,
-	"web/resources/eyes.png": webResourcesEyesPng,
-	"web/resources/icon.png": webResourcesIconPng,
-	"web/resources/icon.svg": webResourcesIconSvg,
-	"web/resources/logo.png": webResourcesLogoPng,
-	"web/resources/logo.svg": webResourcesLogoSvg,
-	"web/resources/patreon.svg": webResourcesPatreonSvg,
+	"web/favicon.ico":            webFaviconIco,
+	"web/index.html":             webIndexHtml,
+	"web/resources/demo.png":     webResourcesDemoPng,
+	"web/resources/eyes.png":     webResourcesEyesPng,
+	"web/resources/icon.png":     webResourcesIconPng,
+	"web/resources/icon.svg":     webResourcesIconSvg,
+	"web/resources/logo.png":     webResourcesLogoPng,
+	"web/resources/logo.svg":     webResourcesLogoSvg,
+	"web/resources/patreon.svg":  webResourcesPatreonSvg,
 }
 
 // AssetDir returns the file names below a certain
@@ -557,30 +557,31 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"web": &bintree{nil, map[string]*bintree{
 		"classes.js": &bintree{webClassesJs, map[string]*bintree{}},
 		"dist": &bintree{nil, map[string]*bintree{
-			"dragula.css": &bintree{webDistDragulaCss, map[string]*bintree{}},
-			"dragula.js": &bintree{webDistDragulaJs, map[string]*bintree{}},
+			"dragula.css":     &bintree{webDistDragulaCss, map[string]*bintree{}},
+			"dragula.js":      &bintree{webDistDragulaJs, map[string]*bintree{}},
 			"dragula.min.css": &bintree{webDistDragulaMinCss, map[string]*bintree{}},
-			"dragula.min.js": &bintree{webDistDragulaMinJs, map[string]*bintree{}},
+			"dragula.min.js":  &bintree{webDistDragulaMinJs, map[string]*bintree{}},
 		}},
-		"dragula.js": &bintree{webDragulaJs, map[string]*bintree{}},
+		"dragula.js":   &bintree{webDragulaJs, map[string]*bintree{}},
 		"dragula.styl": &bintree{webDragulaStyl, map[string]*bintree{}},
 		"example": &bintree{nil, map[string]*bintree{
-			"example.css": &bintree{webExampleExampleCss, map[string]*bintree{}},
+			"example.css":    &bintree{webExampleExampleCss, map[string]*bintree{}},
 			"example.min.js": &bintree{webExampleExampleMinJs, map[string]*bintree{}},
 		}},
 		"favicon.ico": &bintree{webFaviconIco, map[string]*bintree{}},
-		"index.html": &bintree{webIndexHtml, map[string]*bintree{}},
+		"index.html":  &bintree{webIndexHtml, map[string]*bintree{}},
 		"resources": &bintree{nil, map[string]*bintree{
-			"demo.png": &bintree{webResourcesDemoPng, map[string]*bintree{}},
-			"eyes.png": &bintree{webResourcesEyesPng, map[string]*bintree{}},
-			"icon.png": &bintree{webResourcesIconPng, map[string]*bintree{}},
-			"icon.svg": &bintree{webResourcesIconSvg, map[string]*bintree{}},
-			"logo.png": &bintree{webResourcesLogoPng, map[string]*bintree{}},
-			"logo.svg": &bintree{webResourcesLogoSvg, map[string]*bintree{}},
+			"demo.png":    &bintree{webResourcesDemoPng, map[string]*bintree{}},
+			"eyes.png":    &bintree{webResourcesEyesPng, map[string]*bintree{}},
+			"icon.png":    &bintree{webResourcesIconPng, map[string]*bintree{}},
+			"icon.svg":    &bintree{webResourcesIconSvg, map[string]*bintree{}},
+			"logo.png":    &bintree{webResourcesLogoPng, map[string]*bintree{}},
+			"logo.svg":    &bintree{webResourcesLogoSvg, map[string]*bintree{}},
 			"patreon.svg": &bintree{webResourcesPatreonSvg, map[string]*bintree{}},
 		}},
 	}},
@@ -632,7 +633,6 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
 
 func assetFS() *assetfs.AssetFS {
 	for k := range _bintree.Children {

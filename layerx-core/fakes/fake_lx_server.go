@@ -46,18 +46,18 @@ const (
 type FakeCore struct {
 	TaskProviders map[string]*lxtypes.TaskProvider
 	StatusUpdates map[string]*mesosproto.TaskStatus
-	Tasks map[string]*lxtypes.Task
-	StagingTasks map[string]*lxtypes.Task
-	Nodes map[string]*lxtypes.Node
+	Tasks         map[string]*lxtypes.Task
+	StagingTasks  map[string]*lxtypes.Task
+	Nodes         map[string]*lxtypes.Node
 }
 
 func NewFakeCore() *FakeCore {
 	return &FakeCore{
 		TaskProviders: make(map[string]*lxtypes.TaskProvider),
 		StatusUpdates: make(map[string]*mesosproto.TaskStatus),
-		Tasks: make(map[string]*lxtypes.Task),
-		StagingTasks: make(map[string]*lxtypes.Task),
-		Nodes: make(map[string]*lxtypes.Node),
+		Tasks:         make(map[string]*lxtypes.Task),
+		StagingTasks:  make(map[string]*lxtypes.Task),
+		Nodes:         make(map[string]*lxtypes.Node),
 	}
 }
 

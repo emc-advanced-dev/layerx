@@ -3,25 +3,25 @@ package kube_test
 import (
 	. "github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"k8s.io/client-go/1.4/tools/clientcmd"
-	"k8s.io/client-go/1.4/kubernetes"
-	"os"
-	"github.com/emc-advanced-dev/pkg/errors"
-	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+	core_fakes "github.com/emc-advanced-dev/layerx/layerx-core/fakes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/mesos/mesos-go/mesosproto"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"k8s.io/client-go/1.4/kubernetes"
+	"k8s.io/client-go/1.4/tools/clientcmd"
+	"os"
 	"strings"
 )
 
 var (
-	client *Client
-	fakeCore *core_fakes.FakeCore
-	started bool
+	client       *Client
+	fakeCore     *core_fakes.FakeCore
+	started      bool
 	fakeCorePort = 6123
 )
 
@@ -60,7 +60,7 @@ var _ = Describe("Client", func() {
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo DID IT WORKED??")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
-				TasksToLaunch: []*lxtypes.Task{fakeTask},
+				TasksToLaunch:  []*lxtypes.Task{fakeTask},
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
@@ -75,7 +75,7 @@ var _ = Describe("Client", func() {
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo STARTING! && sleep 1 && echo FINISHED!")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
-				TasksToLaunch: []*lxtypes.Task{fakeTask},
+				TasksToLaunch:  []*lxtypes.Task{fakeTask},
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
@@ -87,7 +87,7 @@ var _ = Describe("Client", func() {
 			statuses, err = client.GetStatuses()
 			Expect(err).To(BeNil())
 			Expect(statuses).NotTo(BeEmpty())
-			err = PollWait(func() bool{
+			err = PollWait(func() bool {
 				state, err := getFirstTaskState()
 				if err != nil {
 					logrus.Error("failed to get first task status", err)
@@ -106,7 +106,7 @@ var _ = Describe("Client", func() {
 			fakeTask := core_fakes.FakeLXDockerTask("id-1234", "fake-task", nodes[0].Id, "echo DID IT WORKED??")
 			fakeTask.Mem = 4
 			launchTasksMessage := layerx_rpi_client.LaunchTasksMessage{
-				TasksToLaunch: []*lxtypes.Task{fakeTask},
+				TasksToLaunch:  []*lxtypes.Task{fakeTask},
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)

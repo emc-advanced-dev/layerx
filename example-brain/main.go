@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/emc-advanced-dev/pkg/errors"
-	"time"
-	"github.com/Sirupsen/logrus"
 	"flag"
+	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_brain_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/pkg/errors"
+	"time"
 )
 
 var core *layerx_brain_client.LayerXBrainClient
@@ -62,7 +62,7 @@ func scheduleOnce() error {
 		//change the local representation of the node for purposes of pickNode()
 		node.AddTask(task)
 
-		logrus.Info("assigned task ",task, " to node ", node, "!")
+		logrus.Info("assigned task ", task, " to node ", node, "!")
 	}
 	return nil
 }

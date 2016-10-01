@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/layerx_rpi_api/rpi_api_helpers"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/go-martini/martini"
@@ -22,22 +23,39 @@ const (
 var empty = []byte{}
 
 type rpiApiServerWrapper struct {
-	rpi                  *layerx_rpi_client.LayerXRpi
+	core                 *layerx_rpi_client.LayerXRpi
 	mesosSchedulerDriver scheduler.SchedulerDriver
+	name                 string
 }
 
-func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
+func NewRpiApiServerWrapper(name string, rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
 	return &rpiApiServerWrapper{
 		mesosSchedulerDriver: mesosSchedulerDriver,
-		rpi:                  rpi,
+		core:                 rpi,
+		name:                 name,
 	}
 }
 
 func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, driverErrc chan error) *martini.ClassicMartini {
 	collectResourcesHandler := func(req *http.Request, res http.ResponseWriter) {
 		collectResourcesFn := func() ([]byte, int, error) {
-			err := rpi_api_helpers.CollectResources(wrapper.mesosSchedulerDriver)
+			nodes, err := wrapper.core.GetNodes()
 			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"error": err,
+				}).Errorf("could not handle collect resources request")
+				return empty, 500, errors.New("could not handle collect resources request", err)
+			}
+			oldOffers := []string{}
+			logrus.Debug("currently existing nodes ", nodes)
+			for _, node := range nodes {
+				for _, resource := range node.GetResources() {
+					if resource.ResourceType == lxtypes.ResourceType_Mesos && resource.RpiName == wrapper.name {
+						oldOffers = append(oldOffers, resource.Id)
+					}
+				}
+			}
+			if err := rpi_api_helpers.CollectResources(wrapper.mesosSchedulerDriver, oldOffers); err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect resources request")

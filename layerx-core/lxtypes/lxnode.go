@@ -1,8 +1,8 @@
 package lxtypes
 
 import (
-	"github.com/emc-advanced-dev/pkg/errors"
 	"encoding/json"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 type Node struct {

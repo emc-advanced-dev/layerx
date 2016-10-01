@@ -2,11 +2,11 @@ package rpi_messenger
 
 import (
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/Sirupsen/logrus"
 )
 
 const (

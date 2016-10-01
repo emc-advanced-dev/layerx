@@ -13,23 +13,22 @@ limitations under the License.
 
 package main
 
-
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"flag"
-	"k8s.io/client-go/1.4/tools/clientcmd"
-	"github.com/Sirupsen/logrus"
-	"k8s.io/client-go/1.4/kubernetes"
 	"fmt"
-	"net"
-	"github.com/layer-x/layerx-commons/lxutils"
+	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
 	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/server"
-	"time"
-	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/emc-advanced-dev/pkg/errors"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/golang/protobuf/proto"
+	"github.com/layer-x/layerx-commons/lxutils"
+	"github.com/mesos/mesos-go/mesosproto"
+	"k8s.io/client-go/1.4/kubernetes"
+	"k8s.io/client-go/1.4/tools/clientcmd"
+	"net"
+	"time"
 )
 
 const (
@@ -38,10 +37,10 @@ const (
 
 var (
 	kubeconfig = flag.String("kubeconfig", "./config", "absolute path to the kubeconfig file")
-	port = flag.String("port", "4000", "port to run on")
-	layerX = flag.String("layerx", "", "address:port for layerx core")
+	port       = flag.String("port", "4000", "port to run on")
+	layerX     = flag.String("layerx", "", "address:port for layerx core")
 	localIpStr = flag.String("localip", "", "broadcast ip for the rpi")
-	debug = flag.Bool("debug", false, "verbose logging")
+	debug      = flag.Bool("debug", false, "verbose logging")
 
 	statusUpdateInterval = time.Millisecond * 250 //1/4 second per status update
 )
@@ -79,7 +78,6 @@ func main() {
 		}).Fatal("registering to layerx")
 	}
 
-
 	//initialize kube client
 	// uses the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
@@ -95,14 +93,12 @@ func main() {
 
 	kubeClient := kube.NewClient(clientset)
 
-
-	go func(){
+	go func() {
 		statusUpdatesForever(core, kubeClient)
 	}()
 
 	server.Start(*port, kubeClient, core)
 }
-
 
 func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Client) {
 	for {
@@ -118,7 +114,7 @@ func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Cl
 		}
 		statuses = append(statuses, killedStatuses...)
 		for _, status := range statuses {
-			go func () {
+			go func() {
 				if err := core.SubmitStatusUpdate(status); err != nil {
 					logrus.Error("failed submitting status updates to core", err)
 				}
@@ -154,8 +150,8 @@ func updatesForKilledTasks(core *layerx_rpi_client.LayerXRpi, notKilledStatuses 
 func newPodKilledStatus(task *lxtypes.Task) *mesosproto.TaskStatus {
 	var mesosState = mesosproto.TaskState_TASK_KILLED
 	return &mesosproto.TaskStatus{
-		TaskId: &mesosproto.TaskID{Value: proto.String(task.TaskId)},
-		State: &mesosState,
+		TaskId:  &mesosproto.TaskID{Value: proto.String(task.TaskId)},
+		State:   &mesosState,
 		Message: proto.String("Task Killed or Lost"),
 		SlaveId: &mesosproto.SlaveID{Value: proto.String(task.NodeId)},
 	}

@@ -235,7 +235,6 @@ func (state *State) GetTaskPoolContainingTask(taskId string) (*TaskPool, error) 
 	return nil, errors.New("task pool not found that contains task "+taskId, nil)
 }
 
-
 //singluar (for now)
 func (state *State) GetTpiUrl() string {
 	for {
@@ -250,7 +249,6 @@ func (state *State) GetTpiUrl() string {
 		time.Sleep(500 * time.Millisecond)
 	}
 }
-
 
 //plural
 func (state *State) GetRpiUrls() []string {

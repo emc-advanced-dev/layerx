@@ -7,14 +7,22 @@ type PortRange struct {
 	End   uint64 `json:"end"`
 }
 
+type ResourceType string
+
+const (
+	ResourceType_Mesos      ResourceType = "Mesos"
+	ResourceType_Kubernetes ResourceType = "Kubernetes"
+)
+
 type Resource struct {
-	Id      string      `json:"id"`
-	NodeId  string      `json:"node_id"`
-	Cpus    float64     `json:"cpus"`
-	Mem     float64     `json:"mem"`
-	Disk    float64     `json:"disk"`
-	Ports   []PortRange `json:"ports"`
-	RpiName string      `json:"rpi_name"`
+	Id           string       `json:"id"`
+	NodeId       string       `json:"node_id"`
+	Cpus         float64      `json:"cpus"`
+	Mem          float64      `json:"mem"`
+	Disk         float64      `json:"disk"`
+	Ports        []PortRange  `json:"ports"`
+	RpiName      string       `json:"rpi_name"`
+	ResourceType ResourceType `json:"resource_type"`
 }
 
 func NewResourceFromMesos(offer *mesosproto.Offer) *Resource {
@@ -43,11 +51,12 @@ func NewResourceFromMesos(offer *mesosproto.Offer) *Resource {
 	}
 
 	return &Resource{
-		Id:     id,
-		NodeId: nodeId,
-		Cpus:   cpus,
-		Mem:    mem,
-		Disk:   disk,
-		Ports:  ports,
+		Id:           id,
+		NodeId:       nodeId,
+		Cpus:         cpus,
+		Mem:          mem,
+		Disk:         disk,
+		Ports:        ports,
+		ResourceType: ResourceType_Mesos,
 	}
 }

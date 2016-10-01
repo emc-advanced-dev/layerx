@@ -2,9 +2,9 @@ package mesos_data
 
 import (
 	"fmt"
+	"github.com/emc-advanced-dev/pkg/errors"
 	"net"
 	"strings"
-	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 // UPID is a equivalent of the UPID in libprocess.

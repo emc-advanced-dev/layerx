@@ -1,18 +1,18 @@
 package kube
 
 import (
-	"k8s.io/client-go/1.4/kubernetes"
+	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"k8s.io/client-go/1.4/pkg/api/v1"
-	"k8s.io/client-go/1.4/pkg/api"
 	"github.com/emc-advanced-dev/pkg/errors"
-	"fmt"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/Sirupsen/logrus"
-	"k8s.io/client-go/1.4/pkg/api/resource"
-	"strings"
 	"github.com/golang/protobuf/proto"
+	"github.com/mesos/mesos-go/mesosproto"
+	"k8s.io/client-go/1.4/kubernetes"
+	"k8s.io/client-go/1.4/pkg/api"
+	"k8s.io/client-go/1.4/pkg/api/resource"
+	"k8s.io/client-go/1.4/pkg/api/v1"
+	"strings"
 	"time"
 )
 
@@ -28,7 +28,7 @@ type Client struct {
 	kubeClient *kubernetes.Clientset
 }
 
-func NewClient(kubeClient *kubernetes.Clientset) *Client{
+func NewClient(kubeClient *kubernetes.Clientset) *Client {
 	return &Client{
 		kubeClient: kubeClient,
 	}
@@ -77,18 +77,19 @@ func (c *Client) FetchResources() ([]*lxtypes.Resource, error) {
 		diskMB := float64((&kDiskMB).Value() >> 20)
 
 		resource := &lxtypes.Resource{
-			Id: nodeId,
+			Id:     nodeId,
 			NodeId: nodeId,
-			Cpus: cpus,
-			Mem: memMB,
-			Disk: diskMB,
+			Cpus:   cpus,
+			Mem:    memMB,
+			Disk:   diskMB,
 			//TODO: figure out how to get port resource from k8s nodes
 			Ports: []lxtypes.PortRange{
 				lxtypes.PortRange{
 					Begin: 1,
-					End: 65535,
+					End:   65535,
 				},
 			},
+			ResourceType: lxtypes.ResourceType_Kubernetes,
 		}
 		resources = append(resources, resource)
 	}
@@ -165,8 +166,8 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 		}
 		kubePort := v1.ContainerPort{
 			ContainerPort: int32(*port.ContainerPort),
-			HostPort: int32(*port.HostPort),
-			Protocol: protocol,
+			HostPort:      int32(*port.HostPort),
+			Protocol:      protocol,
 		}
 		kubePorts = append(kubePorts, kubePort)
 	}
@@ -174,7 +175,7 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 	if task.Command.Environment != nil {
 		for _, env := range task.Command.Environment.Variables {
 			kubeVar := v1.EnvVar{
-				Name: *env.Name,
+				Name:  *env.Name,
 				Value: *env.Value,
 			}
 			kubeEnvVars = append(kubeEnvVars, kubeVar)
@@ -195,7 +196,7 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 	//}
 	resources := v1.ResourceRequirements{
 		Limits: v1.ResourceList{
-			v1.ResourceCPU: cpus,
+			v1.ResourceCPU:    cpus,
 			v1.ResourceMemory: mem,
 			//todo: figure out if it's possible to set storage limits for containers
 			//v1.ResourceStorage: disk,
@@ -221,8 +222,8 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 			},
 		}
 		kubeMount := v1.VolumeMount{
-			Name: volName,
-			ReadOnly: readOnly,
+			Name:      volName,
+			ReadOnly:  readOnly,
 			MountPath: *volume.ContainerPath,
 		}
 		kubeVols = append(kubeVols, kubeVol)
@@ -247,24 +248,24 @@ func convertToPod(task *lxtypes.Task, nodeName string) (*v1.Pod, error) {
 	}
 
 	container := v1.Container{
-		Name: task.Name,
-		Image: *task.Container.Docker.Image,
-		Command: cmd,
-		Args: args,
-		Ports: kubePorts,
-		Env: kubeEnvVars,
-		Resources: resources,
+		Name:         task.Name,
+		Image:        *task.Container.Docker.Image,
+		Command:      cmd,
+		Args:         args,
+		Ports:        kubePorts,
+		Env:          kubeEnvVars,
+		Resources:    resources,
 		VolumeMounts: kubeMounts,
 	}
 	spec := v1.PodSpec{
-		Volumes: kubeVols,
-		Containers: []v1.Container{container},
+		Volumes:       kubeVols,
+		Containers:    []v1.Container{container},
 		RestartPolicy: v1.RestartPolicyNever,
-		NodeName: nodeName,
+		NodeName:      nodeName,
 	}
 	return &v1.Pod{
 		ObjectMeta: objectMeta,
-		Spec: spec,
+		Spec:       spec,
 	}, nil
 }
 
@@ -286,15 +287,15 @@ func getStatus(pod v1.Pod) *mesosproto.TaskStatus {
 	}
 	nodeID := pod.Spec.NodeName
 	return &mesosproto.TaskStatus{
-		TaskId: &mesosproto.TaskID{Value: proto.String(name)},
-		State: &mesosState,
+		TaskId:  &mesosproto.TaskID{Value: proto.String(name)},
+		State:   &mesosState,
 		Message: proto.String(message),
 		SlaveId: &mesosproto.SlaveID{Value: proto.String(nodeID)},
 	}
 }
 
 func (c *Client) waitPodCreate(name string) error {
-	return PollWait(func() bool{
+	return PollWait(func() bool {
 		_, err := c.kubeClient.Core().Pods(namespaceName).Get(name)
 		if err == nil {
 			return true
@@ -304,18 +305,18 @@ func (c *Client) waitPodCreate(name string) error {
 }
 
 func (c *Client) waitPodDelete(name string) error {
-	return PollWait(func() bool{
-			_, err := c.kubeClient.Core().Pods(namespaceName).Get(name)
-			if err != nil {
-				return true
-			}
+	return PollWait(func() bool {
+		_, err := c.kubeClient.Core().Pods(namespaceName).Get(name)
+		if err != nil {
+			return true
+		}
 		return false
 	})
 }
 
 func PollWait(waitFunc func() bool) error {
 	finished := make(chan struct{})
-	go func(){
+	go func() {
 		for {
 			if waitFunc() {
 				close(finished)
