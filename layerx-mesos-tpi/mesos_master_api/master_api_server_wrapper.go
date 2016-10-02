@@ -13,6 +13,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 	mesosscheduler "github.com/mesos/mesos-go/mesosproto/scheduler"
+	"strings"
 )
 
 const (
@@ -391,11 +392,13 @@ func (wrapper *mesosApiServerWrapper) processMesosCall(data []byte, upid *mesos_
 	}
 	callType := call.GetType()
 	frameworkId := call.GetFrameworkId().GetValue()
-	logrus.WithFields(logrus.Fields{
-		"call_type":     callType.String(),
-		"framework_pid": upid.String(),
-		"whole call":    call.String(),
-	}).Infof("Received scheduler.Call")
+	if !strings.Contains(callType.String(), "DECLINE") {
+		logrus.WithFields(logrus.Fields{
+			"call_type":     callType.String(),
+			"framework_pid": upid.String(),
+			"whole call":    call.String(),
+		}).Infof("Received scheduler.Call")
+	}
 
 	switch callType {
 	case mesosscheduler.Call_SUBSCRIBE:
