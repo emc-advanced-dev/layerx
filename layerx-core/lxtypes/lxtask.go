@@ -20,10 +20,10 @@ type Task struct {
 	Name          string                   `json:"name,omitempty"`
 	TaskId        string                   `json:"task_id,omitempty"`
 	NodeId        string                   `json:"slave_id,omitempty"`
-	Cpus          float64                  `json:cpus`
-	Mem           float64                  `json:mem`
-	Disk          float64                  `json:disk`
-	Ports         []PortRange              `json:ports`
+	Cpus          float64                  `json:"cpus"`
+	Mem           float64                  `json:"mem"`
+	Disk          float64                  `json:"disk"`
+	Ports         []PortRange              `json:"ports"`
 	Executor      *mesosproto.ExecutorInfo `json:"executor,omitempty"`
 	Command       *mesosproto.CommandInfo  `json:"command,omitempty"`
 	// Task provided with a container will launch the container as part
