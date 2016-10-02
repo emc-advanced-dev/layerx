@@ -389,7 +389,6 @@ func (wrapper *layerxCoreServerWrapper) WrapServer() *martini.ClassicMartini {
 				}).Errorf("could not handle Submit Resource request")
 				return empty, 500, errors.New("could not handle SubmitResource request", err)
 			}
-			logrus.WithFields(logrus.Fields{"resource": resource}).Infof("accepted resource from rpi")
 			return empty, 202, nil
 		}
 		_, statusCode, err := wrapper.doOperation(fn)

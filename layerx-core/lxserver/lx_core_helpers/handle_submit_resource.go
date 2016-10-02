@@ -4,6 +4,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/Sirupsen/logrus"
 )
 
 func SubmitResource(state *lxstate.State, resource *lxtypes.Resource) error {
@@ -17,6 +18,7 @@ func SubmitResource(state *lxstate.State, resource *lxtypes.Resource) error {
 	if err != nil {
 		return errors.New("adding new node "+resource.NodeId+" to node pool", err)
 	}
+	logrus.WithFields(logrus.Fields{"resource": resource, "node": newNode}).Infof("created new node for resource")
 	resourcePool, err := state.NodePool.GetNodeResourcePool(resource.NodeId)
 	if err != nil {
 		return errors.New("retrieving resource pool for new node "+resource.NodeId, err)
@@ -26,7 +28,7 @@ func SubmitResource(state *lxstate.State, resource *lxtypes.Resource) error {
 
 func addResourceToNode(resourcePool *lxstate.ResourcePool, resource *lxtypes.Resource) error {
 	//if resource exists with the same id on the node, replace it
-	if resource, err := resourcePool.GetResource(resource.Id); err == nil {
+	if _, err := resourcePool.GetResource(resource.Id); err == nil {
 		return resourcePool.ModifyResource(resource.Id, resource)
 	}
 
@@ -34,5 +36,6 @@ func addResourceToNode(resourcePool *lxstate.ResourcePool, resource *lxtypes.Res
 	if err != nil {
 		return errors.New("adding resource "+resource.Id+" to resource pool", err)
 	}
+	logrus.WithFields(logrus.Fields{"resource": resource}).Infof("accepted resource from rpi")
 	return nil
 }
