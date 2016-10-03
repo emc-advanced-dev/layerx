@@ -36,6 +36,6 @@ func addResourceToNode(resourcePool *lxstate.ResourcePool, resource *lxtypes.Res
 	if err != nil {
 		return errors.New("adding resource "+resource.Id+" to resource pool", err)
 	}
-	logrus.WithFields(logrus.Fields{"resource": resource}).Infof("accepted resource from rpi")
+	logrus.WithFields(logrus.Fields{"resource": resource}).Debugf("accepted resource from rpi")
 	return nil
 }

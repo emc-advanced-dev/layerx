@@ -1,39 +1,28 @@
 package rpi_api_helpers
 
 import (
-	"fmt"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/pkg/errors"
-	"github.com/golang/protobuf/proto"
-	"github.com/mesos/mesos-go/mesosproto"
-	"github.com/mesos/mesos-go/scheduler"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/Sirupsen/logrus"
 )
 
-func LaunchTasks(driver scheduler.SchedulerDriver, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
+func LaunchTasks(taskQueue chan *lxtypes.Task, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
 	resources := launchTasksMessage.ResourcesToUse
+	resourceCount := len(resources)
+	if resourceCount < 1 {
+		return errors.New("need at least one resource to launch a task", nil)
+	}
+	var index int
 	tasks := launchTasksMessage.TasksToLaunch
-	mesosTasks := []*mesosproto.TaskInfo{}
 	for _, task := range tasks {
-		mesosTask := task.ToMesos()
-		mesosTasks = append(mesosTasks, mesosTask)
-	}
-	offerIds := []*mesosproto.OfferID{}
-	for _, resource := range resources {
-		offerId := &mesosproto.OfferID{
-			Value: proto.String(resource.Id),
-		}
-		offerIds = append(offerIds, offerId)
-	}
-	filters := &mesosproto.Filters{}
-	status, err := driver.LaunchTasks(offerIds, mesosTasks, filters)
-	if err != nil {
-		errmsg := fmt.Sprintf("launching %v tasks on %v offers with mesos schedulerdriver", len(mesosTasks), len(offerIds))
-		return errors.New(errmsg, err)
-	}
-	if status != mesosproto.Status_DRIVER_RUNNING {
-		err = errors.New("expected status "+mesosproto.Status_DRIVER_RUNNING.String()+" but got "+status.String(), nil)
-		errmsg := fmt.Sprintf("launching %v tasks on %v offers with mesos schedulerdriver", len(mesosTasks), len(offerIds))
-		return errors.New(errmsg, err)
+		logrus.Debug("pushing task ", task, " onto queue")
+		//select any node in the resource list to use
+		//make sure node is set to the target slave
+		task.NodeId = resources[index%resourceCount].NodeId
+		taskQueue <- task
+		logrus.Debug("queue is len", len(taskQueue))
+		index++
 	}
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/go-martini/martini"
 	"github.com/mesos/mesos-go/scheduler"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 const (
@@ -23,20 +24,24 @@ var empty = []byte{}
 
 type rpiApiServerWrapper struct {
 	core                 *layerx_rpi_client.LayerXRpi
+	masterAddr           string
 	mesosSchedulerDriver scheduler.SchedulerDriver
+	taskChan             chan *lxtypes.Task
 }
 
-func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
+func NewRpiApiServerWrapper(rpi *layerx_rpi_client.LayerXRpi, masterAddr string, taskChan chan *lxtypes.Task, mesosSchedulerDriver scheduler.SchedulerDriver) *rpiApiServerWrapper {
 	return &rpiApiServerWrapper{
 		mesosSchedulerDriver: mesosSchedulerDriver,
+		masterAddr:           masterAddr,
 		core:                 rpi,
+		taskChan:            taskChan,
 	}
 }
 
 func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, driverErrc chan error) *martini.ClassicMartini {
 	collectResourcesHandler := func(req *http.Request, res http.ResponseWriter) {
 		collectResourcesFn := func() ([]byte, int, error) {
-			if err := rpi_api_helpers.CollectResources(wrapper.mesosSchedulerDriver); err != nil {
+			if err := rpi_api_helpers.CollectResources(wrapper.core, wrapper.masterAddr); err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
 				}).Errorf("could not handle collect resources request")
@@ -69,7 +74,7 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 			if err != nil {
 				return empty, 500, errors.New("could not parse json to update task status message", err)
 			}
-			err = rpi_api_helpers.LaunchTasks(wrapper.mesosSchedulerDriver, launchTasksMessage)
+			err = rpi_api_helpers.LaunchTasks(wrapper.taskChan, launchTasksMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,

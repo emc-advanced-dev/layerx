@@ -89,6 +89,9 @@ func parsePortsString(portString string) ([]lxtypes.PortRange, error) {
 	ports := []lxtypes.PortRange{}
 	portString = strings.TrimPrefix(portString, "[")
 	portString = strings.TrimSuffix(portString, "]")
+	if len(portString) < 1 {
+		return ports, nil
+	}
 	portRanges := strings.Split(portString, ", ")
 	for _, portRange := range portRanges {
 		split := strings.Split(portRange, "-")

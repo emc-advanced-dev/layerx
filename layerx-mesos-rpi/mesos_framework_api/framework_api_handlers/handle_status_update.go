@@ -12,7 +12,7 @@ func HandleStatusUpdate(lxRpi *layerx_rpi_client.LayerXRpi, status *mesosproto.T
 	statusString := "task " + status.GetTaskId().GetValue() + " in state" + taskState
 	//ignore duplicate id bug
 	//TODO: don't ignore this bug, but figure out where it's coming from
-	if strings.Contains(taskState, "duplicate") {
+	if strings.Contains(status.GetMessage(), "duplicate") {
 		return nil
 	}
 	err := lxRpi.SubmitStatusUpdate(status)

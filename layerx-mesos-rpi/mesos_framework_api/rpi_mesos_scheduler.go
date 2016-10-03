@@ -6,6 +6,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 type MesosScheduler interface {
@@ -14,17 +15,30 @@ type MesosScheduler interface {
 }
 
 type rpiMesosScheduler struct {
-	driver  scheduler.SchedulerDriver
-	driverc chan scheduler.SchedulerDriver
-	core    *layerx_rpi_client.LayerXRpi
+	driver        scheduler.SchedulerDriver
+	driverc       chan scheduler.SchedulerDriver
+	core          *layerx_rpi_client.LayerXRpi
+	TaskChan      chan *lxtypes.Task
+	taskQueue     []*lxtypes.Task
+	tasksLaunched int
 }
 
 func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi) *rpiMesosScheduler {
-	return &rpiMesosScheduler{
+	s := &rpiMesosScheduler{
 		driver:  nil,
 		driverc: make(chan scheduler.SchedulerDriver),
 		core:    lxRpi,
+		TaskChan: make(chan *lxtypes.Task),
 	}
+	//process tasks from the chan into the queue
+	go func(){
+		for {
+			task := <-s.TaskChan
+			logrus.Debugf("popping task %v", task)
+			s.taskQueue = append(s.taskQueue, task)
+		}
+	}()
+	return s
 }
 
 func (s *rpiMesosScheduler) GetDriver() scheduler.SchedulerDriver {
@@ -52,19 +66,37 @@ func (s *rpiMesosScheduler) Disconnected(scheduler.SchedulerDriver) {
 }
 
 func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, offers []*mesosproto.Offer) {
-	logrus.Infof("Collecting %v offers from Mesos Master...\n", len(offers))
-	go func() {
-		err := framework_api_handlers.HandleResourceOffers(s.core, offers)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Errorf("handling resource offers from mesos master")
+	logrus.Debugf("Searching %v offers from Mesos Master to place %v tasks... %v launched so far", len(offers), len(s.taskQueue), s.tasksLaunched)
+	if s.tasksLaunched < len(s.taskQueue) {
+		task := s.taskQueue[s.tasksLaunched]
+		offersToUse := []*mesosproto.OfferID{}
+		for _, offer := range offers {
+			if offer.GetSlaveId().GetValue() == task.NodeId {
+				offersToUse = append(offersToUse, offer.GetId())
+			} else {
+				logrus.Debugf("declining offer %v", offer.GetId().GetValue())
+				driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
+				driver.ReviveOffers()
+			}
 		}
-	}()
+		if status, err := driver.LaunchTasks(offersToUse, []*mesosproto.TaskInfo{task.ToMesos()}, &mesosproto.Filters{}); err != nil || status != mesosproto.Status_DRIVER_RUNNING {
+			logrus.Errorf("failed to launch task %v on offers %v\n failed with status %v and error %v", task.ToMesos(), offersToUse, status, err)
+			return
+		}
+		logrus.Infof("Successfully launched %v", task)
+		s.tasksLaunched++
+	} else {
+		//nothing to do, decline all offers
+		for _, offer := range offers {
+			logrus.Debugf("declining offer %v", offer.GetId().GetValue())
+			driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
+			driver.ReviveOffers()
+		}
+	}
 }
 
 func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, status *mesosproto.TaskStatus) {
-	logrus.Infof("Status update: task "+status.GetTaskId().GetValue()+" is in state "+status.State.Enum().String()+" with message %s", status.GetMessage())
+	logrus.Infof("Status update: task " + status.GetTaskId().GetValue() + " is in state " + status.State.Enum().String() + " with message %s", status.GetMessage())
 	go func() {
 		err := framework_api_handlers.HandleStatusUpdate(s.core, status)
 		if err != nil {

@@ -26,21 +26,6 @@ func sortRanges(prlist []PortRange) {
 	sort.Sort(rangesSorter(prlist))
 }
 
-type stack []PortRange
-
-func (s stack) Push(v PortRange) stack {
-	return append(s, v)
-}
-
-func (s stack) Pop() (stack, PortRange) {
-	if len(s) < 1 {
-		return PortRange{}
-	}
-
-	l := len(s)
-	return  s[:l-1], s[l-1]
-}
-
 func (pr1 PortRange) subtractRange(pr2 PortRange) []PortRange {
 	//nothing to remove
 	if pr1.Begin > pr2.End && pr1.End > pr2.Begin {

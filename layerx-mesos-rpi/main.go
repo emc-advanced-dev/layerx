@@ -92,7 +92,7 @@ func main() {
 		}
 	}()
 	mesosSchedulerDriver := rpiScheduler.GetDriver()
-	rpiServerWrapper := layerx_rpi_api.NewRpiApiServerWrapper(rpiClient, mesosSchedulerDriver)
+	rpiServerWrapper := layerx_rpi_api.NewRpiApiServerWrapper(rpiClient, *master, rpiScheduler.TaskChan, mesosSchedulerDriver)
 	errc := make(chan error)
 	m := rpiServerWrapper.WrapWithRpi(lxmartini.QuietMartini(), errc)
 	go m.RunOnAddr(fmt.Sprintf(":%v", *port))
