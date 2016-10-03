@@ -79,12 +79,15 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 				driver.ReviveOffers()
 			}
 		}
-		if status, err := driver.LaunchTasks(offersToUse, []*mesosproto.TaskInfo{task.ToMesos()}, &mesosproto.Filters{}); err != nil || status != mesosproto.Status_DRIVER_RUNNING {
-			logrus.Errorf("failed to launch task %v on offers %v\n failed with status %v and error %v", task.ToMesos(), offersToUse, status, err)
-			return
+		if len(offersToUse) > 0 {
+			logrus.Infof("launching task %v on offers %v", task, offersToUse)
+			if status, err := driver.LaunchTasks(offersToUse, []*mesosproto.TaskInfo{task.ToMesos()}, &mesosproto.Filters{}); err != nil || status != mesosproto.Status_DRIVER_RUNNING {
+				logrus.Errorf("failed to launch task %v on offers %v\n failed with status %v and error %v", task.ToMesos(), offersToUse, status, err)
+				return
+			}
+			logrus.Infof("Successfully launched %v", task)
+			s.tasksLaunched++
 		}
-		logrus.Infof("Successfully launched %v", task)
-		s.tasksLaunched++
 	} else {
 		//nothing to do, decline all offers
 		for _, offer := range offers {

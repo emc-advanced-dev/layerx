@@ -8,6 +8,8 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"sync"
+	"time"
 )
 
 type TaskLauncher struct {
@@ -20,6 +22,10 @@ func NewTaskLauncher(state *lxstate.State) *TaskLauncher {
 	}
 }
 
+//temp buffer to prevent us from trying to re-launch tasks too quickly
+var tasksMarkedForLaunch = make(map[string]string)
+var markedLock sync.RWMutex
+
 func (tl *TaskLauncher) LaunchStagedTasks() error {
 	stagingTasks, err := tl.state.StagingTaskPool.GetTasks()
 	if err != nil {
@@ -27,7 +33,28 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 	}
 
 	nodeTaskMap := make(map[string][]*lxtypes.Task)
+	MarkTasks:
 	for _, task := range stagingTasks {
+		//don't attempt to launch this task twice if the launch request has already been
+		//sent to an rpi in the last 3 minutes (TODO: reevaluate this)
+		markedLock.RLock()
+		for marked := range tasksMarkedForLaunch {
+			if task.TaskId == marked {
+				markedLock.RUnlock()
+				continue MarkTasks
+			}
+		}
+		markedLock.RUnlock()
+		markedLock.Lock()
+		tasksMarkedForLaunch[task.TaskId] = task.TaskId
+		markedLock.Unlock()
+		go func(){
+			time.Sleep(3 * time.Minute)
+			markedLock.Lock()
+			delete(tasksMarkedForLaunch, task.TaskId)
+			markedLock.Unlock()
+		}()
+
 		nodeId := task.NodeId
 		_, ok := nodeTaskMap[nodeId]
 		if !ok {
