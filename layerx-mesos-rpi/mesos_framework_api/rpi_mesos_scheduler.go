@@ -66,7 +66,9 @@ func (s *rpiMesosScheduler) Disconnected(scheduler.SchedulerDriver) {
 }
 
 func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, offers []*mesosproto.Offer) {
-	logrus.Debugf("Searching %v offers from Mesos Master to place %v tasks... %v launched so far", len(offers), len(s.taskQueue), s.tasksLaunched)
+	if len(s.taskQueue) > s.tasksLaunched {
+		logrus.Debugf("Searching %v offers from Mesos Master to place %v tasks... %v launched so far", len(offers), len(s.taskQueue), s.tasksLaunched)
+	}
 	if s.tasksLaunched < len(s.taskQueue) {
 		task := s.taskQueue[s.tasksLaunched]
 		offersToUse := []*mesosproto.OfferID{}
