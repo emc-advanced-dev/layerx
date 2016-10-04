@@ -1,10 +1,10 @@
 package rpi_api_helpers
 
 import (
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/pkg/errors"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/Sirupsen/logrus"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
+	"github.com/emc-advanced-dev/pkg/errors"
 )
 
 func LaunchTasks(taskQueue chan *lxtypes.Task, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {

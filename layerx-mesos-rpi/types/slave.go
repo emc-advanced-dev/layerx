@@ -2,9 +2,9 @@ package types
 
 import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"strings"
-	"strconv"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"strconv"
+	"strings"
 )
 
 type Slaves struct {
@@ -12,57 +12,57 @@ type Slaves struct {
 }
 
 type Slave struct {
-	ID                    string `json:"id"`
-	Pid                   string `json:"pid"`
-	Hostname              string `json:"hostname"`
-	RegisteredTime        float64 `json:"registered_time"`
-	ReregisteredTime      float64 `json:"reregistered_time"`
-	Resources             struct {
-				      Cpus  float64 `json:"cpus"`
-				      Disk  float64 `json:"disk"`
-				      Mem   float64 `json:"mem"`
-				      Ports string `json:"ports"`
-			      } `json:"resources"`
-	UsedResources         struct {
-				      Cpus  float64 `json:"cpus"`
-				      Disk  float64 `json:"disk"`
-				      Mem   float64 `json:"mem"`
-				      Ports string `json:"ports"`
-			      } `json:"used_resources"`
-	OfferedResources      struct {
-				      Cpus float64 `json:"cpus"`
-				      Disk float64 `json:"disk"`
-				      Mem  float64 `json:"mem"`
-			      } `json:"offered_resources"`
-	ReservedResources     struct {
-			      } `json:"reserved_resources"`
-	UnreservedResources   struct {
-				      Cpus  float64 `json:"cpus"`
-				      Disk  float64 `json:"disk"`
-				      Mem   float64 `json:"mem"`
-				      Ports string `json:"ports"`
-			      } `json:"unreserved_resources"`
-	Attributes            struct {
-			      } `json:"attributes"`
-	Active                bool `json:"active"`
+	ID               string  `json:"id"`
+	Pid              string  `json:"pid"`
+	Hostname         string  `json:"hostname"`
+	RegisteredTime   float64 `json:"registered_time"`
+	ReregisteredTime float64 `json:"reregistered_time"`
+	Resources        struct {
+		Cpus  float64 `json:"cpus"`
+		Disk  float64 `json:"disk"`
+		Mem   float64 `json:"mem"`
+		Ports string  `json:"ports"`
+	} `json:"resources"`
+	UsedResources struct {
+		Cpus  float64 `json:"cpus"`
+		Disk  float64 `json:"disk"`
+		Mem   float64 `json:"mem"`
+		Ports string  `json:"ports"`
+	} `json:"used_resources"`
+	OfferedResources struct {
+		Cpus float64 `json:"cpus"`
+		Disk float64 `json:"disk"`
+		Mem  float64 `json:"mem"`
+	} `json:"offered_resources"`
+	ReservedResources struct {
+	} `json:"reserved_resources"`
+	UnreservedResources struct {
+		Cpus  float64 `json:"cpus"`
+		Disk  float64 `json:"disk"`
+		Mem   float64 `json:"mem"`
+		Ports string  `json:"ports"`
+	} `json:"unreserved_resources"`
+	Attributes struct {
+	} `json:"attributes"`
+	Active                bool   `json:"active"`
 	Version               string `json:"version"`
 	ReservedResourcesFull struct {
-			      } `json:"reserved_resources_full"`
-	UsedResourcesFull     []struct {
+	} `json:"reserved_resources_full"`
+	UsedResourcesFull []struct {
 		Name   string `json:"name"`
 		Type   string `json:"type"`
 		Scalar struct {
-			       Value float64 `json:"value"`
-		       } `json:"scalar,omitempty"`
+			Value float64 `json:"value"`
+		} `json:"scalar,omitempty"`
 		Role   string `json:"role"`
 		Ranges struct {
-			       Range []struct {
-				       Begin int `json:"begin"`
-				       End   int `json:"end"`
-			       } `json:"range"`
-		       } `json:"ranges,omitempty"`
+			Range []struct {
+				Begin int `json:"begin"`
+				End   int `json:"end"`
+			} `json:"range"`
+		} `json:"ranges,omitempty"`
 	} `json:"used_resources_full"`
-	OfferedResourcesFull  []interface{} `json:"offered_resources_full"`
+	OfferedResourcesFull []interface{} `json:"offered_resources_full"`
 }
 
 func (s *Slave) ToResource() (*lxtypes.Resource, error) {
@@ -75,12 +75,12 @@ func (s *Slave) ToResource() (*lxtypes.Resource, error) {
 		return nil, errors.New("failed to parse ports string "+s.UsedResources.Ports, err)
 	}
 	return &lxtypes.Resource{
-		Id:     s.ID,
-		NodeId: s.ID,
-		Cpus:   s.Resources.Cpus - s.UsedResources.Cpus,
-		Mem:    s.Resources.Mem - s.UsedResources.Mem,
-		Disk:   s.Resources.Disk - s.UsedResources.Disk,
-		Ports:  lxtypes.DiffPortRanges(totalPorts, usedPorts),
+		Id:           s.ID,
+		NodeId:       s.ID,
+		Cpus:         s.Resources.Cpus - s.UsedResources.Cpus,
+		Mem:          s.Resources.Mem - s.UsedResources.Mem,
+		Disk:         s.Resources.Disk - s.UsedResources.Disk,
+		Ports:        lxtypes.DiffPortRanges(totalPorts, usedPorts),
 		ResourceType: lxtypes.ResourceType_Mesos,
 	}, nil
 }
@@ -105,7 +105,7 @@ func parsePortsString(portString string) ([]lxtypes.PortRange, error) {
 		}
 		ports = append(ports, lxtypes.PortRange{
 			Begin: uint64(begin),
-			End: uint64(end),
+			End:   uint64(end),
 		})
 	}
 	return ports, nil

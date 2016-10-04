@@ -33,10 +33,10 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 	}
 
 	nodeTaskMap := make(map[string][]*lxtypes.Task)
-	MarkTasks:
+MarkTasks:
 	for _, task := range stagingTasks {
 		//don't attempt to launch this task twice if the launch request has already been
-		//sent to an rpi in the last 3 minutes (TODO: reevaluate this)
+		//sent to an rpi in the last 1 minutes (TODO: reevaluate this)
 		markedLock.RLock()
 		for marked := range tasksMarkedForLaunch {
 			if task.TaskId == marked {
@@ -48,8 +48,8 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 		markedLock.Lock()
 		tasksMarkedForLaunch[task.TaskId] = task.TaskId
 		markedLock.Unlock()
-		go func(){
-			time.Sleep(3 * time.Minute)
+		go func() {
+			time.Sleep(1 * time.Minute)
 			markedLock.Lock()
 			delete(tasksMarkedForLaunch, task.TaskId)
 			markedLock.Unlock()

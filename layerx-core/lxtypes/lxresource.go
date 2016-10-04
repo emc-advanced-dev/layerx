@@ -36,14 +36,14 @@ func (pr1 PortRange) subtractRange(pr2 PortRange) []PortRange {
 	if pr1.Begin < pr2.Begin && pr1.End > pr2.Begin {
 		res = append(res, PortRange{
 			Begin: pr1.Begin,
-			End: pr2.Begin - 1,
+			End:   pr2.Begin - 1,
 		})
 	}
 	//overlaps end of pr2
 	if pr1.Begin < pr2.Begin && pr1.End > pr2.Begin {
 		res = append(res, PortRange{
 			Begin: pr2.End + 1,
-			End: pr1.End,
+			End:   pr1.End,
 		})
 	}
 	return res
@@ -87,7 +87,7 @@ func DiffPortRanges(rl1, rl2 []PortRange) []PortRange {
 				break
 			}
 		}
-		if !added{
+		if !added {
 			results = append(results, result)
 		}
 	}

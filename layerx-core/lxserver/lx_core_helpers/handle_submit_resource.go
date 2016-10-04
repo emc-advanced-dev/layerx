@@ -1,10 +1,10 @@
 package lx_core_helpers
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxstate"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
-	"github.com/Sirupsen/logrus"
 )
 
 func SubmitResource(state *lxstate.State, resource *lxtypes.Resource) error {

@@ -1,11 +1,11 @@
 package rpi_api_helpers
 
 import (
-	"github.com/emc-advanced-dev/pkg/errors"
-	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/layer-x/layerx-commons/lxhttpclient"
-	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/types"
 	"encoding/json"
+	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/types"
+	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/layer-x/layerx-commons/lxhttpclient"
 )
 
 func CollectResources(core *layerx_rpi_client.LayerXRpi, masterAddr string) error {

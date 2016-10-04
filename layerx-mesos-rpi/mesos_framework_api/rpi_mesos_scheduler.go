@@ -3,10 +3,10 @@ package mesos_framework_api
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
+	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
-	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 )
 
 type MesosScheduler interface {
@@ -25,13 +25,13 @@ type rpiMesosScheduler struct {
 
 func NewRpiMesosScheduler(lxRpi *layerx_rpi_client.LayerXRpi) *rpiMesosScheduler {
 	s := &rpiMesosScheduler{
-		driver:  nil,
-		driverc: make(chan scheduler.SchedulerDriver),
-		core:    lxRpi,
+		driver:   nil,
+		driverc:  make(chan scheduler.SchedulerDriver),
+		core:     lxRpi,
 		TaskChan: make(chan *lxtypes.Task),
 	}
 	//process tasks from the chan into the queue
-	go func(){
+	go func() {
 		for {
 			task := <-s.TaskChan
 			logrus.Debugf("popping task %v", task)
@@ -99,7 +99,7 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 }
 
 func (s *rpiMesosScheduler) StatusUpdate(driver scheduler.SchedulerDriver, status *mesosproto.TaskStatus) {
-	logrus.Infof("Status update: task " + status.GetTaskId().GetValue() + " is in state " + status.State.Enum().String() + " with message %s", status.GetMessage())
+	logrus.Infof("Status update: task "+status.GetTaskId().GetValue()+" is in state "+status.State.Enum().String()+" with message %s", status.GetMessage())
 	go func() {
 		err := framework_api_handlers.HandleStatusUpdate(s.core, status)
 		if err != nil {
