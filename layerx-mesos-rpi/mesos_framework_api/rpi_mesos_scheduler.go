@@ -7,6 +7,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-rpi/mesos_framework_api/framework_api_handlers"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
+	"time"
 )
 
 type MesosScheduler interface {
@@ -77,7 +78,10 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 				offersToUse = append(offersToUse, offer.GetId())
 			} else {
 				driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
-				driver.ReviveOffers()
+				go func(){
+					time.Sleep(time.Millisecond * 100)
+					driver.ReviveOffers()
+				}()
 			}
 		}
 		if len(offersToUse) > 0 {
@@ -93,7 +97,10 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 		//nothing to do, decline all offers
 		for _, offer := range offers {
 			driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
-			driver.ReviveOffers()
+			go func(){
+				time.Sleep(time.Millisecond * 100)
+				driver.ReviveOffers()
+			}()
 		}
 	}
 }
