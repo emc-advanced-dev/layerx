@@ -39,7 +39,7 @@ MarkTasks:
 		//sent to an rpi in the last 1 minutes (TODO: reevaluate this)
 		markedLock.RLock()
 		for marked := range tasksMarkedForLaunch {
-			if task.TaskId == marked {
+			if task.TaskId == marked && !task.Checkpointed {
 				markedLock.RUnlock()
 				continue MarkTasks
 			}
