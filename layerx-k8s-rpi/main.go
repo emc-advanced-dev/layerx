@@ -107,7 +107,12 @@ func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Cl
 			logrus.Error("failed retrieving k8s task status updates", err)
 			continue
 		}
-		killedStatuses, err := updatesForKilledTasks(core, statuses)
+		resources, err := kubeClient.FetchResources()
+		if err != nil {
+			logrus.Error("failed retrieving k8s resource list", err)
+			continue
+		}
+		killedStatuses, err := updatesForKilledTasks(core, statuses, resources)
 		if err != nil {
 			logrus.Error("failed to get killed tasks", err)
 			continue
@@ -124,13 +129,23 @@ func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Cl
 	}
 }
 
-func updatesForKilledTasks(core *layerx_rpi_client.LayerXRpi, notKilledStatuses []*mesosproto.TaskStatus) ([]*mesosproto.TaskStatus, error) {
+func updatesForKilledTasks(core *layerx_rpi_client.LayerXRpi, notKilledStatuses []*mesosproto.TaskStatus, ownedResources []*lxtypes.Resource) ([]*mesosproto.TaskStatus, error) {
 	killedStatuses := []*mesosproto.TaskStatus{}
 	nodes, err := core.GetNodes()
 	if err != nil {
 		return nil, errors.New("failed checking the lx list of nodes", err)
 	}
 	for _, node := range nodes {
+		ownsNode := false
+		for _, resource := range ownedResources {
+			if resource.NodeId == node.Id {
+				ownsNode = true
+				break
+			}
+		}
+		if !ownsNode {
+			continue
+		}
 		for _, task := range node.GetTasks() {
 			taskKilled := true
 			for _, status := range notKilledStatuses {
