@@ -76,7 +76,6 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 			if offer.GetSlaveId().GetValue() == task.NodeId {
 				offersToUse = append(offersToUse, offer.GetId())
 			} else {
-				logrus.Debugf("declining offer %v", offer.GetId().GetValue())
 				driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
 				driver.ReviveOffers()
 			}
@@ -93,7 +92,6 @@ func (s *rpiMesosScheduler) ResourceOffers(driver scheduler.SchedulerDriver, off
 	} else {
 		//nothing to do, decline all offers
 		for _, offer := range offers {
-			logrus.Debugf("declining offer %v", offer.GetId().GetValue())
 			driver.DeclineOffer(offer.GetId(), &mesosproto.Filters{})
 			driver.ReviveOffers()
 		}
