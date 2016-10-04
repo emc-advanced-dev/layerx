@@ -106,6 +106,7 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 		logrus.Warn("K8s RPI only supports launching tasks on a single node at a time. using node", nodeName)
 	}
 	for _, task := range launchTasksMessage.TasksToLaunch {
+		logrus.Infof("launching task", task)
 		pod, err := convertToPod(task, nodeName)
 		if err != nil {
 			return errors.New("failed to convert task to pod", err)
@@ -118,7 +119,7 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 		if err := c.waitPodCreate(result.Name); err != nil {
 			return errors.New("waiting for pod to be created", err)
 		}
-		logrus.Infof("created pod", result)
+		logrus.Info("created pod", result)
 	}
 
 	return nil

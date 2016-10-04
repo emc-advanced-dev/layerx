@@ -29,6 +29,7 @@ import (
 	"k8s.io/client-go/1.4/tools/clientcmd"
 	"net"
 	"time"
+	"strings"
 )
 
 const (
@@ -92,6 +93,9 @@ func main() {
 	}
 
 	kubeClient := kube.NewClient(clientset)
+	if err := kubeClient.Init(); err != nil && !strings.Contains(err.Error(), "already exists"){
+		logrus.Fatal("failed to initialize kubernetes namespace", err)
+	}
 
 	go func() {
 		statusUpdatesForever(core, kubeClient)
