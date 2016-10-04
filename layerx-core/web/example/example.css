@@ -18,12 +18,12 @@ html, body {
 body, input, button {
   font-family: Georgia, Helvetica;
   font-size: 17px;
-  color: #ecf0f1;
+  color: #00000;
 }
 
 h1 {
   text-align: center;
-  background-color: #4896d2;
+  background-color: #ffffff;
   margin-top: 20px;
   margin-bottom: 0;
   padding: 10px;
@@ -31,7 +31,7 @@ h1 {
 
 h3 {
   background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 5px solid #4896d2;
+  border-bottom: 5px solid #ffffff;
   text-align: center;
   padding: 10px;
 }
