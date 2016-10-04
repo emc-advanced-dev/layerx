@@ -22,14 +22,14 @@ const rpi_name = "Mesos-RPI-0.0.0"
 func main() {
 	port := flag.Int("port", 4000, "listening port for mesos rpi")
 	master := flag.String("master", "127.0.0.1:5050", "url of mesos master")
-	debug := flag.String("debug", "false", "turn on debugging, default: false")
+	debug := flag.Bool("debug", false, "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
 	localIpStr := flag.String("localip", "", "binding address for the rpi")
 	rpiName := flag.String("name", rpi_name, "name to use to register to layerx")
 	user := flag.String("user", "root", "mesos user to use on mesos")
 	flag.Parse()
 
-	if *debug == "true" {
+	if *debug {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debugf("debugging activated")
 	}
