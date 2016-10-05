@@ -141,6 +141,9 @@ button:hover {
 .wrapper {
   display: table;
   max-width: 400px;
+  border: 1px solid rgb(34, 53, 76);
+  border-collapse: collapse;
+  background-color: #ffffff;
 }
 .container {
   display: table-cell;
@@ -184,6 +187,11 @@ button:hover {
   #background-color: rgba(255, 255, 255, 0.3);
   background-color: #ffffff;
 }
+
+.task_info {
+  background-color: #ffffff;
+}
+
 #left-lovehandles > div,
 #right-lovehandles > div {
   cursor: initial;
