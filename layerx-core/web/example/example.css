@@ -16,22 +16,24 @@ html, body {
 }
 
 body, input, button {
-  font-family: Georgia, Helvetica;
-  font-size: 17px;
-  color: #00000;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 300;
+	line-height: 12.6px;
 }
 
 h1 {
   text-align: center;
-  background-color: #ffffff;
-  margin-top: 20px;
+  background-color: #00000;
+  margin-top: 0px;
   margin-bottom: 0;
-  padding: 10px;
+  padding: 0px;
 }
 
 h3 {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 5px solid #ffffff;
+  color: #ffffff;
   text-align: center;
   padding: 10px;
 }
@@ -55,8 +57,8 @@ h3 div {
 .promo {
   margin-bottom: 0;
   font-style: italic;
-  padding: 10px;
   background-color: #ff4020;
+  padding: 10px;
   border-bottom: 5px solid #c00;
 }
 
@@ -142,16 +144,16 @@ button:hover {
 }
 .container {
   display: table-cell;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgb(34, 53, 76);
   width: 50%;
 }
 .containerlike {
   display: table-cell;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgb(34, 53, 76);
   width: 50%;
 }
 .container:nth-child(odd) {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgb(34, 53, 76);
 }
 /*
  * note that styling gu-mirror directly is a bad practice because it's too generic.
@@ -159,8 +161,8 @@ button:hover {
  */
 .container > div,
 .gu-mirror {
-  margin: 10px;
-  padding: 10px;
+  margin: 2px;
+  padding: 2px;
   background-color: rgba(0, 0, 0, 0.2);
   transition: opacity 0.4s ease-in-out;
 }
@@ -179,7 +181,8 @@ button:hover {
   background-color: #e74c3c;
 }
 .container.ex-over {
-  background-color: rgba(255, 255, 255, 0.3);
+  #background-color: rgba(255, 255, 255, 0.3);
+  background-color: #ffffff;
 }
 #left-lovehandles > div,
 #right-lovehandles > div {
@@ -195,4 +198,18 @@ button:hover {
   margin: 20px 0;
   display: block;
   text-align: center;
+}
+
+.contain-to-grid {
+    width: 100%;
+    background: #147698;
+}
+
+.top-bar {
+    background: #147698;
+    text-align:left;
+    height: 3.4375rem;
+    line-height: 3.4375rem;
+    margin-bottom: 0;
+    position: relative;
 }
