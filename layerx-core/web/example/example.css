@@ -17,11 +17,12 @@ html, body {
 
 body, input, button {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-	font-size: 12px;
+	font-size: 14px;
 	font-style: normal;
 	font-variant: normal;
-	font-weight: 300;
+	font-weight: 800;
 	line-height: 12.6px;
+  color: #ffffff;
 }
 
 h1 {
@@ -33,13 +34,23 @@ h1 {
 }
 
 h3 {
-  color: #ffffff;
   text-align: center;
-  padding: 10px;
+  background-color: #00000;
+  margin-top: 0px;
+  margin-bottom: 0;
+  padding: 0px;
 }
 
 h3 div {
   margin-bottom: 10px;
+}
+
+.table-header {
+  background-color: rgb(34, 53, 76);
+  color: #ffffff;
+  text-align: center;
+  width: 200px;
+  min-height: 60px;
 }
 
 .tagline {
@@ -102,7 +113,7 @@ ul {
   margin: 50px 0;
   padding: 20px;
 }
-
+/*
 input {
   border: none;
   outline: none;
@@ -129,7 +140,7 @@ button:hover {
   background-color: #e74c3c;
   color: #ecf0f1;
 }
-
+*/
 .gh-fork {
   position: fixed;
   top: 0;
@@ -140,23 +151,29 @@ button:hover {
 /* dragula-specific example page styles */
 .wrapper {
   display: table;
-  max-width: 400px;
-  border: 1px solid rgb(34, 53, 76);
-  border-collapse: collapse;
+  /*max-width: 800px;*/
   background-color: #ffffff;
+  border-color: rgb(34, 53, 76);
+  border-style: solid;
+  border-width: 3px;
 }
 .container {
   display: table-cell;
-  background-color: rgb(34, 53, 76);
-  width: 50%;
+  /* background-color: rgb(196, 205, 218); */
+  background-color: #ffffff;
+  width: 200px;
+  min-height: 60px;
+  vertical-align: top;
 }
+
 .containerlike {
   display: table-cell;
-  background-color: rgb(34, 53, 76);
-  width: 50%;
+  background-color: #ffffff;
 }
+
 .container:nth-child(odd) {
-  background-color: rgb(34, 53, 76);
+  background-color: #ffffff;
+  vertical-align: top;
 }
 /*
  * note that styling gu-mirror directly is a bad practice because it's too generic.
@@ -166,7 +183,7 @@ button:hover {
 .gu-mirror {
   margin: 2px;
   padding: 2px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgb(34, 53, 76);
   transition: opacity 0.4s ease-in-out;
 }
 .container > div {
@@ -180,16 +197,16 @@ button:hover {
   cursor: -moz-grabbing;
   cursor: -webkit-grabbing;
 }
-.container .ex-moved {
-  background-color: #e74c3c;
+.container.ex-moved {
+  background-color: #000000;
 }
 .container.ex-over {
-  #background-color: rgba(255, 255, 255, 0.3);
   background-color: #ffffff;
 }
 
-.task_info {
-  background-color: #ffffff;
+.alignment_left {
+  text-align: left;
+  margin-left: 10px;
 }
 
 #left-lovehandles > div,
@@ -220,4 +237,30 @@ button:hover {
     line-height: 3.4375rem;
     margin-bottom: 0;
     position: relative;
+}
+
+.white-bg {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.task_info {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: rgb(34, 53, 76) !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+}
+
+.title_box {
+  background-color: rgb(34, 53, 76) !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  width: 200px !important;
+  min-height: 60px !important;
+}
+
+.title_box_middle {
+  line-height: 60px !important;
+  vertical-align: middle !important;
 }
