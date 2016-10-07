@@ -169,6 +169,7 @@ button:hover {
 .containerlike {
   display: table-cell;
   background-color: #ffffff;
+  vertical-align: top;
 }
 
 .container:nth-child(odd) {
@@ -245,7 +246,7 @@ button:hover {
 }
 
 .task_info {
-  background-color: #ffffff !important;
+  background-color: rgb(196, 205, 218) !important;
   color: #000000 !important;
   border-color: rgb(34, 53, 76) !important;
   border-style: solid !important;
@@ -258,6 +259,7 @@ button:hover {
   text-align: center !important;
   width: 200px !important;
   min-height: 60px !important;
+  vertical-align: top !important;
 }
 
 .title_box_middle {
