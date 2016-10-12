@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
-	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
+	"github.com/emc-advanced-dev/layerx/layerx-swarm-rpi/swarm"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/go-martini/martini"
 	"github.com/layer-x/layerx-commons/lxmartini"
@@ -18,7 +18,7 @@ const (
 	KILL_TASK         = "/kill_task"
 )
 
-func Start(port string, client *kube.Client, core *layerx_rpi_client.LayerXRpi) {
+func Start(port string, client *swarm.Client, core *layerx_rpi_client.LayerXRpi) {
 	m := lxmartini.QuietMartini()
 
 	m.Post(COLLECT_RESOURCES, func(req *http.Request, res http.ResponseWriter) {

@@ -19,17 +19,14 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
-	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
-	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/server"
+	"github.com/emc-advanced-dev/layerx/layerx-swarm-rpi/server"
 	"github.com/emc-advanced-dev/pkg/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/mesos/mesos-go/mesosproto"
-	"k8s.io/client-go/1.4/kubernetes"
-	"k8s.io/client-go/1.4/tools/clientcmd"
 	"net"
 	"time"
-	"strings"
+	"github.com/emc-advanced-dev/layerx/layerx-swarm-rpi/swarm"
 )
 
 const (
@@ -38,6 +35,7 @@ const (
 
 var (
 	port       = flag.String("port", "4000", "port to run on")
+	name       = flag.String("name", rpi_name, "unique name to use for this rpi")
 	layerX     = flag.String("layerx", "", "address:port for layerx core")
 	localIpStr = flag.String("localip", "", "broadcast ip for the rpi")
 	debug      = flag.Bool("debug", false, "verbose logging")
@@ -65,52 +63,39 @@ func main() {
 	}
 	core := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
-		RpiName: rpi_name,
+		RpiName: *name,
 	}
 	logrus.WithFields(logrus.Fields{
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}).Infof("registering to layerx")
 
-	if err := core.RegisterRpi(rpi_name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
+	if err := core.RegisterRpi(*name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err.Error(),
 			"layerx_url": *layerX,
 		}).Fatal("registering to layerx")
 	}
 
-	//initialize kube client
-	// uses the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	client, err := swarm.NewClient(*name)
 	if err != nil {
-		logrus.Fatal("building config", err)
-	}
-
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		logrus.Fatal("creating clientset", err)
-	}
-
-	kubeClient := kube.NewClient(clientset)
-	if err := kubeClient.Init(); err != nil && !strings.Contains(err.Error(), "already exists"){
-		logrus.Fatal("failed to initialize kubernetes namespace", err)
+		logrus.Fatal("failed starting swarm client: ", err)
 	}
 
 	go func() {
-		statusUpdatesForever(core, kubeClient)
+		statusUpdatesForever(core, client)
 	}()
 
-	server.Start(*port, kubeClient, core)
+	server.Start(*port, client, core)
 }
 
-func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, kubeClient *kube.Client) {
+func statusUpdatesForever(core *layerx_rpi_client.LayerXRpi, client *swarm.Client) {
 	for {
-		statuses, err := kubeClient.GetStatuses()
+		statuses, err := client.GetStatuses()
 		if err != nil {
 			logrus.Error("failed retrieving k8s task status updates", err)
 			continue
 		}
-		resources, err := kubeClient.FetchResources()
+		resources, err := client.FetchResources()
 		if err != nil {
 			logrus.Error("failed retrieving k8s resource list", err)
 			continue
