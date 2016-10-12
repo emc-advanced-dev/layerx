@@ -112,6 +112,7 @@ type ResourceType string
 const (
 	ResourceType_Mesos      ResourceType = "Mesos"
 	ResourceType_Kubernetes ResourceType = "Kubernetes"
+	ResourceType_DockerSwarm ResourceType = "DockerSwarm"
 )
 
 type Resource struct {
