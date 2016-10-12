@@ -17,12 +17,10 @@ func LaunchTasks(driver scheduler.SchedulerDriver, taskQueue chan *lxtypes.Task,
 	var index int
 	tasks := launchTasksMessage.TasksToLaunch
 	for _, task := range tasks {
-		logrus.Debug("pushing task ", task, " onto queue")
 		//select any node in the resource list to use
 		//make sure node is set to the target slave
 		task.NodeId = resources[index%resourceCount].NodeId
 		taskQueue <- task
-		logrus.Debug("queue is len", len(taskQueue))
 		index++
 	}
 	return nil
