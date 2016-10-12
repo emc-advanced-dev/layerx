@@ -5,7 +5,7 @@ SWARM_RPI=layerx-swarm-rpi
 MESOS_TPI=layerx-mesos-tpi
 
 .PHONY: all
-all: bin/$(CORE) bin/$(K8S_RPI) bin/$(MESOS_RPI) bin/$(MESOS_TPI)
+all: bin/$(CORE) bin/$(K8S_RPI) bin/$(MESOS_RPI) bin/$(MESOS_TPI) bin/$(SWARM_RPI)
 
 bin/$(CORE): $(shell find $(CORE) -name '*.go') $(CORE)/bindata/bindata_assetfs.go
 	cd $(CORE) && go build -v -o ../bin/$(CORE)

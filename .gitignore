@@ -149,3 +149,5 @@ _testmain.go
 example-brain/example-brain
 bin/
 bin*
+
+layerx-core/bindata/bindata_assetfs.go
