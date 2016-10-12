@@ -276,7 +276,7 @@ func getStatus(pod v1.Pod) *mesosproto.TaskStatus {
 	var mesosState mesosproto.TaskState
 	switch pod.Status.Phase {
 	case v1.PodPending:
-		mesosState = mesosproto.TaskState_TASK_STAGING
+		mesosState = mesosproto.TaskState_TASK_STARTING
 	case v1.PodRunning:
 		mesosState = mesosproto.TaskState_TASK_RUNNING
 	case v1.PodSucceeded:
