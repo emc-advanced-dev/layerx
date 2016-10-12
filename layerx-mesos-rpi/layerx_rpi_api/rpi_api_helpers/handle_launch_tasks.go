@@ -1,13 +1,14 @@
 package rpi_api_helpers
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/emc-advanced-dev/layerx/layerx-core/layerx_rpi_client"
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"github.com/mesos/mesos-go/scheduler"
 )
 
-func LaunchTasks(taskQueue chan *lxtypes.Task, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
+func LaunchTasks(driver scheduler.SchedulerDriver, taskQueue chan *lxtypes.Task, launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
+	driver.ReviveOffers()
 	resources := launchTasksMessage.ResourcesToUse
 	resourceCount := len(resources)
 	if resourceCount < 1 {
