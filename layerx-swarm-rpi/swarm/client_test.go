@@ -1,7 +1,7 @@
 package swarm_test
 
 import (
-	. "github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
+	. "github.com/emc-advanced-dev/layerx/layerx-swarm-rpi/swarm"
 
 	"fmt"
 	"github.com/Sirupsen/logrus"
@@ -12,10 +12,9 @@ import (
 	"github.com/mesos/mesos-go/mesosproto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/1.4/kubernetes"
-	"k8s.io/client-go/1.4/tools/clientcmd"
 	"os"
 	"strings"
+	"github.com/emc-advanced-dev/layerx/layerx-k8s-rpi/kube"
 )
 
 var (
@@ -38,12 +37,6 @@ var _ = Describe("Client", func() {
 			}
 		}
 	})
-	AfterEach(func() {
-		if err := tearDown(); err != nil {
-			fmt.Println(err)
-			os.Exit(-1)
-		}
-	})
 	Describe("FetchResources", func() {
 		It("returns all the kube nodes as an array of lx resourecs", func() {
 			resources, err := client.FetchResources()
@@ -64,6 +57,7 @@ var _ = Describe("Client", func() {
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
+			defer client.KillTask(fakeTask.TaskId)
 			Expect(err).To(BeNil())
 		})
 	})
@@ -79,15 +73,16 @@ var _ = Describe("Client", func() {
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
+			defer client.KillTask(fakeTask.TaskId)
 			Expect(err).To(BeNil())
 			statuses, err := client.GetStatuses()
 			Expect(err).To(BeNil())
 			Expect(statuses).NotTo(BeEmpty())
-			Expect(*statuses[0].State).To(Equal(mesosproto.TaskState_TASK_STAGING))
+			Expect(*statuses[0].State).To(Equal(mesosproto.TaskState_TASK_STARTING))
 			statuses, err = client.GetStatuses()
 			Expect(err).To(BeNil())
 			Expect(statuses).NotTo(BeEmpty())
-			err = PollWait(func() bool {
+			err = kube.PollWait(func() bool {
 				state, err := getFirstTaskState()
 				if err != nil {
 					logrus.Error("failed to get first task status", err)
@@ -110,6 +105,7 @@ var _ = Describe("Client", func() {
 				ResourcesToUse: []*lxtypes.Resource{nodes[0]},
 			}
 			err = client.LaunchTasks(launchTasksMessage)
+			defer client.KillTask(fakeTask.TaskId)
 			Expect(err).To(BeNil())
 			err = client.KillTask(fakeTask.TaskId)
 			Expect(err).To(BeNil())
@@ -128,42 +124,7 @@ func getFirstTaskState() (*mesosproto.TaskState, error) {
 	return statuses[0].State, nil
 }
 
-func setUp() error {
-	kubeconfig := os.Getenv("KUBE_CFG")
-	if kubeconfig == "" {
-		return errors.New("path to kubeconfig must be specified by env var KUBE_CFG", nil)
-	}
-	//initialize kube client
-	// uses the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
-	client = NewClient(clientset)
-
-	if err := client.Init(); err != nil {
-		return errors.New("initializing k8s", err)
-	}
-	return nil
-}
-
-func tearDown() error {
-	statuses, err := client.GetStatuses()
-	if err != nil {
-		return errors.New("getting statuses", err)
-	}
-	for _, status := range statuses {
-		if err := client.KillTask(status.GetTaskId().GetValue()); err != nil {
-			return errors.New("killing task", err)
-		}
-	}
-
-	return nil
+func setUp() (err error) {
+	client, err = NewClient("fake-swarm-rpi")
+	return
 }

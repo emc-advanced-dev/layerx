@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestKube(t *testing.T) {
+func TestSwarm(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Kube Suite")
+	RunSpecs(t, "Swarm Suite")
 }

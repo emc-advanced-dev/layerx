@@ -9,7 +9,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/mesos/mesos-go/mesosproto"
 	"strings"
-	"time"
 	"github.com/fsouza/go-dockerclient"
 	"os"
 	"github.com/docker/docker/api/types/swarm"
@@ -74,7 +73,6 @@ func (c *Client) FetchResources() ([]*lxtypes.Resource, error) {
 }
 
 func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMessage) error {
-	c.docker.CreateService()
 	if len(launchTasksMessage.ResourcesToUse) < 1 {
 		return errors.New("must specify a node to launch these tasks on", nil)
 	}
@@ -122,11 +120,11 @@ func (c *Client) GetStatuses() ([]*mesosproto.TaskStatus, error) {
 	logrus.Debug("getting status for all services")
 	services, err := c.docker.ListServices(docker.ListServicesOptions{})
 	if err != nil {
-		return errors.New("getting service list", err)
+		return nil, errors.New("getting service list", err)
 	}
 	tasks, err := c.docker.ListTasks(docker.ListTasksOptions{})
 	if err != nil {
-		return errors.New("getting task list", err)
+		return nil, errors.New("getting task list", err)
 	}
 	for _, svc := range services {
 		//service belongs to the rpi
@@ -146,11 +144,11 @@ func (c *Client) GetStatuses() ([]*mesosproto.TaskStatus, error) {
 }
 
 func (c *Client) serviceName(taskID string) string {
-	return c.rpiName + "+" + taskID
+	return c.rpiName + "-" + taskID
 }
 
 func (c *Client) taskID(serviceName string) string {
-	return strings.TrimPrefix(serviceName, c.rpiName + "+")
+	return strings.TrimPrefix(serviceName, c.rpiName + "-")
 }
 
 func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docker.CreateServiceOptions {
@@ -212,7 +210,7 @@ func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docke
 	//resources
 	resources := &swarm.Resources{
 		NanoCPUs: int64(task.Cpus * 1e9),
-		MemoryBytes: int64(task.Mem << 20),
+		MemoryBytes: int64(task.Mem) << 20,
 	}
 	return docker.CreateServiceOptions{
 		ServiceSpec: swarm.ServiceSpec{
@@ -245,7 +243,7 @@ func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docke
 	}
 }
 
-func (c *Client) convertToStatus(service swarm.Service, task swarm.Task) mesosproto.StatusUpdate {
+func (c *Client) convertToStatus(service swarm.Service, task swarm.Task) *mesosproto.TaskStatus {
 	taskID := c.taskID(service.Spec.Name)
 
 	message := task.Status.Message
