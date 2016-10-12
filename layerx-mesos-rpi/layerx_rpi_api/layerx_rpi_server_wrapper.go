@@ -74,7 +74,7 @@ func (wrapper *rpiApiServerWrapper) WrapWithRpi(m *martini.ClassicMartini, drive
 			if err != nil {
 				return empty, 500, errors.New("could not parse json to update task status message", err)
 			}
-			err = rpi_api_helpers.LaunchTasks(wrapper.taskChan, launchTasksMessage)
+			err = rpi_api_helpers.LaunchTasks(wrapper.mesosSchedulerDriver, wrapper.taskChan, launchTasksMessage)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"error": err,
