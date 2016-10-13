@@ -228,7 +228,6 @@ button:hover {
 
 .contain-to-grid {
     width: 100%;
-    background: #147698;
 }
 
 .top-bar {
@@ -237,7 +236,9 @@ button:hover {
     height: 3.4375rem;
     line-height: 3.4375rem;
     margin-bottom: 0;
-    position: relative;
+    position: fixed;
+    top: 0;
+    width: 100%;
 }
 
 .white-bg {
