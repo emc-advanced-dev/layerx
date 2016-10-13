@@ -54,7 +54,7 @@ func main() {
 	if *debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
-	logrus.AddHook(logger.LoggerNameHook{*name})
+	logrus.AddHook(&logger.LoggerNameHook{*name})
 
 	//register to layer x core
 	localip := net.ParseIP(*localIpStr)

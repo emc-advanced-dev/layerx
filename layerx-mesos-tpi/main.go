@@ -28,7 +28,7 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debugf("debugging activated")
 	}
-	logrus.AddHook(logger.LoggerNameHook{"MESOS-TPI"})
+	logrus.AddHook(&logger.LoggerNameHook{"MESOS-TPI"})
 
 	if *layerX == "" {
 		logrus.WithFields(logrus.Fields{}).Fatalf("-layerx flag not set")

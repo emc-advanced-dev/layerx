@@ -30,7 +30,7 @@ func main() {
 	if *debugPtr {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
-	logrus.AddHook(logger.LoggerNameHook{"CORE"})
+	logrus.AddHook(&logger.LoggerNameHook{"CORE"})
 
 	logrus.WithFields(logrus.Fields{
 		"port": *portPtr,

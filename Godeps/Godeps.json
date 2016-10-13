@@ -484,6 +484,10 @@
 			"Rev": "6dba816f1056709e29a1c442883cab1336d3c083"
 		},
 		{
+			"ImportPath": "golang.org/x/net/idna",
+			"Rev": "6dba816f1056709e29a1c442883cab1336d3c083"
+		},
+		{
 			"ImportPath": "golang.org/x/net/lex/httplex",
 			"Rev": "6dba816f1056709e29a1c442883cab1336d3c083"
 		},

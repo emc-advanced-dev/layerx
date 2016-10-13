@@ -34,7 +34,7 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debugf("debugging activated")
 	}
-	logrus.AddHook(logger.LoggerNameHook{*name})
+	logrus.AddHook(&logger.LoggerNameHook{*name})
 
 	localip := net.ParseIP(*localIpStr)
 	if localip == nil {
