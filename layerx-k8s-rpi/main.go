@@ -30,6 +30,7 @@ import (
 	"net"
 	"time"
 	"strings"
+	"github.com/emc-advanced-dev/pkg/logger"
 )
 
 const (
@@ -41,6 +42,7 @@ var (
 	port       = flag.String("port", "4000", "port to run on")
 	layerX     = flag.String("layerx", "", "address:port for layerx core")
 	localIpStr = flag.String("localip", "", "broadcast ip for the rpi")
+	name       = flag.String("name", rpi_name, "unique name for RPI")
 	debug      = flag.Bool("debug", false, "verbose logging")
 
 	statusUpdateInterval = time.Millisecond * 250 //1/4 second per status update
@@ -52,6 +54,7 @@ func main() {
 	if *debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+	logrus.AddHook(logger.LoggerNameHook{*name})
 
 	//register to layer x core
 	localip := net.ParseIP(*localIpStr)
@@ -66,13 +69,13 @@ func main() {
 	}
 	core := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
-		RpiName: rpi_name,
+		RpiName: *name,
 	}
 	logrus.WithFields(logrus.Fields{
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}).Infof("registering to layerx")
 
-	if err := core.RegisterRpi(rpi_name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
+	if err := core.RegisterRpi(*name, fmt.Sprintf("%s:%v", localip.String(), *port)); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err.Error(),
 			"layerx_url": *layerX,

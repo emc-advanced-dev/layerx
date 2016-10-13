@@ -15,6 +15,7 @@ import (
 	"github.com/layer-x/layerx-commons/lxutils"
 	"github.com/mesos/mesos-go/mesosproto"
 	"github.com/mesos/mesos-go/scheduler"
+	"github.com/emc-advanced-dev/pkg/logger"
 )
 
 const rpi_name = "Mesos-RPI-0.0.0"
@@ -25,7 +26,7 @@ func main() {
 	debug := flag.Bool("debug", false, "turn on debugging, default: false")
 	layerX := flag.String("layerx", "", "layer-x url, e.g. \"10.141.141.10:3000\"")
 	localIpStr := flag.String("localip", "", "binding address for the rpi")
-	rpiName := flag.String("name", rpi_name, "name to use to register to layerx")
+	name := flag.String("name", rpi_name, "name to use to register to layerx")
 	user := flag.String("user", "root", "mesos user to use on mesos")
 	flag.Parse()
 
@@ -33,6 +34,7 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debugf("debugging activated")
 	}
+	logrus.AddHook(logger.LoggerNameHook{*name})
 
 	localip := net.ParseIP(*localIpStr)
 	if localip == nil {
@@ -48,14 +50,14 @@ func main() {
 	rpiFramework := prepareFrameworkInfo(*layerX, *user)
 	rpiClient := &layerx_rpi_client.LayerXRpi{
 		CoreURL: *layerX,
-		RpiName: *rpiName,
+		RpiName: *name,
 	}
 
 	logrus.WithFields(logrus.Fields{
 		"rpi_url": fmt.Sprintf("%s:%v", localip.String(), *port),
 	}).Infof("registering to layerx")
 
-	err := rpiClient.RegisterRpi(*rpiName, fmt.Sprintf("%s:%v", localip.String(), *port))
+	err := rpiClient.RegisterRpi(*name, fmt.Sprintf("%s:%v", localip.String(), *port))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err.Error(),

@@ -27,6 +27,7 @@ import (
 	"net"
 	"time"
 	"github.com/emc-advanced-dev/layerx/layerx-swarm-rpi/swarm"
+	"github.com/emc-advanced-dev/pkg/logger"
 )
 
 const (
@@ -49,6 +50,8 @@ func main() {
 	if *debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+
+	logrus.AddHook(logger.LoggerNameHook{*name})
 
 	//register to layer x core
 	localip := net.ParseIP(*localIpStr)

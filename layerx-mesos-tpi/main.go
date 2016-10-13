@@ -13,6 +13,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-mesos-tpi/mesos_master_api/mesos_data"
 	"github.com/layer-x/layerx-commons/lxmartini"
 	"github.com/layer-x/layerx-commons/lxutils"
+	"github.com/emc-advanced-dev/pkg/logger"
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debugf("debugging activated")
 	}
+	logrus.AddHook(logger.LoggerNameHook{"MESOS-TPI"})
 
 	if *layerX == "" {
 		logrus.WithFields(logrus.Fields{}).Fatalf("-layerx flag not set")

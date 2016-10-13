@@ -13,6 +13,7 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/task_launcher"
 	"github.com/layer-x/layerx-commons/lxdatabase"
 	"github.com/layer-x/layerx-commons/lxmartini"
+	"github.com/emc-advanced-dev/pkg/logger"
 )
 
 func purgeState() error {
@@ -29,11 +30,13 @@ func main() {
 	if *debugPtr {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+	logrus.AddHook(logger.LoggerNameHook{"CORE"})
 
 	logrus.WithFields(logrus.Fields{
 		"port": *portPtr,
 		"etcd": *etcdUrlPtr,
 	}).Infof("Booting Layer-X Core...")
+
 
 	state := lxstate.NewState()
 	err := state.InitializeState("http://" + *etcdUrlPtr)
