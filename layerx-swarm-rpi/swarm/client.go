@@ -253,6 +253,8 @@ func convertToStatus(service swarm.Service, task swarm.Task) *mesosproto.TaskSta
 		mesosState = mesosproto.TaskState_TASK_STARTING
 	case swarm.TaskStateReady:
 		fallthrough
+	case swarm.TaskStateStarting:
+		fallthrough
 	case swarm.TaskStateRunning:
 		mesosState = mesosproto.TaskState_TASK_RUNNING
 	case swarm.TaskStateComplete:
