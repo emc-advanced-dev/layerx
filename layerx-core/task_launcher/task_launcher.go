@@ -8,15 +8,22 @@ import (
 	"github.com/emc-advanced-dev/layerx/layerx-core/lxtypes"
 	"github.com/emc-advanced-dev/layerx/layerx-core/rpi_messenger"
 	"github.com/emc-advanced-dev/pkg/errors"
+	"sync"
+	"time"
 )
 
+var retryInterval = time.Second * 15
+
 type TaskLauncher struct {
-	state *lxstate.State
+	state            *lxstate.State
+	recentlyLaunched map[string]bool
+	mapLock          sync.RWMutex
 }
 
 func NewTaskLauncher(state *lxstate.State) *TaskLauncher {
 	return &TaskLauncher{
 		state: state,
+		recentlyLaunched: make(map[string]bool),
 	}
 }
 
@@ -28,11 +35,28 @@ func (tl *TaskLauncher) LaunchStagedTasks() error {
 
 	nodeTaskMap := make(map[string][]*lxtypes.Task)
 	for _, task := range stagingTasks {
+		//don't rapidly try to relaunch tasks
+		tl.mapLock.RLock()
+		if tl.recentlyLaunched[task.TaskId] {
+			tl.mapLock.RUnlock()
+			continue
+		}
+		tl.mapLock.RUnlock()
 		nodeId := task.NodeId
 		_, ok := nodeTaskMap[nodeId]
 		if !ok {
 			nodeTaskMap[nodeId] = []*lxtypes.Task{}
 		}
+		//mark task so we don't try to relaunch it for the retryInterval
+		tl.mapLock.Lock()
+		tl.recentlyLaunched[task.TaskId] = true
+		tl.mapLock.Unlock()
+		go func(){
+			time.Sleep(retryInterval)
+			tl.mapLock.Lock()
+			delete(tl.recentlyLaunched, task.TaskId)
+			tl.mapLock.Unlock()
+		}()
 		nodeTaskMap[nodeId] = append(nodeTaskMap[nodeId], task)
 	}
 	for nodeId, tasksToLaunch := range nodeTaskMap {
