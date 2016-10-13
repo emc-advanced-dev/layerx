@@ -145,10 +145,6 @@
 			"Rev": "f2145db703495b2e525c59662db69a7344b00bb8"
 		},
 		{
-			"ImportPath": "github.com/elazarl/go-bindata-assetfs",
-			"Rev": "3dcc96556217539f50599357fb481ac0dc7439b9"
-		},
-		{
 			"ImportPath": "github.com/emc-advanced-dev/pkg/errors",
 			"Rev": "bb66dbd3628125f64907fba4905e47c8ead41436"
 		},
