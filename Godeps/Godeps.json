@@ -150,7 +150,11 @@
 		},
 		{
 			"ImportPath": "github.com/emc-advanced-dev/pkg/errors",
-			"Rev": "96dbf45cb1950972c03965dedb6f4572d451528f"
+			"Rev": "bb66dbd3628125f64907fba4905e47c8ead41436"
+		},
+		{
+			"ImportPath": "github.com/emc-advanced-dev/pkg/logger",
+			"Rev": "bb66dbd3628125f64907fba4905e47c8ead41436"
 		},
 		{
 			"ImportPath": "github.com/emicklei/go-restful",
