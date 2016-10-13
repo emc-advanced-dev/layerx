@@ -15,6 +15,11 @@ import (
 	"github.com/docker/docker/api/types/mount"
 )
 
+const (
+	taskIDKey = "taskID"
+	rpiNameKey = "rpiName"
+)
+
 type Client struct {
 	docker  *docker.Client
 	rpiName string
@@ -84,8 +89,8 @@ func (c *Client) LaunchTasks(launchTasksMessage layerx_rpi_client.LaunchTasksMes
 		if task.Container == nil || task.Container.GetDocker() == nil {
 			return errors.New("only tasks with docker images are supported for the docker swarm rpi", nil)
 		}
-		logrus.Infof("launching task", task)
 		svc := c.convertToServiceSpec(task, nodeName)
+		logrus.WithField("task", task).WithField("service", svc).Info("launching task")
 		res, err := c.docker.CreateService(svc)
 		if err != nil {
 			return errors.New("launching task", err)
@@ -104,8 +109,7 @@ func (c *Client) KillTask(taskID string) error {
 		return errors.New("getting service list", err)
 	}
 	for _, svc := range services {
-		//name is task id
-		if strings.Contains(svc.Spec.Name, c.serviceName(taskID)) {
+		if svc.Spec.Labels[taskIDKey] == taskID {
 			if err := c.docker.RemoveService(docker.RemoveServiceOptions{ID: svc.ID}); err != nil {
 				return errors.New("deleting service " + taskID, err)
 			}
@@ -128,11 +132,11 @@ func (c *Client) GetStatuses() ([]*mesosproto.TaskStatus, error) {
 	}
 	for _, svc := range services {
 		//service belongs to the rpi
-		if strings.Contains(svc.Spec.Name, c.rpiName) {
+		if svc.Spec.Labels[rpiNameKey] == c.rpiName {
 			for _, task := range tasks {
 				//find the only task that should exist for this service
 				if task.ServiceID == svc.ID {
-					statuses = append(statuses, c.convertToStatus(svc, task))
+					statuses = append(statuses, convertToStatus(svc, task))
 					break
 				}
 			}
@@ -143,19 +147,10 @@ func (c *Client) GetStatuses() ([]*mesosproto.TaskStatus, error) {
 	return statuses, nil
 }
 
-func (c *Client) serviceName(taskID string) string {
-	return c.rpiName + "-" + taskID
-}
-
-func (c *Client) taskID(serviceName string) string {
-	return strings.TrimPrefix(serviceName, c.rpiName + "-")
-}
-
 func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docker.CreateServiceOptions {
 	logrus.Debug("converting task", task, "to service spec")
 
 	nodeID := nodeName
-	name := c.serviceName(task.TaskId)
 	volumes := task.Container.GetVolumes()
 	image := task.Container.Docker.GetImage()
 
@@ -215,7 +210,10 @@ func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docke
 	return docker.CreateServiceOptions{
 		ServiceSpec: swarm.ServiceSpec{
 			Annotations: swarm.Annotations{
-				Name: name,
+				Labels: map[string]string{
+					taskIDKey: task.TaskId,
+					rpiNameKey: c.rpiName,
+				},
 			},
 			TaskTemplate: swarm.TaskSpec{
 				ContainerSpec: swarm.ContainerSpec{
@@ -243,8 +241,8 @@ func (c *Client) convertToServiceSpec(task *lxtypes.Task, nodeName string) docke
 	}
 }
 
-func (c *Client) convertToStatus(service swarm.Service, task swarm.Task) *mesosproto.TaskStatus {
-	taskID := c.taskID(service.Spec.Name)
+func convertToStatus(service swarm.Service, task swarm.Task) *mesosproto.TaskStatus {
+	taskID := service.Spec.Labels[taskIDKey]
 
 	message := task.Status.Message
 	var mesosState mesosproto.TaskState
