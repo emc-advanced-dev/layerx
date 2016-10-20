@@ -1,8 +1,11 @@
 # <img src="http://i.imgur.com/idwFRSK.png" alt="Container Scheduling across Clusters" width="159" height="50">
 
-**Layer-X** is a framework for connecting **distributed applications** with **resource clusters** in a *vendor-agnostic* way.
+**Layer X** a single centralized service that manages containers across multiple clusters, multiple clouds, and multiple cluster managers. 
 
-**Layer-X** abstracts the interface to cluster managers like [*Mesos*](http://mesos.apache.org/), [*Kubernetes*](http://kubernetes.io/), and [*Docker Swarm*](https://docs.docker.com/swarm/), allowing any application that runs Docker containers to run identically on any resource manager.
+**Layer-X** joins together pools cluster managers such as [*Kubernetes*](http://kubernetes.io/), [*Docker Swarm*](https://docs.docker.com/swarm/), and [*Mesos*](http://mesos.apache.org/) into a single shared group of resources, where any container can be managed, scaled, migrated across a unified resource pool. 
+
+**Layer X** exposes a set of cluster-management APIs including scheduling & resource management to so-called “brains” which enables advanced features such as live migration & continuous placement of containers, easy flex up & flex down of cluster, and dynamic resizing of resource constraints.
+
 
 ![Layer-X Arch](http://i.imgur.com/O5TxJLF.png "Architecture")
 
