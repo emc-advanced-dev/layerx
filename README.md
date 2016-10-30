@@ -1,8 +1,6 @@
 # <img src="http://i.imgur.com/idwFRSK.png" alt="Container Scheduling across Clusters" width="159" height="50">
 
-**Layer X** a single centralized service that manages containers across multiple clusters, multiple clouds, and multiple cluster managers. 
-
-**Layer-X** joins together pools cluster managers such as [*Kubernetes*](http://kubernetes.io/), [*Docker Swarm*](https://docs.docker.com/swarm/), and [*Mesos*](http://mesos.apache.org/) into a single shared group of resources, where any container can be managed, scaled, migrated across a unified resource pool. 
+**Layer X** a single centralized service that manages containers across multiple clusters, multiple clouds, and multiple cluster managers. it joins together pools cluster managers such as [*Kubernetes*](http://kubernetes.io/), [*Docker Swarm*](https://docs.docker.com/swarm/), and [*Mesos*](http://mesos.apache.org/) into a single shared group of resources, where any container can be managed, scaled, migrated across a unified resource pool. 
 
 **Layer X** exposes a set of cluster-management APIs including scheduling & resource management to so-called “brains” which enables advanced features such as live migration & continuous placement of containers, easy flex up & flex down of cluster, and dynamic resizing of resource constraints.
 
