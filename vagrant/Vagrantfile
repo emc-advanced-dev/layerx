@@ -3,18 +3,16 @@
 require 'yaml'
 require './lib/gen_node_infos'
 require './lib/predicates'
+require './lib/helpers'
 
-def is_plugin(name)
-  if Vagrant.has_plugin?(name)
-    puts "using #{name}"
-  else
-    puts "please run vagrant plugin install #{name}"
-    exit(1)
-  end
-end
 base_dir = File.expand_path(File.dirname(__FILE__))
 conf = YAML.load_file(File.join(base_dir, "cluster.yml"))
 ninfos = gen_node_infos(conf)
+
+# Kubernetes
+if conf["deploy_kubernetes"]
+  handle_kubernetes_action conf
+end
 
 ## vagrant plugins required:
 # vagrant-aws, vagrant-berkshelf, vagrant-omnibus, vagrant-hosts, vagrant-cachier

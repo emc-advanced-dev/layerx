@@ -24,6 +24,9 @@ slave_cpus : 2
 zk_ipbase    : "172.31.0."
 master_ipbase: "172.31.1."
 slave_ipbase : "172.31.2."
+k8s_ip_base : "172.31.3."
+
+deploy_kubernetes: true
 
 #marathon will be installed on masters
 marathon_enable: true
