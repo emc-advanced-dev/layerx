@@ -12,7 +12,7 @@ This directory uses a set of scripts ([vagrant]() & bash) to deploy each of the 
   - One K8s vm
   - One docker-swarm node
 
-Prerequisites:
+## Prerequisites:
 
 - [Virtualbox](https://www.virtualbox.org/wiki/Downloads) or an AWS account
 - [Vagrant](https://www.vagrantup.com/docs/installation/)
@@ -27,3 +27,23 @@ Prerequisites:
 
   If you want a Docker Swarm node in the cluster:
 - [docker-machine](https://docs.docker.com/machine/install-machine/) and [docker cli >= 1.12](https://github.com/docker/docker/releases)
+
+
+## Kubernetes Prerequisities
+
+Install Kubectl:
+```bash
+# linux/amd64
+curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+# OS X/amd64 
+curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/darwin/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+```
+Install Minikube:
+````bash
+# linux/amd64
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.12.2/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+# OS X/amd64 
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.12.2/minikube-darwin-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+```
+
+## Docker Swarm Prerequisites
