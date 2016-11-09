@@ -12,10 +12,10 @@ slave_n: 1      # hostname will be slave1,slave2,…
 ##########################################
 zk_mem     : 256
 zk_cpus    : 1
-master_mem : 256
+master_mem : 1024
 master_cpus: 1
-slave_mem  : 2048
-slave_cpus : 2
+slave_mem  : 1024
+slave_cpus : 1
 
 # private ip bases
 # When ec2, this should be matched with
