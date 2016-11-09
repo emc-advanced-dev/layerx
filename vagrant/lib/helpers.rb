@@ -13,7 +13,7 @@ def in_path?(cmd)
   ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
     exts.each { |ext|
       exe = File.join(path, "#{cmd}#{ext}")
-      exe if File.executable?(exe) && !File.directory?(exe)
+      return exe if File.executable?(exe) && !File.directory?(exe)
     }
   end
   nil
