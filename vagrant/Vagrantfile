@@ -62,58 +62,6 @@ Vagrant.configure("2") do |config|
         end
       end
 
-      cfg.vm.provider :aws do |aws, override|
-        aws.access_key_id = conf["access_key_id"]
-        aws.secret_access_key = conf["secret_access_key"]
-
-        aws.region = conf["region"]
-        if conf["custom_ami"] then
-            override.vm.box = "dummy"
-            override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-            aws.ami = conf["custom_ami"]
-        end
-
-        # workaround for https://github.com/mitchellh/vagrant-aws/issues/275
-        aws.ami=""
-
-        aws.instance_type = ninfo[:instance_type]
-        aws.keypair_name = conf["keypair_name"]
-        aws.subnet_id = conf["subnet_id"]
-        aws.security_groups = conf["security_groups"]
-        aws.private_ip_address = ninfo[:ip]
-        aws.tags = {
-          Name: "vagrant-mesos-#{ninfo[:hostname]}"
-        }
-        if !conf["default_vpc"] then
-          aws.associate_public_ip = true
-        end
-
-        override.ssh.username = "ubuntu"
-        override.ssh.private_key_path = conf["ssh_private_key_path"]
-
-        override.vm.provision :shell do |s|
-          s.path = "scripts/populate_sshkey.sh"
-          s.args = "/home/ubuntu ubuntu"
-        end
-
-        if master?(ninfo[:hostname]) || slave?(ninfo[:hostname]) then
-          override.vm.provision :shell , :inline => <<-SCRIPT
-            PUBLIC_DNS=`wget -q -O - http://169.254.169.254/latest/meta-data/public-hostname`
-            hostname $PUBLIC_DNS
-            echo $PUBLIC_DNS > /etc/hostname
-            HOSTNAME=$PUBLIC_DNS  # Fix the bash built-in hostname variable too
-            SCRIPT
-        end
-
-        if master?(ninfo[:hostname]) then
-          override.vm.provision :shell , :inline => 'restart mesos-master'
-        end
-
-        if slave?(ninfo[:hostname]) then
-          override.vm.provision :shell , :inline => 'restart mesos-slave'
-        end
-      end
-
       # mesos-master doesn't create its work_dir.
       master_work_dir = "/var/run/mesos"
       if master?(ninfo[:hostname]) then
