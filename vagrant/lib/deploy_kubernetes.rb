@@ -45,13 +45,6 @@ def stop_kubernetes
 end
 
 def destroy_kubernetes
-  unless ARGV.include? "-f"
-    puts "Are you sure you want to destroy the 'minikube' VM? [y/N]"
-    ans = gets
-    unless ans == 'y'
-      return
-    end
-  end
   puts "destroy kubernetes"
   system("minikube delete")
 end
