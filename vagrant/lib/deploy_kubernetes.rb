@@ -1,17 +1,42 @@
 require_relative './helpers'
 require 'yaml'
+require 'fileutils'
 
+def get_kubeconfig conf
+  source_cfg = "#{ENV['HOME']}/.kube/config"
+  destdir = "#{Dir.pwd}/minikube/"
+  FileUtils.mkdir_p destdir
 
-def get_kubeconfig
-  kubeconfig = "#{ENV['HOME']}/.kube/config"
-  destdir = Dir.pwd
-  FileUtils.cp(kubeconfig, destdir)
+  kubecfg = YAML.load_file(source_cfg)
+  ca_file = nil
+  kubecfg['clusters'].each do |cluster|
+    if cluster['name'] == 'minkube'
+      ca_file = cluster['cluster']['certificate-authority']
+      cluster['cluster']['certificate-authority'] = "#{conf['kube_cfg_home']}/ca.crt"
+      break
+    end
+  end
+  client_certificate = nil
+  client_key = nil
+  kubecfg['users'].each do |user|
+    if user['name'] == 'minikube'
+      client_certificate = user['user']['client-certificate']
+      client_key = user['user']['client-key']
+      user['user']['client-certificate'] = "#{conf['kube_cfg_home']}/apiserver.crt"
+      user['user']['client-key'] = "#{conf['kube_cfg_home']}/apiserver.key"
+    end
+  end
+
+  FileUtils.cp(ca_file, "#{destdir}/ca.crt")
+  FileUtils.cp(client_certificate, "#{destdir}/apiserver.crt")
+  FileUtils.cp(client_key, "#{destdir}/apiserver.key")
+  File.open("#{destdir}/kubeconfig", 'w') {|f| f.write kubecfg.to_yaml }
 end
 
 def deploy_kubernetes conf
   puts "deploying kubernetes"
   system("minikube start --host-only-cidr=\"#{conf['k8s_ip_base']}1/24\"")
-  get_kubeconfig
+  get_kubeconfig conf
 end
 
 def stop_kubernetes

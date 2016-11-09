@@ -84,9 +84,14 @@ Vagrant.configure("2") do |config|
         if master?(ninfo[:hostname]) then
 
           #upload kubeconfig
-          kubeconfig = "/home/vagrant/kubeconfig"
+          kubeconfig_home = cfg["kube_cfg_home"]
+
           if conf["deploy_kubernetes"]
-            cfg.vm.provision "file", source: "./kubeconfig", destination: kubeconfig
+            cfg.vm.provision "shell", inline: "mkdir -p #{kubeconfig_home}"
+            cfg.vm.provision "file", source: "./minikube/kubeconfig", destination: kubeconfig_home
+            cfg.vm.provision "file", source: "./minikube/ca.crt", destination: kubeconfig_home
+            cfg.vm.provision "file", source: "./minikube/apiserver.crt", destination: kubeconfig_home
+            cfg.vm.provision "file", source: "./minikube/apiserver.key", destination: kubeconfig_home
           end
 
           chef.add_recipe "mesos::master"
@@ -109,7 +114,7 @@ Vagrant.configure("2") do |config|
                 :bind_address => ninfos[:master].map{|master| master[:ip]}[0],
                 :deploy_marathon => true,
                 :deploy_kubernetes => conf["deploy_kubernetes"],
-                :kubeconfig => kubeconfig,
+                :kubeconfig => "#{kubeconfig_home}/kubeconfig",
               },
               :mesos=> {
                 :mesosphere => {

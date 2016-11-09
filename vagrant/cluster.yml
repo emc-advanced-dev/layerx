@@ -27,6 +27,7 @@ slave_ipbase : "172.31.2."
 k8s_ip_base : "172.31.3."
 
 deploy_kubernetes: true
+kube_cfg_home: "/home/vagrant/kube_home"
 
 #marathon will be installed on masters
 marathon_enable: true
