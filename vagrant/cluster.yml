@@ -25,36 +25,11 @@ zk_ipbase    : "172.31.0."
 master_ipbase: "172.31.1."
 slave_ipbase : "172.31.2."
 k8s_ip_base : "172.31.3."
+docker_swarm_ip_base : "172.31.4."
 
 deploy_kubernetes: true
-kube_cfg_home: "/home/vagrant/kube_home"
+kube_cfg_home: "/vagrant/minikube"
 
-#marathon will be installed on masters
-marathon_enable: true
-chronos_enable: true 
-
-# EC2 Configurations
-# please choose one region from
-# ["ap-northeast-1", "ap-southeast-1", "eu-west-1", "sa-east-1",
-#  "us-east-1", "us-west-1", "ap-southeast-2", "us-west-2"]
-# NOTE: if you used non-default vpc, you should make sure that
-#       limit of the elastic ips is no less than (zk_n + master_n + slave_n).
-#       In EC2, the limit default is 5.
-########################
-access_key_id:  EDIT_HERE
-secret_access_key: EDIT_HERE
-default_vpc: true                     # default vpc or not.
-subnet_id: EDIT_HERE               # VPC subnet id
-security_groups: ["EDIT_HERE"]     # array of VPN security groups. e.g. ['sg*** ']
-keypair_name: EDIT_HERE
-ssh_private_key_path: EDIT_HERE
-region: EDIT_HERE
-
-# set a custom AMI to use if you need something other than the defaults
-#custom_ami: EDIT_HERE
-
-# see http://aws.amazon.com/ec2/instance-types/#selecting-instance-types
-zk_instance_type: m1.small
-master_instance_type: m1.small
-slave_instance_type: m1.small
-marathon_instance_type: m1.small
+deploy_docker_swarm: true
+docker_machine_name: 'swarm-layerx'
+swarm_cert_home: "/vagrant/swarm"

@@ -151,3 +151,4 @@ bin/
 bin*
 layerx-core/bindata/bindata_assetfs.go
 minikube
+swarm
