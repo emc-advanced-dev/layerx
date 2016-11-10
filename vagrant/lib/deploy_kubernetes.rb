@@ -10,7 +10,7 @@ def get_kubeconfig conf
   kubecfg = YAML.load_file(source_cfg)
   ca_file = nil
   kubecfg['clusters'].each do |cluster|
-    if cluster['name'] == 'minkube'
+    if cluster['name'] == 'minikube'
       ca_file = cluster['cluster']['certificate-authority']
       cluster['cluster']['certificate-authority'] = "#{conf['kube_cfg_home']}/ca.crt"
       break
