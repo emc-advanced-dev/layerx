@@ -40,7 +40,7 @@ end
 
 def deploy_docker_swarm conf
   puts "deploying docker_swarm"
-  system("docker-machine create -d virtualbox --virtualbox-hostonly-cidr #{conf['docker_swarm_ip_base']}1/24 #{conf['docker_machine_name']}")
+  system("docker-machine create -d virtualbox --virtualbox-hostonly-cidr #{conf['docker_swarm_ipbase']}1/24 #{conf['docker_machine_name']}")
   docker_config = get_swarm_config conf
   ENV['DOCKER_TLS_VERIFY'] = docker_config[:docker_tls_verify]
   ENV['DOCKER_HOST'] = docker_config[:docker_host]

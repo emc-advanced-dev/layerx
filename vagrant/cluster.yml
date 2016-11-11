@@ -24,8 +24,8 @@ slave_cpus : 1
 zk_ipbase    : "172.31.0."
 master_ipbase: "172.31.1."
 slave_ipbase : "172.31.2."
-k8s_ip_base : "172.31.3."
-docker_swarm_ip_base : "172.31.4."
+k8s_ipbase : "172.31.3."
+docker_swarm_ipbase : "172.31.4."
 
 deploy_kubernetes: true
 kube_cfg_home: "/vagrant/minikube"

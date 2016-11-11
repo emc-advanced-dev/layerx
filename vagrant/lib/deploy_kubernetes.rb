@@ -35,7 +35,7 @@ end
 
 def deploy_kubernetes conf
   puts "deploying kubernetes"
-  system("minikube start --host-only-cidr=\"#{conf['k8s_ip_base']}1/24\"")
+  system("minikube start --host-only-cidr=\"#{conf['k8s_ipbase']}1/24\"")
   get_kubeconfig conf
 end
 
