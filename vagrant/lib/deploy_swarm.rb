@@ -34,7 +34,13 @@ def get_swarm_config conf
       docker_machine_name: conf['docker_machine_name'],
       docker_machine_ip: docker_machine_ip
   }
-  File.open("#{destdir}/docker_config.yml", 'w') {|f| f.write docker_config.to_yaml }
+  docker_env = "#run source docker_env.sh
+export DOCKER_TLS_VERIFY=#{docker_tls_verify}
+export DOCKER_HOST=#{docker_host}
+export DOCKER_CERT_PATH=#{conf["swarm_cert_home"]}
+export DOCKER_MACHINE_NAME=#{conf['docker_machine_name']}
+"
+  File.open("#{destdir}/docker_env.sh", 'w') {|f| f.write docker_env }
   docker_config
 end
 
