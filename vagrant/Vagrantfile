@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
   unless conf["custom_ami"]
     # https://vagrantcloud.com/everpeace/boxes/mesos
-    config.vm.box = "everpeace/mesos"
+    config.vm.box = "ubuntu/trusty64"
   end
 
   # enable plugins
@@ -58,7 +58,7 @@ Vagrant.configure("2") do |config|
         override.vm.network :private_network, :ip => ninfo[:ip]
         override.vm.provision :hosts
 
-        vb.name = 'vagrant-mesos-' + ninfo[:hostname]
+        vb.name = 'vagrant-layerx-' + ninfo[:hostname]
         vb.customize ["modifyvm", :id, "--memory", ninfo[:mem], "--cpus", ninfo[:cpus] ]
 
         override.vm.provision :shell do |s|
@@ -78,11 +78,8 @@ Vagrant.configure("2") do |config|
         cfg.vm.provision :shell, :inline => "mkdir -p #{master_work_dir}"
       end
 
-
-      if master?(ninfo[:hostname])
-        #install marathon on masters
-        cfg.vm.provision "shell", path: "install-marathon.sh"
-      end
+      #install java, zookeeper on all nodes
+      cfg.vm.provision "shell", path: "install-zookeeper.sh"
 
       cfg.vm.provision :chef_solo do |chef|
         chef.log_level = :debug

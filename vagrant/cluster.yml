@@ -10,7 +10,7 @@ slave_n: 1      # hostname will be slave1,slave2,…
 
 # Memory and Cpus setting(only for virtualbox)
 ##########################################
-zk_mem     : 256
+zk_mem     : 512
 zk_cpus    : 1
 master_mem : 1024
 master_cpus: 1
