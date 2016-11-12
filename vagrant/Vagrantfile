@@ -1,0 +1,214 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'yaml'
+require './lib/gen_node_infos'
+require './lib/predicates'
+require './lib/helpers'
+require './lib/deploy_kubernetes'
+require './lib/deploy_swarm'
+
+base_dir = File.expand_path(File.dirname(__FILE__))
+conf = YAML.load_file(File.join(base_dir, "cluster.yml"))
+ninfos = gen_node_infos(conf)
+swarm_cfg = {}
+
+## vagrant plugins required:
+# vagrant-aws, vagrant-berkshelf, vagrant-omnibus, vagrant-hosts, vagrant-cachier
+Vagrant.configure("2") do |config|
+  config.vm.box_check_update = false
+  unless conf["custom_ami"]
+    # https://vagrantcloud.com/everpeace/boxes/mesos
+    config.vm.box = "ubuntu/trusty64"
+  end
+
+  # enable plugins
+  config.berkshelf.enabled = true
+  config.berkshelf.berksfile_path ="./Berksfile"
+  config.omnibus.chef_version = '12.10.24'
+
+  # if you want to use vagrant-cachier,
+  # please install vagrant-cachier plugin.
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.enable :apt
+    config.cache.enable :chef
+  end
+
+  is_plugin("vagrant-berkshelf")
+  is_plugin("vagrant-omnibus")
+  is_plugin("vagrant-hosts")
+  is_plugin("vagrant-triggers")
+
+  config.trigger.before :ALL, :vm => ["master1"] do
+    # Kubernetes
+    if conf["deploy_kubernetes"]
+      handle_kubernetes_action conf
+    end
+
+    # Docker-Swarm
+    if conf["deploy_docker_swarm"]
+      handle_docker_swarm_action conf
+    end
+  end
+
+  config.trigger.before :up, :vm => ["master1"] do
+    # Docker-Swarm
+    if conf["deploy_docker_swarm"]
+      swarm_cfg = get_swarm_config conf
+    end
+  end
+
+  # define VMs. all VMs have identical configuration.
+  [ninfos[:zk], ninfos[:master], ninfos[:slave]].flatten.each_with_index do |ninfo, i|
+    config.vm.define ninfo[:hostname] do |cfg|
+
+      cfg.vm.provider :virtualbox do |vb, override|
+        override.vm.hostname = ninfo[:hostname]
+        override.vm.network :private_network, :ip => ninfo[:ip]
+        override.vm.provision :hosts
+
+        vb.name = 'vagrant-layerx-' + ninfo[:hostname]
+        vb.customize ["modifyvm", :id, "--memory", ninfo[:mem], "--cpus", ninfo[:cpus] ]
+
+        override.vm.provision :shell do |s|
+          s.path = "scripts/populate_sshkey.sh"
+          s.args = "/root root"
+        end
+
+        override.vm.provision :shell do |s|
+          s.path = "scripts/populate_sshkey.sh"
+          s.args = "/home/vagrant vagrant"
+        end
+      end
+
+      # mesos-master doesn't create its work_dir.
+      master_work_dir = "/var/run/mesos"
+      if master?(ninfo[:hostname])
+        cfg.vm.provision :shell, :inline => "mkdir -p #{master_work_dir}"
+      end
+
+      #install java, zookeeper on all nodes
+      cfg.vm.provision "shell", path: "install-zookeeper.sh"
+
+      cfg.vm.provision :chef_solo do |chef|
+        chef.log_level = :debug
+        chef.channel = "stable"
+        chef.version = "12.10.24"
+        chef.add_recipe "apt"
+
+        if master?(ninfo[:hostname])
+          chef.add_recipe "mesos::master"
+          chef.add_recipe "golang"
+          chef.add_recipe "golang::packages"
+          chef.add_recipe "layerx"
+          chef.json  = {
+              :go => {
+                  :version => "1.7",
+                  :owner => "vagrant",
+                  :group => "vagrant",
+                  :packages => [
+                      "github.com/jteeuwen/go-bindata/...",
+                      "github.com/elazarl/go-bindata-assetfs/..."
+                  ]
+              },
+              :layerx => {
+                  :user => "vagrant",
+                  :group => "vagrant",
+                  :bind_address => ninfos[:master].map{|master| master[:ip]}[0],
+                  :deploy_marathon => true,
+                  :deploy_kubernetes => conf["deploy_kubernetes"],
+                  :kubeconfig => "#{conf['kube_cfg_home']}/kubeconfig",
+                  :deploy_docker_swarm => conf["deploy_docker_swarm"],
+                  :docker_cert_path => conf["swarm_cert_home"],
+                  :docker_tls_verify => swarm_cfg[:docker_tls_verify],
+                  :docker_host => swarm_cfg[:docker_host],
+                  :docker_machine_name => swarm_cfg[:docker_machine_name]
+              },
+              :mesos=> {
+                  :mesosphere => {
+                      build_version: conf["mesos_build_version"]
+                  },
+                  :type         => "mesosphere",
+                  :version      => conf["mesos_version"],
+                  :master_ips   => ninfos[:master].map { |m| "#{m[:ip]}" },
+                  :slave_ips    => ninfos[:slave].map { |s| "#{s[:ip]}" },
+                  :master       => if ninfos[:zk].length > 0 then
+                                     {
+                                         :cluster => "MyCluster",
+                                         :quorum => "#{(ninfos[:master].length.to_f/2).ceil}",
+                                         :work_dir => master_work_dir,
+                                         :zk => "zk://"+ninfos[:zk].map{|zk| zk[:ip]+":2181"}.join(", ")+"/mesos",
+                                         :ip => "#{ninfo[:ip]}"
+                                     }
+                                   else
+                                     {
+                                         :cluster => "MyCluster",
+                                         :quorum => "#{(ninfos[:master].length.to_f/2).ceil}",
+                                         :work_dir => master_work_dir,
+                                         :ip => "#{ninfo[:ip]}"
+                                     }
+                                   end
+              }
+          }
+
+        elsif slave?(ninfo[:hostname]) then
+          chef.add_recipe "mesos::slave"
+
+          chef.json = {
+              :mesos => {
+                  :mesosphere => {
+                      build_version: conf["mesos_build_version"]
+                  },
+                  :type         => "mesosphere",
+                  :version      => conf["mesos_version"],
+                  :slave        => {
+                      :master       => if ninfos[:zk].length > 0
+                                         "zk://"+ninfos[:zk].map{|zk| zk[:ip]+":2181"}.join(", ")+"/mesos"
+                                       else
+                                         "#{ninfos[:master][0][:ip]}:5050"
+                                       end,
+                      :ip           => "#{ninfo[:ip]}",
+                      :containerizers => "docker,mesos",
+                      :isolation => "cgroups/cpu,cgroups/mem",
+                      :hostname => "#{ninfo[:ip]}",
+                      :executor_registration_timeout => "5mins",
+                      :resources => "ports:[31000-32000,4040-4040,5432-5433,6000-7001,7080,7081,7199-7199,8012,8983,9042-9042,9160-9160,27000-29000,61621-61621]",
+                  }
+              }
+          }
+
+        end
+      end
+
+      cfg.vm.provision :shell, :inline => <<-SCRIPT
+      echo """172.31.1.11 master1
+      172.31.1.12 master2
+      172.31.2.11 slave1
+      172.31.2.12 slave2
+      172.31.2.13 slave3
+      172.31.2.14 slave4""" | sudo tee -a /etc/hosts
+      SCRIPT
+
+      if zk?(ninfo[:hostname])
+        myid = (/zk([0-9]+)/.match ninfo[:hostname])[1]
+        cfg.vm.provision :shell, :inline => <<-SCRIPT
+          sudo mkdir -p /tmp/zookeeper
+          sudo chmod 755 /tmp/zookeeper
+          sudo chown zookeeper /tmp/zookeeper
+          sudo -u zookeeper echo #{myid} > /tmp/zookeeper/myid
+          sudo -u zookeeper /opt/chef/embedded/bin/ruby /vagrant/scripts/gen_zoo_conf.rb > /etc/zookeeper/conf/zoo.cfg
+          sudo restart zookeeper
+        SCRIPT
+      end
+
+      # If you wanted use `.dockercfg` file
+      # Please place the file simply on this directory
+      # if File.exist?(".dockercfg")
+      #   config.vm.provision :shell, :priviledged => true, :inline => <<-SCRIPT
+      #     cp /vagrant/.dockercfg /root/.dockercfg
+      #     chmod 600 /root/.dockercfg
+      #     chown root /root/.dockercfg
+      #   SCRIPT
+      # end
+    end
+  end
+end

@@ -1,0 +1,35 @@
+# Mesos cluster configurations
+mesos_version: "0.28.0"
+mesos_build_version: "-2.0.16.ubuntu1404"
+
+# The numbers of servers
+##############################
+zk_n: 1          # hostname will be zk1, zk2, …
+master_n: 1      # hostname will be master1,master2,…
+slave_n: 1      # hostname will be slave1,slave2,…
+
+# Memory and Cpus setting(only for virtualbox)
+##########################################
+zk_mem     : 512
+zk_cpus    : 1
+master_mem : 1024
+master_cpus: 1
+slave_mem  : 1024
+slave_cpus : 1
+
+# private ip bases
+# When ec2, this should be matched with
+# private addresses defined by subnet_id below.
+################################################
+zk_ipbase    : "172.31.0."
+master_ipbase: "172.31.1."
+slave_ipbase : "172.31.2."
+k8s_ipbase : "172.31.3."
+docker_swarm_ipbase : "172.31.4."
+
+deploy_kubernetes: true
+kube_cfg_home: "/vagrant/minikube"
+
+deploy_docker_swarm: true
+docker_machine_name: 'swarm-layerx'
+swarm_cert_home: "/vagrant/swarm"

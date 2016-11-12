@@ -1,0 +1,4 @@
+.vagrant
+Berksfile.lock
+generated
+.idea
