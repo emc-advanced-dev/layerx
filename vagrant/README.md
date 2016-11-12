@@ -69,3 +69,5 @@ To turn off deploying Kubernetes or Docker Swarm, set `deploy_kubernetes` or `de
 `cd` to this directory and simply run `vagrant up`. 
 
 Deploying may take 15-30 minutes to deploy, and consume several GB of memory for the VMs, as well as a few tens of GB of disk space. When deploy finishes, direct your browser to http://172.31.1.11:5000/ to see the Layer-x UI. 
+
+To kill the cluster, run `vargant destroy`
