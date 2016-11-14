@@ -4,7 +4,7 @@
 
 **Layer X** exposes a set of cluster-management APIs including scheduling & resource management to so-called “brains” which enables advanced features such as live migration & continuous placement of containers, easy flex up & flex down of cluster, and dynamic resizing of resource constraints.
 
-To learn more about the motivation behind project Layer X, watch our [slides](http://www.slideshare.net/IditLevine/layer-x-oss-65996486).
+To learn more about the motivation behind project Layer X, watch our [slides](http://www.slideshare.net/IditLevine/layer-x-oss-65996486).<BR>
 To stay up-to-date on Layer X, join us on our [slack channel](http://project-unik.io).
 
 
